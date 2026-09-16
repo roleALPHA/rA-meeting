@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { calendarEntries, calendarEntry } from '../server/calendar.js';
+import { calendarEntries, calendarEntry } from '../shared/calendar.js';
 const event = { id: 'occurrence-id', subject: 'Weekly', type: 'occurrence', seriesMasterId: 'series-id', start: { dateTime: '2026-09-16T09:00:00.0000000', timeZone: 'UTC' }, end: { dateTime: '2026-09-16T10:00:00.0000000', timeZone: 'UTC' }, onlineMeeting: { joinUrl: 'https://teams.microsoft.com/l/meetup-join/test' }, webLink: 'https://outlook.office.com/calendar/item/test' };
 test('calendar uses expanded occurrences and immutable IDs, normalizes UTC, exposes truncation', async () => {
   const result = await calendarEntries('organizer', async (path, init) => {

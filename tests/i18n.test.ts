@@ -4,7 +4,7 @@ import ts from 'typescript';
 import { readFileSync } from 'node:fs';
 import { catalog } from '../shared/locales/catalog.js';
 import { translate,parseLanguage } from '../shared/i18n.js';
-import { seedTemplates } from '../server/templates.js';
+import { seedTemplates } from '../shared/templates.js';
 test('all explicit UI translation keys have English, French and Spanish text',()=>{
  for(const file of ['App','Tensions','CalendarLink','Assistant','Preferences','GovernanceAssistant','Onboarding']){
  const ast=ts.createSourceFile(file,readFileSync(`client/${file}.tsx`,'utf8'),ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);

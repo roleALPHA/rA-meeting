@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { WandSparkles } from 'lucide-react';
 import { useApi } from './api-context';
 import { t as tr, language } from './i18n';

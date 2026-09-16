@@ -159,11 +159,6 @@ export const catalog: Record<string, { en: string; fr: string; es: string }> = {
     "fr": "UUID du cercle",
     "es": "UUID del círculo"
   },
-  "Entra-Objekt-IDs der Teilnehmer (kommagetrennt)": {
-    "en": "Participants’ Entra object IDs (comma separated)",
-    "fr": "ID d’objet Entra des participants (séparés par des virgules)",
-    "es": "ID de objeto Entra de los participantes (separados por comas)"
-  },
   "Teilnehmer erhalten Lesezugriff. Die erstellende Person moderiert.": {
     "en": "Participants have read access. The creator facilitates.",
     "fr": "Les participants ont un accès en lecture. La personne qui crée la réunion la facilite.",
@@ -569,16 +564,6 @@ export const catalog: Record<string, { en: string; fr: string; es: string }> = {
     "fr": "Lien Teams",
     "es": "Vinculación con Teams"
   },
-  "Automatisch importieren, sobald das Transkript verfügbar ist.": {
-    "en": "Import automatically when the transcript is available.",
-    "fr": "Importer automatiquement dès que la transcription est disponible.",
-    "es": "Importar automáticamente cuando esté disponible la transcripción."
-  },
-  "Automatische KI-Auswertung ist aktiviert; Ergebnisse bleiben Vorschläge.": {
-    "en": "Automatic AI analysis is enabled; outcomes remain proposals.",
-    "fr": "L’analyse automatique par IA est activée ; les résultats restent des propositions.",
-    "es": "El análisis automático por IA está activado; los resultados siguen siendo propuestas."
-  },
   "Die KI-Auswertung startest du anschließend bewusst über „Ergebnisse analysieren“.": {
     "en": "Then start AI analysis explicitly using “Analyze outcomes”.",
     "fr": "Lancez ensuite l’analyse volontairement via « Analyser les résultats ».",
@@ -588,11 +573,6 @@ export const catalog: Record<string, { en: string; fr: string; es: string }> = {
     "en": "Notification configured",
     "fr": "Notification configurée",
     "es": "Notificación configurada"
-  },
-  "Organisator (Entra-Objekt-ID)": {
-    "en": "Organizer (Entra object ID)",
-    "fr": "Organisateur (ID d’objet Entra)",
-    "es": "Organizador (ID de objeto Entra)"
   },
   "Microsoft Graph onlineMeeting-ID": {
     "en": "Microsoft Graph onlineMeeting ID",
@@ -954,16 +934,6 @@ export const catalog: Record<string, { en: string; fr: string; es: string }> = {
     "fr": "DONNÉES ET INTÉGRATIONS",
     "es": "DATOS E INTEGRACIONES"
   },
-  "Zugangsdaten werden ausschließlich über die Serverkonfiguration verwaltet.": {
-    "en": "Credentials are managed only through the server configuration.",
-    "fr": "Les identifiants sont gérés uniquement dans la configuration du serveur.",
-    "es": "Las credenciales se gestionan solo en la configuración del servidor."
-  },
-  "SQLite · lokale Entwicklung": {
-    "en": "SQLite · local development",
-    "fr": "SQLite · développement local",
-    "es": "SQLite · desarrollo local"
-  },
   "Graph konfiguriert": {
     "en": "Graph configured",
     "fr": "Graph configuré",
@@ -1078,11 +1048,6 @@ export const catalog: Record<string, { en: string; fr: string; es: string }> = {
     "en": "Access for other people",
     "fr": "Accès pour d’autres personnes",
     "es": "Acceso para otras personas"
-  },
-  "Entra-Objekt-IDs (kommagetrennt)": {
-    "en": "Entra object IDs (comma separated)",
-    "fr": "ID d’objet Entra (séparés par des virgules)",
-    "es": "ID de objeto Entra (separados por comas)"
   },
   "Speichern": {
     "en": "Save",
@@ -1218,11 +1183,6 @@ export const catalog: Record<string, { en: string; fr: string; es: string }> = {
     "en": "No invitations are sent. Calendar data updates when linking and using “Sync event”.",
     "fr": "Aucune invitation n’est envoyée. Les données sont actualisées à la liaison et via « Actualiser l’événement ».",
     "es": "No se envían invitaciones. Los datos se actualizan al vincular y mediante «Sincronizar evento»."
-  },
-  "Kalenderinhaber (Entra-Objekt-ID)": {
-    "en": "Calendar owner (Entra object ID)",
-    "fr": "Propriétaire du calendrier (ID d’objet Entra)",
-    "es": "Propietario del calendario (ID de objeto Entra)"
   },
   "Termine laden": {
     "en": "Load events",
@@ -2078,16 +2038,6 @@ export const catalog: Record<string, { en: string; fr: string; es: string }> = {
     "en": "Import or analysis failed.",
     "fr": "Échec de l’import ou de l’analyse.",
     "es": "Error de importación o análisis."
-  },
-  "Automatische KI-Auswertung fehlgeschlagen. Manuell erneut auswerten.": {
-    "en": "Automatic AI analysis failed. Analyze again manually.",
-    "fr": "Échec de l’analyse automatique. Relancez-la manuellement.",
-    "es": "Error del análisis automático. Repita el análisis manualmente."
-  },
-  "Automatischer Transkriptimport fehlgeschlagen. Manuell erneut laden.": {
-    "en": "Automatic transcript import failed. Reload manually.",
-    "fr": "Échec de l’import automatique. Rechargez manuellement.",
-    "es": "Error de importación automática. Vuelva a cargar manualmente."
   },
   "Nur bestätigte Ergebnisse können exportiert werden.": {
     "en": "Only confirmed outcomes can be exported.",

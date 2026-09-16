@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createWorkspaceSite, hostForWorkspace, inspectWorkspace, newSiteStatus, setupWorkspace, workspaceUrl, meetingsWebPartId } from '../client/browser/onboarding.js';
+import { createWorkspaceSite, hostForWorkspace, newSiteStatus, setupWorkspace, workspaceUrl, meetingsWebPartId } from '../client/browser/onboarding.js';
 import { customerSettingsSchema, type BrowserHost } from '../client/browser/host.js';
 import { fakeSharePoint,tenant,user } from './helpers/sharepoint-rest.js';
 const url='https://customer.sharepoint.com/sites/circle';

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Preferences } from './Preferences';
 import { language, t as tr, usePreferences } from './i18n';
 import type { BrowserHost } from './browser/host';

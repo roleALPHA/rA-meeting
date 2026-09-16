@@ -11,32 +11,19 @@
     "build": "npm run check && npm run spfx:build",
     "check": "tsc --noEmit",
     "test": "node --import tsx --test tests/*.test.ts",
-    "teams:package": "tsx scripts/package-teams.ts",
-    "sharepoint:provision": "tsx scripts/provision-sharepoint.ts",
-    "sharepoint:migrate": "tsx scripts/migrate-sharepoint.ts",
-    "build:legacy": "tsc --noEmit && vite build && esbuild server/index.ts --bundle --platform=node --packages=external --format=esm --outfile=dist/server.js",
     "spfx:build": "node --import tsx scripts/build-browser.ts && node scripts/package-spfx.mjs",
-    "spfx:install": "npm ci --prefix spfx --cache .npm-cache --no-audit --no-fund",
-    "start:legacy": "NODE_ENV=production node dist/server.js",
-    "dev:legacy": "tsx server/index.ts"
+    "spfx:install": "npm ci --prefix spfx --cache .npm-cache --no-audit --no-fund"
   },
   "dependencies": {
-    "@microsoft/teams-js": "^2.49.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@noble/hashes": "^2.4.0",
-    "express": "^5.2.1",
-    "jose": "^6.1.0",
     "lucide-react": "^0.453.0",
-    "pg": "^8.23.0",
     "react": "17.0.1",
     "react-dom": "17.0.1",
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@electric-sql/pglite": "^0.5.8",
-    "@types/express": "^5.0.0",
     "@types/node": "^24.0.0",
-    "@types/pg": "^8.23.1",
     "@types/react": "17.0.89",
     "@types/react-dom": "17.0.26",
     "@vitejs/plugin-react": "^5.2.0",
@@ -44,5 +31,6 @@
     "tsx": "^4.23.1",
     "typescript": "^5.6.3",
     "vite": "^7.3.5"
-  }
+  },
+  "license": "SEE LICENSE IN LICENSE.md"
 }

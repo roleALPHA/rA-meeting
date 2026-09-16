@@ -1,5 +1,5 @@
 import { AppError, assert } from '../model.js';
-import type { Repository, Job } from './repository.js';
+import type { Repository } from './repository.js';
 import { seedTemplates } from '../templates.js';
 export type SPRequest = (path: string, init?: RequestInit) => Promise<Response>;
 export const recordListTitle = 'rA Meetings Browser Index';
@@ -42,7 +42,6 @@ export async function provisionWorkspace(request: SPRequest) {
  }
 }
 export class SharePointRestStore implements Repository {
- readonly external = true;
  private listId=''; private libraryId='';
  constructor(readonly tenantId:string,readonly webUrl:string,private request:SPRequest){}
  private tenant(tenant:string){assert(tenant===this.tenantId,'Mandant oder Berechtigung ungültig.',403);}
@@ -87,9 +86,4 @@ export class SharePointRestStore implements Repository {
   for(const [index,t] of seedTemplates(language).entries()) {t.id=`5d7507e5-b513-48f5-8de0-00100000000${index+1}`;try{if(!await this.head('template',t.id))await this.save(tenant,'template',t.id,1,t);}catch(e){if(!(e instanceof AppError&&e.status===409))throw e;}}
   try{await this.save(tenant,'initialized','seed',1,{});}catch(e){if(!(e instanceof AppError&&e.status===409))throw e;}
  }
- async enqueue():Promise<void>{throw new AppError(400,'Hintergrundverarbeitung ist in dieser Installation nicht aktiviert.');}
- async claimJob():Promise<Job|undefined>{return undefined;}
- async finishJob():Promise<void>{throw new Error('No background worker');}
- async failJob():Promise<boolean>{throw new Error('No background worker');}
- async close(){}
 }

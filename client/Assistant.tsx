@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { WandSparkles, X } from 'lucide-react';
 import type { Meeting, AgendaItem } from '../shared/model';
 import type { AssistanceInput, AssistanceResult } from '../shared/assistance';

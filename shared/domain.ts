@@ -1,15 +1,13 @@
 import { sha256 } from '@noble/hashes/sha2.js';
 const randomUUID = () => crypto.randomUUID();
 import { z } from 'zod';
-import { assert, outcomeInput, templateInput, type Actor, type Meeting, type OutcomeInput, type Segment, type Template } from './model.js';
+import { assert, outcomeInput, templateInput, type Actor, type Meeting, type Segment, type Template } from './model.js';
 import type { Repository as Store } from './storage/repository.js';
 export const now = () => new Date().toISOString();
 export function event(m: Meeting, actor: Actor, type: string, detail: string) { m.events.push({ id: randomUUID(), at: now(), actor: actor.name, type, detail }); }
-export function canRead(m: Meeting, actor: Actor) { return Boolean(actor.workspace) || actor.admin || m.createdBy === actor.id || m.members.includes(actor.id); }
 export async function getMeeting(store: Store, actor: Actor, id: string, write = false): Promise<Meeting> {
   const m = await store.get<Meeting>(actor.tenantId, 'meeting', id);
-  assert(canRead(m, actor), 'Kein Zugriff auf dieses Meeting.', 403);
-  if (write) assert(actor.workspace ? actor.workspace === 'write' : actor.admin || m.createdBy === actor.id, 'Nur die Meeting-Leitung kann das Meeting bearbeiten.', 403);
+  if (write) assert(actor.workspace === 'write', 'Keine Berechtigung für diesen SharePoint-Arbeitsbereich.', 403);
   return m;
 }
 export async function saveMeeting(store: Store, actor: Actor, m: Meeting, revision: number) {
@@ -17,17 +15,17 @@ export async function saveMeeting(store: Store, actor: Actor, m: Meeting, revisi
   await store.save(actor.tenantId, 'meeting', m.id, m.revision, m, revision); return m;
 }
 export async function saveTemplate(store: Store, actor: Actor, body: unknown, id?: string, version?: number) {
-  assert(actor.admin, 'Nur Administratoren können Templates bearbeiten.', 403);
+  assert(actor.workspace === 'write', 'Keine Berechtigung für diesen SharePoint-Arbeitsbereich.', 403);
   const input = templateInput.parse(body); const existing = id ? await store.get<Template>(actor.tenantId, 'template', id) : null;
   if (existing) assert(existing.version === version, 'Das Template wurde inzwischen geändert.', 409);
   const t: Template = { ...input, id: existing?.id ?? randomUUID(), version: (existing?.version ?? 0) + 1, createdAt: existing?.createdAt ?? now(), updatedAt: now() };
   await store.save(actor.tenantId, 'template', t.id, t.version, t, existing?.version); return t;
 }
-export const createMeetingInput = z.object({ templateId: z.string().uuid(), title: z.string().trim().min(1).max(200), circle: z.string().trim().min(1).max(200), circleId: z.string().uuid().nullable().default(null), scheduledAt: z.string().datetime().nullable().default(null), members: z.array(z.string().uuid()).max(100).default([]) });
+export const createMeetingInput = z.object({ templateId: z.string().uuid(), title: z.string().trim().min(1).max(200), circle: z.string().trim().min(1).max(200), circleId: z.string().uuid().nullable().default(null), scheduledAt: z.string().datetime().nullable().default(null) });
 export async function createMeeting(store: Store, actor: Actor, body: unknown) {
   const input = createMeetingInput.parse(body); const template = await store.get<Template>(actor.tenantId, 'template', input.templateId);
   assert(template.enabled, 'Dieses Template ist deaktiviert.');
-  const m: Meeting = { id: randomUUID(), revision: 1, title: input.title, circle: input.circle, circleId: input.circleId, scheduledAt: input.scheduledAt, members: input.members, createdBy: actor.id, createdAt: now(), updatedAt: now(), template: structuredClone(template), status: 'scheduled', currentStep: 0, stepStartedAt: null, completedSteps: [], notes: {}, agenda: [], outcomes: [], transcript: [], events: [] };
+  const m: Meeting = { id: randomUUID(), revision: 1, title: input.title, circle: input.circle, circleId: input.circleId, scheduledAt: input.scheduledAt, createdBy: actor.id, createdAt: now(), updatedAt: now(), template: structuredClone(template), status: 'scheduled', currentStep: 0, stepStartedAt: null, completedSteps: [], notes: {}, agenda: [], outcomes: [], transcript: [], events: [] };
   event(m, actor, 'created', `Meeting mit ${template.name} · Version ${template.version} angelegt.`);
   await store.save(actor.tenantId, 'meeting', m.id, 1, m); return m;
 }

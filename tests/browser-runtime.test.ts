@@ -8,7 +8,7 @@ import type { Bootstrap, Meeting } from '../shared/model.js';
 const webUrl='https://customer.sharepoint.com/sites/circle';
 function fixture(){const sp=fakeSharePoint();const tokens:string[]=[];const host:BrowserHost={tenantId:tenant,userId:user,userName:'Member',webUrl,isTeams:true,settings:customerSettingsSchema.parse({}),sharepoint:sp.request,token:async resource=>{tokens.push(resource);return 'delegated-test';}};return {sp,tokens,host};}
 test('browser workspace creates, edits and reloads meetings directly in SharePoint without server, Graph identity or tokens',async()=>{
- const {host,sp,tokens}=fixture();const api=await createBrowserApi(host);let data=await api.request<Bootstrap>('/bootstrap');assert.equal(data.actor.workspace,'write');assert.equal(data.templates.length,3);assert.equal(data.integrations.autoAnalysis,false);assert.equal(data.integrations.mcp,false);
+ const {host,sp,tokens}=fixture();const api=await createBrowserApi(host);let data=await api.request<Bootstrap>('/bootstrap');assert.equal(data.actor.workspace,'write');assert.equal(data.templates.length,3);assert.equal(data.integrations.mcp,false);
  const template=data.templates.find(t=>t.category==='governance')!;
  let m=await api.request<Meeting>('/meetings',{title:'Browser meeting',circle:'Circle',templateId:template.id});
  m=await api.request<Meeting>(`/meetings/${m.id}/command`,{revision:m.revision,type:'agenda.add',stepId:template.steps[2].id,title:'Need a decision'});

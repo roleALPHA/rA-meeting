@@ -1,106 +1,100 @@
 # rA Meetings
 
-**Meetings strukturieren. Governance verstehen. Gemeinsam Entscheidungen vorbereiten.**
+**Structure meetings. Understand governance. Prepare decisions together.**
 
-rA Meetings ist ein Produkt von **roleALPHA** für Microsoft Teams und SharePoint. Es begleitet Teams vom Sammeln ihrer Themen über die gemeinsame Bearbeitung bis zu nachvollziehbaren Ergebnissen. Konfigurierbare Meetingvorlagen unterstützen Holacracy-orientierte Abläufe ebenso wie andere Formen der Zusammenarbeit.
+rA Meetings is a **roleALPHA** product for Microsoft Teams and SharePoint. It supports teams from collecting topics through collaborative discussion to traceable outcomes. Configurable meeting templates support Holacracy-inspired processes and other ways of working together.
 
-Die Anwendung wird in der Microsoft-365-Umgebung Ihrer Organisation installiert. Ein eigener Appserver oder eine zusätzliche SQL-Datenbank ist für den Betrieb nicht erforderlich. Die optionale Verbindung zur **roleALPHA-Governance-Plattform** macht bestehende Governance für Fragen nutzbar und ermöglicht die geprüfte Übergabe von Ergebnissen.
+The app is installed in your organization's Microsoft 365 environment. It requires no dedicated application server or additional SQL database. An optional connection to the **roleALPHA Governance platform** supports questions about existing governance and reviewed transfers of meeting outcomes.
 
-## Was rA Meetings unterstützt
+## Features
 
-### Themen sammeln und Meetings vorbereiten
+### Collect topics and prepare meetings
 
-Spannungen und Themen können unabhängig von einem einzelnen Meeting erfasst und später einem Meeting zugeordnet werden. Wer den Begriff „Spannungen“ nicht verwendet, kann die Anzeige auf „Agenda“ umstellen. Die gespeicherten Inhalte bleiben dabei erhalten.
+Capture tensions and topics independently of individual meetings, then add them to a meeting agenda. Users who prefer different terminology can display “Agenda” instead of “Tensions” without changing stored content.
 
-Meetings lassen sich mit eigenen Kalenderterminen verknüpfen und als Registerkarte in Teams öffnen. So können berechtigte Personen ihre Themen bereits vor dem gemeinsamen Gespräch vorbereiten. Der Zugriff richtet sich nach den Berechtigungen des SharePoint-Arbeitsbereichs.
+Link meetings to your own calendar events and open them as Teams tabs. Authorized participants can contribute before the discussion begins. Access follows the SharePoint workspace's permissions.
 
-### Einen passenden Ablauf gestalten
+### Configure your meeting process
 
-Tactical, Governance und Reflexion stehen als Startvorlagen bereit. Eigene Vorlagen lassen sich über die Oberfläche erstellen und anpassen:
+Tactical, Governance, and Reflection are provided as starter templates. Create and edit templates in the interface, including:
 
-- Schritte und Reihenfolge
-- Zeitboxen und Hinweise für die Moderation
-- Optionale Schritte und Unterphasen
-- Erlaubte Ergebnistypen
+- Steps and their order.
+- Timeboxes and facilitator instructions.
+- Optional steps and subphases.
+- Allowed outcome types.
 
-Jedes angelegte Meeting erhält eine eigene Fassung seiner Vorlage. Spätere Änderungen an einer Vorlage verändern bereits angelegte Meetings nicht rückwirkend.
+Each meeting stores its own template snapshot. Later template changes do not alter existing meetings.
 
-### Vorschläge und Einwände gemeinsam bearbeiten
+### Form proposals and integrate objections
 
-Die optionale KI unterstützt beim **Proposal Forming**, also dem Ausarbeiten eines Vorschlags, und bei der **Einwandintegration**. Sie kann Formulierungen, Klärungsfragen und mögliche Anpassungen vorschlagen.
+Optional AI assistance suggests proposal wording, clarification questions, and ways to integrate objections. People review and apply suggestions. AI does not decide whether an objection is valid, an integration is sufficient, or a decision has been made.
 
-Menschen prüfen und übernehmen die Vorschläge. Ob ein Einwand gültig ist, eine Integration ausreicht oder ein Beschluss zustande kommt, entscheidet nicht die KI.
+### Ask about existing governance
 
-### Bestehende Governance befragen
+The governance assistant retrieves information through an approved roleALPHA search tool and sends the question and retrieved sources to the configured AI service. Answers include source references and expandable original text. Missing sources are not presented as established governance. Search may be incomplete, and the original governance remains authoritative.
 
-Mit **Governance fragen** können Anwender Fragen zu Rollen, Zuständigkeiten und Regeln stellen. Dazu liest die App über eine freigegebene Suchfunktion aus roleALPHA und lässt die abgerufenen Inhalte durch den angebundenen KI-Dienst auswerten.
+This assistant does not change governance. It requires both AI and a compatible, explicitly approved roleALPHA read integration; a draft-creation connection alone is insufficient.
 
-Die Antwort zeigt Quellenverweise und aufklappbare Quelltexte. Ohne passende Quellen wird keine Antwort als gesicherte Governance ausgegeben. Die Suche kann unvollständig sein; die Originaltexte bleiben maßgeblich. Dieser Assistent verändert keine Governance.
+### Record traceable outcomes
 
-Erforderlich sind eine KI-Anbindung und ein kompatibler, ausdrücklich freigegebener roleALPHA-Lesezugriff. Eine reine Verbindung zum Anlegen von Entwürfen genügt nicht.
+Retrieve transcripts from accessible Teams meetings or import VTT/TXT files. Optional AI analysis proposes outcomes linked to transcript evidence. Users review outcomes before approving or transferring them.
 
-### Ergebnisse nachvollziehbar festhalten
+An optional roleALPHA connection can create drafts from approved outcomes, such as meeting records, risks, OKRs, or IT systems. Available entities depend on the configured integration. The tension backlog remains part of rA Meetings, and the app also works without the governance platform.
 
-Transkripte können aus zugänglichen Teams-Besprechungen abgerufen oder als VTT-/TXT-Datei importiert werden. Die optionale KI-Analyse schlägt Ergebnisse mit Bezug auf das Transkript vor. Anwender prüfen diese, bevor sie bestätigt oder weitergegeben werden.
+## Languages
 
-Über die optionale roleALPHA-Anbindung können bestätigte Ergebnisse als Entwürfe angelegt werden, beispielsweise als Meetingprotokoll, Risiko, OKR oder IT-System. Welche Entitäten verfügbar sind, hängt von der eingerichteten roleALPHA-Schnittstelle ab.
+The interface supports **German, English, French, and Spanish**. Users choose their language and “Tensions” or “Agenda” terminology. Changing language does not automatically translate user-created content. Repository documentation is maintained in English.
 
-Die Agenda beziehungsweise der Spannungsspeicher bleibt Teil von rA Meetings. Die Anwendung funktioniert auch ohne eine Verbindung zur Governance-Plattform.
+## Operation and data
 
-## Sprachen
+The app is delivered as a **SharePoint Framework (SPFx)** package. Microsoft 365 serves the application files, and the app executes in the browser within Teams or SharePoint.
 
-Die Oberfläche ist auf **Deutsch, Englisch, Französisch und Spanisch** verfügbar. Anwender wählen ihre Sprache und die Begriffswahl „Spannungen“ oder „Agenda“ selbst. Eigene Inhalte werden durch einen Sprachwechsel nicht automatisch übersetzt.
-
-## Betrieb und Daten
-
-rA Meetings wird als SharePoint-Framework-Paket, kurz **SPFx**, ausgeliefert. Microsoft 365 stellt die App-Dateien bereit; die Anwendung läuft im Browser innerhalb von Teams oder SharePoint.
-
-| Bestandteil | Verarbeitung und Ablage |
+| Component | Processing and storage |
 | --- | --- |
-| Vorlagen, Agenda, Meetings und Ergebnisse | SharePoint-Website Ihrer Organisation |
-| Importierte Transkripte | SharePoint-Arbeitsbereich; die Originalaufnahme wird von der App nicht heruntergeladen |
-| Kalender- und Transkriptabruf | Direkter Zugriff auf Microsoft Graph mit den Rechten des angemeldeten Benutzers |
-| Optionale KI | Direkter Aufruf des administrativ eingerichteten KI-Dienstes |
-| Optionale Governance-Verbindung | Direkter Aufruf des eingerichteten roleALPHA-Endpunkts über MCP |
-| Sprache und Begriffswahl | Persönliche Einstellung im Browser |
+| Templates, agenda, meetings, and outcomes | Your organization's SharePoint site |
+| Imported transcripts | SharePoint workspace; the original recording is not downloaded by the app |
+| Calendar and transcript retrieval | Direct Microsoft Graph requests with the signed-in user's permissions |
+| Optional AI | Direct requests to the administratively configured AI service |
+| Optional governance connection | Direct MCP requests to the configured roleALPHA endpoint |
+| Language and terminology | Personal browser preferences |
 
-Die App benötigt keinen zentralen roleALPHA-Proxy, keine zusätzliche App-Runtime und kein Power Automate. Bei geschlossener App findet keine automatische Nachbearbeitung statt. Analyse und Übertragung werden bewusst ausgelöst.
+No central roleALPHA proxy, additional application runtime, or Power Automate flow is required. No automatic processing runs after the app closes. Users explicitly start analysis and transfers.
 
-Das Standardpaket enthält keine KI- oder roleALPHA-Zieladressen. Diese Dienste müssen die Anmeldung über Microsoft Entra und direkte Browserzugriffe unterstützen. Geheime API-Schlüssel gehören nicht in die Browserkonfiguration.
+The default package contains no AI or roleALPHA endpoints. Optional services must support Microsoft Entra sign-in and direct browser access. Secret API keys must not be placed in browser configuration.
 
-**Die Datenwege hängen auch von den optionalen Diensten ab.** Wenn Inhalte ausschließlich innerhalb der von Ihrer Organisation kontrollierten Umgebung verarbeitet werden sollen, müssen KI und roleALPHA entsprechend bereitgestellt sein. Eine Verbindung zu einem zentral betriebenen Dienst würde Inhalte an diesen Dienst übertragen. MCP ist dabei das technische Protokoll der roleALPHA-Anbindung; die App bietet keine Auswahl beliebiger MCP-Anbieter.
+**Optional services determine additional data flows.** To keep content entirely within your organization's controlled environment, deploy AI and roleALPHA accordingly. A centrally operated service would receive content sent to it. MCP is the protocol for the roleALPHA connection; the app does not offer arbitrary MCP providers.
 
-## Berechtigungen und Aufbewahrung
+## Permissions and retention
 
-Ein Arbeitsbereich ist eine gemeinsam genutzte SharePoint-Website. Personen mit Leserechten können dessen Inhalte einschließlich Transkripten und gespeicherten älteren Fassungen lesen. Personen mit Bearbeitungsrechten können gemeinsam Meetings moderieren und Vorlagen pflegen. Für vertrauliche Gruppen werden getrennt berechtigte Websites verwendet. Die Teilnehmerliste eines Teams-Termins ersetzt diese Berechtigungen nicht.
+A workspace is a shared SharePoint site. Readers can access its content, including transcripts and stored historical versions. Editors can collaboratively facilitate meetings and maintain templates. Use separately permissioned sites for confidential groups. A Teams event's attendee list does not replace SharePoint permissions.
 
-Die App legt zwei Speicherbereiche an:
+The app creates two storage areas:
 
-- `rA Meetings Browser Index`: Verzeichnis der Datensätze und ihrer Versionen.
-- `rA Meetings Browser Data`: Dokumentbibliothek mit den gespeicherten Inhalten.
+- `rA Meetings Browser Index`: record and version index.
+- `rA Meetings Browser Data`: document library containing stored content.
 
-Gleichzeitige Änderungen werden auf Konflikte geprüft. Ältere Inhaltsdateien werden derzeit nicht automatisch bereinigt. Aufbewahrung, Löschung und Wiederherstellung müssen beide Speicherbereiche berücksichtigen.
+Concurrent updates are checked for conflicts. Old content files are not currently cleaned up automatically. Retention, deletion, and recovery must cover both storage areas.
 
 ## Installation
 
-Die Installation erfolgt einmalig durch die Microsoft-365-Administration. Endanwender benötigen keine Entwicklungswerkzeuge.
+Microsoft 365 administrators install the package once. End users do not need development tools.
 
-1. Das [Installationspaket](dist/rolealpha-meetings.sppkg) im SharePoint-App-Katalog bereitstellen.
-2. Die App öffnen und den Einrichtungsassistenten durchlaufen: vorhandene SharePoint-Website verwenden oder eine neue erstellen, Zugriff prüfen und Speicherbereiche mit Startvorlagen einrichten.
-3. Die optional vorbereitete Einstiegsseite in SharePoint prüfen und veröffentlichen. Bei Bedarf Kalenderzugriff, Teams-Nutzung und optionale Dienste freigeben.
-4. Die Einrichtung mit normalen Benutzerkonten prüfen.
+1. Deploy `rolealpha-meetings.sppkg` in the SharePoint app catalog. The build produces it in `dist/`.
+2. Open the app and complete onboarding: select or create a SharePoint site, check access, and provision storage and starter templates.
+3. Review and publish the optional landing page. Approve calendar access, Teams availability, and optional services as needed.
+4. Verify the deployment with ordinary user accounts.
 
-Die **[Schritt-für-Schritt-Anleitung für Administratoren](docs/customer-deployment.md)** erklärt die Installation vom ersten Anmelden bis zur Funktionsprüfung. Details für Paketerstellung und Schnittstellenbetrieb stehen im [technischen Anhang](docs/technical-deployment.md).
+Follow the **[step-by-step administrator guide](docs/customer-deployment.md)** from initial sign-in through acceptance checks. Package builders and integration operators should also read the [technical deployment guide](docs/technical-deployment.md). The [product design notes](docs/meeting-product.md) describe behavior and boundaries.
 
-## Entwicklungsstand
+## Implementation status
 
-Das Projekt enthält ein baubares SPFx-Installationspaket und automatisierte Tests für Speicherung, Berechtigungen, Meetingabläufe, Übersetzungen und Integrationsverträge.
+The project includes a buildable SPFx package and automated tests covering storage, permissions, meeting workflows, translations, and integration contracts.
 
-Die Installation in einer echten Microsoft-365-Umgebung sowie die tatsächlichen roleALPHA-Lese- und Schreibschnittstellen müssen vor der produktiven Einführung geprüft werden. Lokale Simulationen ersetzen diese Abnahme nicht. Teams-Funktionen hängen außerdem von Lizenzen, Besprechungstypen und den Richtlinien Ihrer Organisation ab. Bei Serienterminen ist derzeit ein manueller Import des Transkripts der konkreten Durchführung vorgesehen.
+Deployment in a real Microsoft 365 environment and compatibility with actual roleALPHA read/write interfaces still require acceptance testing. Local simulations do not replace that verification. Teams features depend on licensing, meeting types, and organizational policies. Recurring meetings currently require manual import of the transcript for the specific occurrence.
 
-## Lokal entwickeln
+## Local development
 
-Voraussetzung für die Entwicklungswerkzeuge ist Node.js 24. Für den SPFx-Paketbau wird zusätzlich eine projektlokale Node-22-Version installiert; beides wird für die Nutzung des fertigen Pakets nicht benötigt.
+Root development tools require Node.js 24. SPFx packaging additionally uses a project-local Node.js 22 installation. Neither toolchain is required to use the finished package.
 
 ```sh
 npm ci
@@ -110,32 +104,29 @@ npm test
 npm run build
 ```
 
-Das fertige Paket liegt unter `dist/rolealpha-meetings.sppkg`. Die optionale Integrationskonfiguration befindet sich in `spfx/customer.config.json`.
+The package is written to `dist/rolealpha-meetings.sppkg`. Optional integration settings are in `spfx/customer.config.json`.
 
 ```sh
 npm run dev
 ```
 
-Die lokale Vorschau ist unter [http://127.0.0.1:4310](http://127.0.0.1:4310) erreichbar. Sie simuliert SharePoint und hält Änderungen nur bis zum Neuladen im Arbeitsspeicher. Es sind keine produktiven Microsoft-, KI- oder roleALPHA-Dienste verbunden.
+The preview runs at [http://127.0.0.1:4310](http://127.0.0.1:4310). It simulates SharePoint and keeps changes in memory only until reload. No production Microsoft, AI, or roleALPHA service is connected.
 
-Der frühere Express-/SQL-Prototyp bleibt unter `npm run dev:legacy` und `npm run build:legacy` für Entwicklungszwecke erhalten. Er ist kein Bestandteil des SPFx-Pakets. Seine Daten werden nicht automatisch in den gemeinsamen SharePoint-Arbeitsbereich übernommen.
+## License
 
-## Lizenzmodell
+rA Meetings is licensed under the **[rA Meetings Internal Collaboration License, version 1.0](LICENSE.md)**, effective **16 September 2026**. Licensor: roleALPHA GmbH, Aschergasse 34, 1130 Vienna, Austria (office@rolealpha.com).
 
-Für rA Meetings ist folgendes Nutzungsmodell vorgesehen: **kostenlose geschäftliche Nutzung für die eigene Organisation einschließlich der Zusammenarbeit mit ihren Kunden; kein Vertrieb der Software durch Dritte.**
+The license permits free internal business use, including collaboration with customers, without third-party distribution of the Software:
 
-| Nutzung | Vorgesehene Regel |
+| Use | Treatment |
 | --- | --- |
-| Interne Meetings, Governance und Zusammenarbeit im Unternehmen | Kostenlos erlaubt, auch für kommerzielle Geschäftstätigkeit |
-| Gemeinsame Meetings und Projekte mit eingeladenen Kunden oder Projektpartnern | Erlaubt als Teil der eigenen Zusammenarbeit |
-| Einsatz als Hilfsmittel für eine bezahlte Beratung oder Moderation | Erlaubt; vergütet wird die eigene Dienstleistung, nicht die Bereitstellung der Software als Produkt |
-| Eigene Anpassungen für diese Nutzung | Erlaubt; die Anpassung macht die Software nicht zum frei vertreibbaren Produkt |
-| Verkauf, Unterlizenzierung oder Weitergabe von Quellcode und Installationspaketen an Dritte | Nicht erlaubt, auch nicht kostenlos, sofern keine gesonderte Erlaubnis besteht |
-| Vertrieb einer veränderten Fassung oder als White-Label-Produkt | Nicht erlaubt |
-| Angebot als eigenständiger gehosteter Softwaredienst für Dritte | Nicht erlaubt; gemeinsame Kundenprojekte sind davon abzugrenzen |
+| Internal commercial use and internal adaptations | Permitted without a license fee |
+| Meetings and projects with invited customers and partners | Permitted within the organization's own collaboration |
+| Paid consulting, facilitation, and project services using the app | Permitted; standalone software access is excluded |
+| Necessary Microsoft 365 deployment and browser copies | Expressly permitted |
+| IT contractors maintaining an organization's deployment | Permitted under limited terms |
+| Resale, sublicensing, independent redistribution, or white-label distribution | Not permitted, including free distribution unless an exception applies |
+| Standalone hosted software services for third parties | Not permitted |
+| Use and sharing of an organization's own meeting outputs | Not restricted by the Software distribution prohibition |
 
-**PolyForm Internal Use 1.0.0** passt als Ausgangspunkt: Sie erlaubt interne geschäftliche Nutzung und entsprechende Änderungen, aber keine Distribution. Die Beteiligung externer Kunden und die dafür technisch notwendige Auslieferung von Browsercode sollen ausdrücklich geregelt werden, damit die Zusammenarbeit nicht versehentlich unter das Weitergabeverbot fällt. [Original-Lizenztext](https://polyformproject.org/licenses/internal-use/1.0.0).
-
-Der konkrete Geltungsbereich und die noch auszuformulierende Erlaubnis zur Kundenmitwirkung stehen im [Lizenzkonzept](docs/licensing-policy.md). Wird der Standardlizenztext verändert, muss die geänderte Lizenz einen eigenen Namen tragen; sie darf nicht als unveränderte PolyForm-Lizenz ausgegeben werden. [Vorgaben des PolyForm-Projekts](https://github.com/polyformproject/polyform-licenses/blob/1.0.0/README.md#license).
-
-**Status:** Das Nutzungsmodell ist festgelegt; ein abschließend geprüfter Lizenztext ist noch nicht Bestandteil des Projekts. Dieser Abschnitt ist eine Beschreibung des vorgesehenen Modells und keine eigenständige Lizenzgewährung. Der frühere Vorschlag Apache 2.0 wird nicht weiterverfolgt. Die Lizenzierung der Dokumentation bleibt separat festzulegen. Rechte an Drittbestandteilen und Marken sowie die Bedingungen von Microsoft und der separaten roleALPHA-Governance-Plattform bleiben unberührt.
+This is a custom source-available license, not an open-source license or an unchanged PolyForm license. No Creative Commons license has been applied to the documentation. The [licensing policy](docs/licensing-policy.md) explains the design and references. Third-party licenses and repository-hosting permissions remain separate. Public repository hosting does not grant a general right to redistribute or sell the Software.

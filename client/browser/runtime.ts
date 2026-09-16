@@ -11,7 +11,7 @@ import { assistanceInput } from '../../shared/assistance';
 import { parseLanguage } from '../../shared/i18n';
 import { type BrowserHost, graph } from './host';
 import { analyzeBrowser, assistBrowser, entityPlan, meetingPlan, prepareExport } from './integrations';
-export type AppApi={workspace:boolean;openSetup?:()=>void;initialMeeting?:string;initializeTeams:()=>Promise<boolean>;request:<T>(path:string,body?:unknown,method?:string)=>Promise<T>};
+export type AppApi={openSetup?:()=>void;initialMeeting?:string;initializeTeams:()=>Promise<boolean>;request:<T>(path:string,body?:unknown,method?:string)=>Promise<T>};
 const rev=z.number().int().positive();
 const requestBody=z.record(z.unknown());
 export async function createBrowserApi(host:BrowserHost):Promise<AppApi>{
@@ -29,7 +29,7 @@ export function browserApi(host:BrowserHost,store:Repository,actor:Actor):AppApi
  const write=()=>assert(actor.workspace==='write','Keine Berechtigung für diesen SharePoint-Arbeitsbereich.',403);
  async function transcript(m:Meeting){
   assert(!m.calendar?.occurrence,'Bei Serienterminen das Transkript dieser Durchführung manuell importieren; automatische Zuordnung wird noch nicht unterstützt.');
-  let id=m.graph?.onlineMeetingId;
+  let id:string|undefined;
   if(!id&&m.calendar?.joinUrl){
    const filter=encodeURIComponent(`JoinWebUrl eq '${m.calendar.joinUrl.replaceAll("'","''")}'`);
    const meetings=await(await read(`/me/onlineMeetings?$filter=${filter}`)).json() as {value:{id:string}[]};
@@ -47,18 +47,17 @@ export function browserApi(host:BrowserHost,store:Repository,actor:Actor):AppApi
   const url=new URL(path,'https://local.invalid');assert(url.origin==='https://local.invalid','Invalid local route');const route=url.pathname;const body=raw===undefined?{}:requestBody.parse(raw);const verb=raw===undefined?'GET':method;
   if(route==='/governance/ask'&&verb==='POST')return askGovernance(host,body);
   if(verb!=='GET')write();
-  if(route==='/config'&&verb==='GET')return {authMode:'sharepoint'};
-  if(route==='/bootstrap'&&verb==='GET'){ const meetings=await store.list<Meeting>(actor.tenantId,'meeting');host.onMeetingsChanged?.(meetings.map(m=>({id:m.id,title:m.title})));return {actor,templates:await store.list<Template>(actor.tenantId,'template'),meetings,tensions:await store.list<Tension>(actor.tenantId,'tension'),integrations:{storage:'sharepoint',authMode:'sharepoint',autoAnalysis:false,governance:!!host.settings.ai&&!!host.settings.roleAlpha?.governance,ai:!!host.settings.ai,mcp:!!host.settings.roleAlpha?.meeting,entityTypes:outputTypes.filter(type=>host.settings.roleAlpha?.entities[type]),graph:true}} satisfies Bootstrap;}
+  if(route==='/bootstrap'&&verb==='GET'){ const meetings=await store.list<Meeting>(actor.tenantId,'meeting');host.onMeetingsChanged?.(meetings.map(m=>({id:m.id,title:m.title})));return {actor,templates:await store.list<Template>(actor.tenantId,'template'),meetings,tensions:await store.list<Tension>(actor.tenantId,'tension'),integrations:{storage:'sharepoint',governance:!!host.settings.ai&&!!host.settings.roleAlpha?.governance,ai:!!host.settings.ai,mcp:!!host.settings.roleAlpha?.meeting,entityTypes:outputTypes.filter(type=>host.settings.roleAlpha?.entities[type]),graph:true}} satisfies Bootstrap;}
   if(route==='/calendar'&&verb==='GET'){assert(!url.searchParams.get('organizerId')||url.searchParams.get('organizerId')===actor.id,'Kein Zugriff auf diesen Kalender.',403);return calendarEntries(actor.id,read);}
   if(route==='/templates'&&verb==='POST')return saveTemplate(store,actor,body);
   const template=/^\/templates\/([^/]+)$/.exec(route);
   if(template&&verb==='PUT')return saveTemplate(store,actor,body,template[1],rev.parse(body.version));
   if(template&&verb==='DELETE'){await store.delete(actor.tenantId,'template',template[1],rev.parse(body.version));return;}
-  if(route==='/tensions'&&verb==='POST')return saveTension(store,actor,{...body,members:[]});
+  if(route==='/tensions'&&verb==='POST')return saveTension(store,actor,body);
   const tension=/^\/tensions\/([^/]+)(\/attach)?$/.exec(route);
-  if(tension&&verb==='PUT')return saveTension(store,actor,{...body,members:[]},tension[1],rev.parse(body.version));
+  if(tension&&verb==='PUT')return saveTension(store,actor,body,tension[1],rev.parse(body.version));
   if(tension?.[2]&&verb==='POST')return attachTension(store,actor,tension[1],z.string().uuid().parse(body.meetingId),z.string().uuid().parse(body.stepId),rev.parse(body.revision));
-  if(route==='/meetings'&&verb==='POST')return createMeeting(store,actor,{...body,members:[]});
+  if(route==='/meetings'&&verb==='POST')return createMeeting(store,actor,body);
   const match=/^\/meetings\/([^/]+)(?:\/([^/]+))?$/.exec(route);assert(match,'API-Endpunkt nicht gefunden.',404);
   const [,id,action]=match;const m=await get(id,verb!=='GET');if(!action&&verb==='GET')return m;assert(verb==='POST','API-Endpunkt nicht gefunden.',404);verify(m,body);
   switch(action){
@@ -74,7 +73,6 @@ export function browserApi(host:BrowserHost,store:Repository,actor:Actor):AppApi
     m.calendar=linked;m.scheduledAt=linked.start;event(m,actor,'calendar.linked',linked.title);return save(m);
    }
    case 'graph-fetch':{const segments=await transcript(m);return setTranscript(m,actor,segments)?save(m):m;}
-   case 'graph-link':throw new AppError(400,'Kalender verbinden oder Transkript manuell importieren.');
    case 'entity-preview':{const output=m.outcomes.find(o=>o.id===body.outcomeId);assert(output,'Ergebnis fehlt.');return entityPlan(host,m,output);}
    case 'export':case 'export-entity':{
     const ids=action==='export'?z.array(z.string().uuid()).min(1).max(100).parse(body.ids):[z.string().uuid().parse(body.outcomeId)];assert(new Set(ids).size===ids.length,'Doppelte Ergebnis-IDs.');
@@ -97,5 +95,5 @@ export function browserApi(host:BrowserHost,store:Repository,actor:Actor):AppApi
    default:throw new AppError(404,'API-Endpunkt nicht gefunden.');
   }
  }
- return {workspace:true,initialMeeting:host.initialMeeting,initializeTeams:async()=>host.isTeams,request:async<T>(path:string,body?:unknown,method?:string)=>{try{return await dispatch(path,body,method) as T;}catch(error){if(error instanceof z.ZodError)throw new AppError(400,'Bitte die markierten Eingaben prüfen.');throw error;}}};
+ return {initialMeeting:host.initialMeeting,initializeTeams:async()=>host.isTeams,request:async<T>(path:string,body?:unknown,method?:string)=>{try{return await dispatch(path,body,method) as T;}catch(error){if(error instanceof z.ZodError)throw new AppError(400,'Bitte die markierten Eingaben prüfen.');throw error;}}};
 }

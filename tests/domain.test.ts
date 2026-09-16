@@ -1,14 +1,15 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { Store } from '../server/store.js';
-import { addOutcome, command, createMeeting, getMeeting, saveMeeting, saveTemplate, setTranscript } from '../server/domain.js';
-import { parseTranscript } from '../server/transcript.js';
-import { validateAnalysis } from '../server/analysis.js';
-import { exportPayload } from '../server/mcp.js';
+import { TestStore, testHost } from './helpers/workspace.js';
+import { addOutcome, command, createMeeting, getMeeting, saveMeeting, saveTemplate, setTranscript } from '../shared/domain.js';
+import { parseTranscript } from '../shared/transcript.js';
+import { validateAnalysis } from '../shared/analysis.js';
+import { meetingPlan } from '../client/browser/integrations.js';
+const exportPayload=(m: import('../shared/model.js').Meeting,o: import('../shared/model.js').Outcome[]) => meetingPlan(testHost(),m,o).arguments as {data:{outcomes:import('../shared/model.js').Outcome[]}};
 import type { Actor, Template } from '../shared/model.js';
-const actor: Actor = { id: 'owner', name: 'Owner', tenantId: 'tenant-a', admin: true };
+const actor: Actor = { id: 'owner', name: 'Owner', tenantId: 'tenant-a', admin: true, workspace:'write' };
 async function fixture() {
-  const store = new Store(':memory:'); await store.initialize(); await store.seed(actor.tenantId);
+  const store = new TestStore(actor.tenantId); await store.initialize(); await store.seed(actor.tenantId);
   const templates = await store.list<Template>(actor.tenantId, 'template');
   const template = templates.find(t => t.category === 'tactical')!;
   const meeting = await createMeeting(store, actor, { templateId: template.id, title: 'Weekly', circle: 'Product' });
@@ -20,24 +21,22 @@ test('template snapshots survive edits, disabling and deletion', async () => {
   assert.equal(edited.version, 2); assert.equal((await getMeeting(store, actor, meeting.id)).template.name, 'Tactical Meeting');
   await assert.rejects(createMeeting(store, actor, { templateId: template.id, title: 'No', circle: 'No' }), /deaktiviert/);
   await store.delete(actor.tenantId, 'template', template.id, 2); await store.seed(actor.tenantId);
-  assert.equal((await store.list(actor.tenantId, 'template')).length, 2); assert.equal((await getMeeting(store, actor, meeting.id)).template.steps[0].kind, 'check-in'); await store.close();
+  assert.equal((await store.list(actor.tenantId, 'template')).length, 2); assert.equal((await getMeeting(store, actor, meeting.id)).template.steps[0].kind, 'check-in');
 });
 test('optimistic concurrency prevents overwriting meeting and template changes', async () => {
   const { store, meeting, template } = await fixture(); const second = structuredClone(meeting);
   command(meeting, actor, { type: 'start' }); await saveMeeting(store, actor, meeting, 1);
   await assert.rejects(saveMeeting(store, actor, second, 1), /inzwischen geändert/);
   await saveTemplate(store, actor, template, template.id, 1);
-  await assert.rejects(saveTemplate(store, actor, template, template.id, 1), /inzwischen geändert/); await store.close();
+  await assert.rejects(saveTemplate(store, actor, template, template.id, 1), /inzwischen geändert/);
 });
-test('tenant and meeting membership isolation are enforced server-side', async () => {
-  const { store, meeting, template } = await fixture();
-  await assert.rejects(getMeeting(store, { ...actor, tenantId: 'tenant-b' }, meeting.id), /nicht gefunden/);
-  const stranger = { ...actor, id: 'stranger', admin: false };
-  await assert.rejects(getMeeting(store, stranger, meeting.id), /Kein Zugriff/);
-  await assert.rejects(saveTemplate(store, stranger, template), /Administrator/);
-  meeting.members = [stranger.id]; await saveMeeting(store, actor, meeting, 1);
-  assert.equal((await getMeeting(store, stranger, meeting.id)).id, meeting.id);
-  await assert.rejects(getMeeting(store, stranger, meeting.id, true), /Meeting-Leitung/); await store.close();
+test('workspace readers cannot edit and tenant isolation is enforced',async()=>{
+ const {store,meeting,template}=await fixture();
+ await assert.rejects(getMeeting(store,{...actor,tenantId:'other'},meeting.id),/Mandant/);
+ const reader:Actor={...actor,id:'reader',admin:false,workspace:'read'};
+ assert.equal((await getMeeting(store,reader,meeting.id)).id,meeting.id);
+ await assert.rejects(getMeeting(store,reader,meeting.id,true),/Berechtigung/);
+ await assert.rejects(saveTemplate(store,reader,template),/Berechtigung/);
 });
 test('step output allowlists and active phase boundaries cannot be bypassed', async () => {
   const { store, meeting } = await fixture(); const agenda = meeting.template.steps.find(s => s.kind === 'agenda')!;
@@ -46,14 +45,14 @@ test('step output allowlists and active phase boundaries cannot be bypassed', as
   command(meeting, actor, { type: 'agenda.add', stepId: agenda.id, title: 'Topic' });
   assert.throws(() => command(meeting, actor, { type: 'agenda.resolve', id: meeting.agenda[0].id }), /aktiven Schritt/);
   command(meeting, actor, { type: 'start' }); assert.throws(() => command(meeting, actor, { type: 'skip' }), /nicht optional/);
-  await store.close();
+
 });
 test('VTT import preserves speaker and source timestamps; repeated import is idempotent', async () => {
   const { store, meeting } = await fixture();
   const segments = parseTranscript('WEBVTT\n\n1\n00:00:01.000 --> 00:00:03.500\n<v Anna>Ich übernehme den Entwurf.</v>\n\n2\n00:00:04.000 --> 00:00:06.000\n<v Ben>Danke &amp; bis morgen.</v>');
   assert.equal(segments.length, 2); assert.equal(segments[0].speaker, 'Anna'); assert.equal(segments[1].text, 'Danke & bis morgen.');
   assert.equal(setTranscript(meeting, actor, segments), true); assert.equal(setTranscript(meeting, actor, segments), false);
-  assert.equal(parseTranscript('[01:00 - 01:05] Alex: Hallo')[0].start, '01:00'); await store.close();
+  assert.equal(parseTranscript('[01:00 - 01:05] Alex: Hallo')[0].start, '01:00');
 });
 test('AI results need real references and cannot invent target UUIDs or allowed outputs', async () => {
   const { store, meeting } = await fixture(); const step = meeting.template.steps.find(s => s.kind === 'agenda')!;
@@ -63,7 +62,7 @@ test('AI results need real references and cannot invent target UUIDs or allowed 
   assert.throws(() => validateAnalysis({ outcomes: [{ ...outcome, evidence: ['invented'] }] }, meeting), /Quellen/);
   assert.throws(() => validateAnalysis({ outcomes: [{ ...outcome, type: 'governance' }] }, meeting), /nicht erlaubten/);
   addOutcome(meeting, actor, outcome, 'ai'); command(meeting, actor, { type: 'outcome.review', id: meeting.outcomes[0].id, status: 'approved' });
-  assert.throws(() => setTranscript(meeting, actor, parseTranscript('Anderer Inhalt')), /Bestätigte/); await store.close();
+  assert.throws(() => setTranscript(meeting, actor, parseTranscript('Anderer Inhalt')), /Bestätigte/);
 });
 test('editing invalidates approval and exported results cannot be edited', async () => {
   const { store, meeting } = await fixture(); const step = meeting.template.steps.find(s => s.kind === 'agenda')!;
@@ -74,11 +73,5 @@ test('editing invalidates approval and exported results cannot be edited', async
   command(meeting, actor, { type: 'outcome.review', id: outcome.id, status: 'approved' });
   const payload = exportPayload(meeting, [outcome]); assert.equal(payload.data.outcomes[0].title, 'Changed');
   outcome.export = { state: 'draft_created', draftId: 'abc' };
-  assert.throws(() => command(meeting, actor, { type: 'outcome.edit', id: outcome.id, outcome }), /nicht bearbeitet/); await store.close();
-});
-test('durable jobs deduplicate and leases prevent a second simultaneous claim', async () => {
-  const { store, meeting } = await fixture();
-  await store.enqueue('same', actor.tenantId, meeting.id, 'graph', {}); await store.enqueue('same', actor.tenantId, meeting.id, 'graph', {});
-  const one = await store.claimJob(); assert.equal(one?.id, 'same'); assert.equal(one?.attempts, 1); assert.equal(await store.claimJob(), undefined);
-  await store.finishJob('same'); assert.equal(await store.claimJob(), undefined); await store.close();
+  assert.throws(() => command(meeting, actor, { type: 'outcome.edit', id: outcome.id, outcome }), /nicht bearbeitet/);
 });

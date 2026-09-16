@@ -1,30 +1,30 @@
-# Technischer Anhang zur Bereitstellung
+# Technical deployment guide
 
-Dieser Anhang richtet sich an die Personen, die das Installationspaket erstellen oder die optionalen Schnittstellen betreiben. Für die Installation des fertigen Pakets verwenden Sie die [Schritt-für-Schritt-Anleitung](customer-deployment.md).
+This guide is for package builders and operators of optional integrations. To install a prepared package, follow the [step-by-step administrator guide](customer-deployment.md).
 
-## KI und roleALPHA ohne Proxy
+## AI and roleALPHA without a proxy
 
-Beide sind optional. Ein Anbieter muss **direkte Browseraufrufe mit CORS** und **delegierte Entra-Anmeldung** unterstützen. Bestehende Server, die nur einen geheimen API-Schlüssel oder technischen Bearer akzeptieren, sind ohne Änderung nicht kompatibel. Die App baut dafür keinen versteckten Proxy ein und fordert Endanwender nicht zur Eingabe von Schlüsseln auf.
+Both integrations are optional. Services must support **direct browser requests with CORS** and **delegated Microsoft Entra authentication**. Services accepting only secret API keys or service-account bearer tokens need changes before they are compatible. The app provides no hidden proxy and does not ask end users for keys.
 
-Die Freigabe erfolgt für einen von Ihrer Organisation kontrollierten Dienst. Ihre Organisation muss Eigentum, Region und Datenverarbeitung des eingetragenen Endpunkts prüfen; Software kann aus einer URL allein keine Datenhoheit ableiten. Ein zentraler roleALPHA-SaaS-Endpunkt würde die geforderte Datenhoheit nicht erfüllen. Für MCP ausschließlich die passende organisationsgebundene roleALPHA-Umgebung verwenden.
+Use services controlled by your organization. Verify ownership, region, and processing arrangements; a URL alone cannot establish data sovereignty. A central roleALPHA SaaS endpoint would not satisfy a requirement to keep data off roleALPHA-operated infrastructure. Use the appropriate organization-controlled roleALPHA deployment for MCP.
 
-Die Governance-Anbindung ist ausschließlich für roleALPHA vorgesehen. MCP ist das technische Protokoll, kein frei wählbarer Anbieter. Ein einzelner roleALPHA-Endpunkt bedient Protokolle und alle freigegebenen Entitätstypen; eigene Endpunkte pro Entität und generische MCP-Konfigurationen werden abgelehnt. Die Administration trägt den für Ihre Organisation bereitgestellten roleALPHA-Endpunkt ein. Eine URL allein beweist dabei nicht die Identität eines Dienstes.
+Governance integration is specifically for roleALPHA. MCP is its protocol, not an arbitrary provider setting. One roleALPHA endpoint handles meeting records and all enabled entity types. Per-entity endpoints and generic MCP configuration are rejected. Administrators must verify the service's identity; an address alone does not prove it.
 
-Der Paketbauer konfiguriert nicht geheime Endpunkte in `spfx/customer.config.json`. Das ausgelieferte Standardpaket enthält **keine** KI-/MCP-Ziele. Beispiel, ohne reale Zugangsdaten:
+The package builder configures nonsecret endpoints in `spfx/customer.config.json`. The default package has **no AI or MCP targets**. Example configuration, containing no real credentials:
 
 ```json
 {
-  "language": "de",
+  "language": "en",
   "ai": {
-    "url": "https://ai.organisation.example/v1/chat/completions",
-    "resource": "api://ORGANISATION-AI-APPLICATION-ID",
-    "permissionResource": "Organisation AI",
+    "url": "https://ai.organization.example/v1/chat/completions",
+    "resource": "api://ORGANIZATION-AI-APPLICATION-ID",
+    "permissionResource": "Organization AI",
     "scope": "access_as_user",
-    "model": "organisation-model"
+    "model": "organization-model"
   },
   "roleAlpha": {
-    "url": "https://rolealpha.organisation.example/mcp",
-    "resource": "api://ORGANISATION-ROLEALPHA-APPLICATION-ID",
+    "url": "https://rolealpha.organization.example/mcp",
+    "resource": "api://ORGANIZATION-ROLEALPHA-APPLICATION-ID",
     "permissionResource": "roleALPHA Governance",
     "scope": "access_as_user",
     "tenant": "11111111-1111-4111-8111-111111111111",
@@ -32,23 +32,22 @@ Der Paketbauer konfiguriert nicht geheime Endpunkte in `spfx/customer.config.jso
     "entities": {
       "risk": {
         "tool": "create_risk",
-        "label": "Risiko"
+        "label": "Risk"
       }
     }
   }
 }
 ```
 
-`resource` ist die Entra-Audience des Dienstes. `permissionResource` ist dessen in Entra angezeigter Anwendungsname; `scope` ist der delegierte freigegebene Scope. Der Build nimmt diese Berechtigungen automatisch in die M365-Freigabeanforderungen des Pakets auf. Danach in API-Zugriff genehmigen; Dienste müssen das Token selbst korrekt auf Audience, Tenant, Scope und Benutzerrechte prüfen. SPFx-Freigaben gelten für den geteilten SharePoint-Clientprincipal, nicht isoliert nur für dieses Webpart.
+`resource` is the service's Entra audience. `permissionResource` is its application display name in Entra; `scope` is its approved delegated scope. The build includes these permissions in the package's Microsoft 365 approval requests. Approve them under API access after deployment. Each service must validate audience, tenant, scope, and user permissions itself. SPFx approvals apply to the shared SharePoint client principal, not exclusively to this web part.
 
-Der Zielserver muss CORS für die tatsächlichen SharePoint-Origin(s) erlauben. Bei MCP insbesondere `Authorization`, `Content-Type`, `Mcp-Session-Id`, `MCP-Protocol-Version` sowie die benötigten HTTP-Methoden erlauben und `Mcp-Session-Id` exponieren. Bei tenantübergreifenden Benutzeranmeldungen/Guests sind die Dienstrechte gesondert zu prüfen. Bei fehlender Freigabe, CORS oder Netzwerkzugriff zeigt die Aktion einen Fehler; es gibt keinen Fallback über unsere Infrastruktur.
+Services must allow CORS from the actual SharePoint origins. For MCP, allow `Authorization`, `Content-Type`, `Mcp-Session-Id`, `MCP-Protocol-Version`, and the required HTTP methods, and expose `Mcp-Session-Id`. Check permissions separately for guest and cross-tenant sign-ins. Missing approval, CORS, or network access produces an error; there is no fallback through the manufacturer's infrastructure.
 
-KI-Vertrag: Chat-Completions mit `model`, `messages`, `response_format: {"type":"json_object"}` und Antwort `choices[0].message.content`. Die Integration kann zur Auswertung sowie zu Proposal Forming und Einwandintegration genutzt werden. Modellantworten werden validiert. Einwände, Zustimmung und Beschlüsse bleiben menschliche Entscheidungen.
+**AI contract:** Chat Completions with `model`, `messages`, and `response_format: {"type":"json_object"}`; the response is read from `choices[0].message.content`. The integration supports transcript analysis, proposal forming, and objection integration. Model responses are validated. Objections, consent, and decisions remain human responsibilities.
 
-MCP-Vertrag: Streamable HTTP; `create_meeting` oder explizit zugeordnetes `create_*`-Tool mit `tenant_uuid`, `name`, `custom_id`, `data`. Vor dem Schreiben werden angebotene Tools und das gemeinsame Schema geprüft. Bestätigung erwartet `{"draft_created":true,"draftId":"…","entityUuid":"…","status":"draft"}`. Bei unklarer Antwort wird das Ergebnis gesperrt; keine automatischen Schreib-Retries. Nach Schließen des Tabs während eines Exports kann ein `sending`-Status zurückbleiben; nach fünf Minuten erlaubt die UI den dokumentierten manuellen Abgleich.
+**MCP write contract:** Streamable HTTP, using `create_meeting` or an explicitly mapped `create_*` tool with `tenant_uuid`, `name`, `custom_id`, and `data`. The app checks advertised tools and the shared schema before writing. The expected confirmation is `{"draft_created":true,"draftId":"…","entityUuid":"…","status":"draft"}`. An uncertain response locks the outcome; writes are not retried automatically. Closing a tab during export can leave a `sending` status. After five minutes, the interface permits documented manual reconciliation.
 
-
-## Paket bauen (nur Entwicklung / Auslieferung)
+## Build the package
 
 ```sh
 npm ci
@@ -57,47 +56,48 @@ npm test
 npm run build
 ```
 
-Root-Tools verwenden Node 24. Der Build verwendet für SPFx 1.23.2 die separat im Projekt installierte Node-22-Version. Diese Build-Werkzeuge sind **keine** zur Installation benötigte Laufzeitumgebung und werden nicht als Server ausgeliefert. React ist auf die von SPFx unterstützte Version 17.0.1 festgelegt. Vor einem Paketupdate `spfx/package.json` erhöhen; daraus entstehen Paket- und Lösungsversion.
+Root tools use Node.js 24. SPFx 1.23.2 builds with the separate project-local Node.js 22 installation. These are development tools, not a server runtime required for installation. React is pinned to SPFx-supported version 17.0.1. Increase the version in `spfx/package.json` before distributing an update; the build derives package and solution versions from it.
 
-Ergebnis: `dist/rolealpha-meetings.sppkg`. `includeClientSideAssets` bündelt den Code für das App-Katalog-Hosting. Ein Build-Check verbietet serverseitige Module, den früheren `/api`-Adapter und Test-/Demo-Code im Browserpaket.
+Output: `dist/rolealpha-meetings.sppkg`. `includeClientSideAssets` packages the code for app catalog hosting. A build check excludes server modules and test/demo code from the browser package.
 
-`npm run dev` ist eine statische Browser-Demo mit simuliertem SharePoint. Sie enthält einen sichtbaren Hinweis und speichert nur im Arbeitsspeicher bis zum Neuladen. `npm run dev:legacy` / `npm run build:legacy` sind ausschließlich der frühere Prototyp. Dessen Container und Umgebungsvariablen werden für das neue Paket nicht gebraucht.
+`npm run dev` starts a static browser demonstration with simulated SharePoint. It displays a preview notice and keeps changes in memory only until reload.
 
+The project uses the [rA Meetings Internal Collaboration License 1.0](../LICENSE.md), effective 16 September 2026. The package script also copies the license to `dist/LICENSE.md`; include it with the installation package. Preserve applicable third-party notices when distributing artifacts.
 
-## Governance-Fragen: lesender roleALPHA-Vertrag
+## Governance questions: roleALPHA read contract
 
-Zusätzlich zum KI-Ziel benötigt `roleAlpha` die optionale Einstellung `governance: { "searchTool": "search_governance" }`. Der Toolname ist ein Beispiel: Tragen Sie den tatsächlich bereitgestellten, geprüften Suchtoolnamen aus der roleALPHA-Installation ein. Ohne diese Freigabe bleibt die Governance-Hilfe deaktiviert. Eine Übereinstimmung mit einem produktiven roleALPHA-Lesetool wurde noch nicht verifiziert.
+In addition to an AI target, set the optional `roleAlpha.governance` property to `{ "searchTool": "search_governance" }`. The name is an example: configure the actual verified search tool from the roleALPHA installation. Without this configuration, governance assistance remains disabled. Compatibility with a production roleALPHA read tool has not yet been verified.
 
-Der Adapter erwartet einen ausdrücklich lesenden Suchaufruf am selben roleALPHA-Endpunkt. Es gibt keine weitere MCP-Adresse und keine freie Toolauswahl durch das Modell. Das freigegebene Tool muss mit `search_` beginnen und in `tools/list` die Annotationen `readOnlyHint: true` und `destructiveHint: false` sowie die Parameter `tenant_uuid` (string), `query` (string), `limit` (number oder integer) anbieten. Weitere Pflichtparameter werden nicht unterstützt. Die Annotationen ersetzen keine serverseitigen Rechte: Der roleALPHA-Dienst muss die tatsächliche Leseberechtigung und Mandantenzuordnung des angemeldeten Benutzers prüfen und ausschließlich lesend arbeiten.
+The adapter expects an explicitly read-only search operation at the same roleALPHA endpoint. There is no additional MCP address or model-selected tool. The configured name must start with `search_`. Its `tools/list` declaration must expose `readOnlyHint: true`, `destructiveHint: false`, and parameters `tenant_uuid` (string), `query` (string), and `limit` (number or integer). Additional required parameters are unsupported. Annotations do not replace service-side authorization: roleALPHA must enforce the signed-in user's read access and tenant boundaries, and the operation must actually be read-only.
 
-Der Aufruf übergibt die konfigurierte roleALPHA-Mandanten-ID, die eingegebene Frage und `limit: 12`. Die Antwort wird als `structuredContent` oder als JSON in einem MCP-Textblock erwartet:
+The call supplies the configured roleALPHA tenant ID, the user's question, and `limit: 12`. Return `structuredContent` or JSON in an MCP text block:
 
 ```json
 {
   "sources": [
     {
       "id": "role-finance",
-      "title": "Rolle Finanzen",
-      "content": "Originaltext der für die Frage relevanten Governance ..."
+      "title": "Finance role",
+      "content": "Original governance text relevant to the question ..."
     }
   ]
 }
 ```
 
-IDs müssen eindeutig sein. Maximal zwölf Quellen mit je 12.000 Zeichen Inhalt werden angenommen. Die Suchantwort muss aus der bestehenden Governance stammen und darf keine als Original ausgegebenen Modellzusammenfassungen enthalten. Passen Sie bei abweichenden roleALPHA-Antwortformaten den Adapter anhand des tatsächlichen API-Vertrags an; eine beliebige JSON-Antwort wird nicht stillschweigend als Quelle akzeptiert.
+Source IDs must be unique. The adapter accepts at most twelve sources with up to 12,000 content characters each. Sources must contain existing governance, not model summaries represented as original text. If roleALPHA uses another response format, adapt the integration to its actual contract; arbitrary JSON is not silently accepted as a source.
 
-Die KI erhält ausschließlich Frage und abgerufene Quellen. Ihre Antwort besteht aus Aussagen mit Quellen-IDs und Angaben zu offenen Punkten. Unbekannte Quellen-IDs werden abgewiesen; bei leerem Suchergebnis erfolgt kein KI-Aufruf. Die Prüfung einer Quellen-ID kann nicht beweisen, dass eine Aussage inhaltlich korrekt aus der Quelle abgeleitet wurde. Deshalb zeigt die Oberfläche die Originaltexte und weist auf den begrenzten Suchumfang hin. Es erfolgen weder Governance-Änderungen noch Meeting-Speicherzugriffe. Auch Personen mit SharePoint-Leserechten dürfen fragen; roleALPHA setzt seine eigenen Zugriffsrechte unabhängig davon durch.
+AI receives only the question and retrieved sources. Its answer contains statements with source IDs and limitations. Unknown source IDs are rejected; empty search results trigger no AI call. Validating source IDs cannot establish whether a statement correctly follows from its source. The interface therefore shows original text and explains the limited search scope. This feature does not change governance or write meeting records. SharePoint readers may ask questions; roleALPHA enforces its own permissions independently.
 
-Bei der Abnahme prüfen: tatsächlichen Suchtoolvertrag, Benutzer- und Mandantentrennung, unbeantwortbare Fragen, Quellenvergleich, delegierte Anmeldung und Browser-CORS. Fragen und Antworten bleiben nur im geöffneten UI; keine neue SharePoint-Ablage oder Vektordatenbank. Protokollierung durch KI und roleALPHA ist separat entsprechend den Vorgaben Ihrer Organisation zu konfigurieren.
+Acceptance testing must cover the real search contract, user and tenant isolation, unanswerable questions, source comparison, delegated sign-in, and browser CORS. Questions and answers stay in the open interface; no new SharePoint storage or vector database is created. Configure AI and roleALPHA service logging separately according to organizational requirements.
 
-## Einrichtungsassistent
+## Onboarding wizard
 
-Die SPFx-Hostanbindung erlaubt zusätzlich zur aktuellen Website explizit ausgewählte Websites auf demselben HTTPS-Host. Die Anmeldung und Request-Digests bleiben bei SPHttpClient. Fremde Origins und ungültige Websitepfade werden abgewiesen. Die Einrichtung läuft ausschließlich im geöffneten Browser.
+The SPFx host supports explicitly selected sites on the same HTTPS host as the current site. SPHttpClient handles authentication and request digests. Foreign origins and invalid site paths are rejected. Setup runs only while the browser is open.
 
-Neue Websites verwenden `SPSiteManager/create` mit `STS#3` (Teamwebsite ohne Microsoft-365-Gruppe); vor dem Erstellen wird der Status geprüft. Es werden keine Teams, Gruppenmitgliedschaften oder API-Einwilligungen automatisch angelegt. Benutzerrechte und Organisationsrichtlinien setzen die Grenzen. Vertraulichkeitskennzeichnungen und besondere Websitevorlagen sind in dieser Version im Microsoft-Adminbereich vorzubereiten; dafür im Assistenten eine vorhandene Website wählen. Siehe [Microsoft Site-Creation REST](https://learn.microsoft.com/en-us/sharepoint/dev/apis/site-creation-rest).
+New sites use `SPSiteManager/create` with `STS#3`, a team site without a Microsoft 365 group. Status is checked before creation. Setup does not create Teams, group memberships, or API consents. User permissions and organizational policies constrain what it can do. Prepare sensitivity labels and special site templates through Microsoft administration, then choose an existing site in the wizard. Reference: [Microsoft site creation REST API](https://learn.microsoft.com/en-us/sharepoint/dev/apis/site-creation-rest).
 
-Die optionale Einstiegsseite wird über die SharePoint-SitePages-Schnittstelle als Entwurf mit dem eigenen SPFx-Webpart vorbereitet. Die Graph-sitePage-API unterstützt nicht beliebige eigene Webparts. Vorhandene Seiten werden nicht überschrieben. Ein `setup/landing`-Datensatz hält die angelegte Seiten-ID für Wiederholungen fest. Bei Abbruch zwischen der Seitenerstellung und dieser Markierung kann ein leerer Entwurf zurückbleiben; dieser wird nicht automatisch gelöscht. Die Administration prüft und veröffentlicht die Seite selbst. Referenz für das SitePages-Verfahren: [PnPjs Clientside Pages](https://github.com/pnp/pnpjs/blob/version-4/packages/sp/clientside-pages/types.ts).
+The optional landing page is prepared as a draft containing the custom SPFx web part through the SharePoint SitePages interface. The Graph sitePage API does not support arbitrary custom web parts. Existing pages are not overwritten. A `setup/landing` record stores the created page ID for retries. An interruption between page creation and that record can leave an empty draft, which is not automatically deleted. An administrator reviews and publishes the page. Implementation reference: [PnPjs client-side pages](https://github.com/pnp/pnpjs/blob/version-4/packages/sp/clientside-pages/types.ts).
 
-Der Speichertest legt einen Datensatz ohne Geschäftsinhalte an, liest ihn und entfernt den Indexeintrag. Wie bei sonstigen Löschungen bleibt dessen kleine Inhaltsdatei unter der vorhandenen Aufbewahrung bestehen. Wiederholungen verwenden bestehende Listen und Vorlagen. Die Sprachwahl gilt für noch nicht angelegte Startvorlagen, die Begriffswahl bleibt eine persönliche Präferenz.
+The storage test creates a record without business content, reads it, and removes its index entry. As with other deletions, the small content file remains subject to retention. Retrying setup reuses existing lists and templates. The selected language applies to starter templates not yet created; terminology remains a personal preference.
 
-Tenant-Abnahme: neue und vorhandene Websites, blockierte Websiteerstellung, geänderte Zugriffsrechte, verfügbare SPFx-Komponente auf der Zielwebsite, Seitenentwurf und Veröffentlichung, Unterbrechung/Wiederaufnahme sowie tatsächliche Teams-Registerkartenkonfiguration prüfen.
+Tenant acceptance must cover new and existing sites, blocked site creation, changed permissions, SPFx component availability at the target site, page drafts and publication, interruption/recovery, and actual Teams tab configuration.

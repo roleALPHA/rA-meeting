@@ -3,9 +3,7 @@ dist/
 data/
 .env
 .env.*
-!.env.example
 *.log
-teams/package/
 .npm-cache/
 work/
 

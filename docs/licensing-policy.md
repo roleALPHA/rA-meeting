@@ -1,43 +1,41 @@
-# Lizenzkonzept für rA Meetings
+# Licensing policy
 
-Dieses Dokument hält das gewünschte Nutzungsmodell als Grundlage für die Ausarbeitung der Lizenz fest. Es ist kein vollständiger Lizenzvertrag und keine eigenständige Rechteeinräumung.
+The **rA Meetings Internal Collaboration License, version 1.0**, in [LICENSE.md](../LICENSE.md) is effective from **16 September 2026**. The licensor and copyright holder is roleALPHA GmbH, Aschergasse 34, 1130 Vienna, Austria; licensing contact: office@rolealpha.com. This policy explains the license and is not a separate grant of rights.
 
-## Ziel
+## Usage model
 
-Organisationen sollen rA Meetings kostenlos für ihre eigene Geschäftstätigkeit nutzen dürfen, einschließlich der Zusammenarbeit mit Kunden. Auch der Einsatz im Rahmen bezahlter Beratungs-, Moderations- und Projektleistungen soll möglich sein. Die Software selbst und abgeleitete Fassungen sollen nicht durch Dritte vertrieben werden dürfen.
+Organizations may use rA Meetings free of charge for their own commercial or noncommercial operations, including real collaboration with customers. Paid consulting, facilitation, training, and project work using the app as a tool are allowed. Third parties must not distribute the Software, modified versions, or independent hosted offerings.
 
-## Vorgesehene Erlaubnisse
+The license provides for:
 
-- Installation und Betrieb für die eigene Organisation in deren Microsoft-365-Umgebung.
-- Eigene Anpassungen für diesen Nutzungszweck, auch wenn die Organisation gewinnorientiert arbeitet.
-- Einladung externer Kunden und Projektpartner zu gemeinsamen Meetings und Arbeitsbereichen im Rahmen der eigenen Geschäftsbeziehung.
-- Zugriff dieser eingeladenen Personen auf die dafür freigegebenen Funktionen und Inhalte.
-- Technisch erforderliche Übertragung, Ausführung und Zwischenspeicherung von Browsercode bei diesen Personen sowie technische Kopien für den autorisierten Betrieb in Microsoft 365. Diese Vorgänge müssen ausdrücklich vom allgemeinen Distributionsverbot abgegrenzt werden.
-- Verwendung der eigenen Meetinginhalte und Ergebnisse, auch außerhalb der App. Das Vertriebsverbot für die Software soll nicht die Weitergabe eigener Protokolle, Beschlüsse oder Arbeitsergebnisse verhindern.
+- Internal installation, operation, and adaptation, including within a defined controlled corporate group.
+- Invited customers and partners participating in shared meetings and project workspaces.
+- Necessary Microsoft 365 deployment, hosting, backup, browser delivery, execution, and caching.
+- IT contractors performing paid setup, customization, and maintenance solely for an authorized organization's deployment.
+- Unrestricted use of an organization's own meeting outputs under this Software license, subject to applicable law and third-party content rights.
+- Internal and collaboration-related use of documentation, without assigning a Creative Commons license.
 
-## Vorgesehene Einschränkungen
+It prohibits independent redistribution, including free redistribution; resale and sublicensing; white-label distribution; and standalone software services. Actual customer collaboration is distinguished from supplying software for a customer's unrelated operations. Another organization obtains an independent installation through the rights holder or an authorized channel.
 
-- Keine Weitergabe von Quellcode oder Installationspaketen an andere Rechtsträger als eigenständig nutzbares Softwareangebot; das gilt auch für kostenlose Weitergabe, soweit keine ausdrückliche Ausnahme greift.
-- Kein Weiterverkauf, keine Unterlizenzierung, kein Vertrieb unter anderer Marke und kein Vertrieb veränderter Fassungen.
-- Kein eigenständiges Software-as-a-Service-Angebot, bei dem Dritten die App zur selbstständigen Nutzung als Softwaredienst angeboten wird.
-- Kundenmitwirkung in gemeinsamen Projekten ist von einer eigenständigen Installation oder einem separaten Produktangebot für Kunden zu unterscheiden. Eine andere Organisation bezieht ihre eigene Nutzungsberechtigung und ihr Paket direkt über den vom Rechteinhaber vorgesehenen Weg.
-- Bezahlte Zusammenarbeit ist kein automatischer Lizenzverstoß. Entscheidend ist die Abgrenzung zwischen der eigenen fachlichen Leistung mit der App als Hilfsmittel und dem Vertrieb beziehungsweise eigenständigen Bereitstellen der Software.
+## Relationship to standardized licenses
 
-## Geeignete Grundlage und notwendige Präzisierung
+[PolyForm Internal Use 1.0.0](https://polyformproject.org/licenses/internal-use/1.0.0) informed the initial policy choice. Its internal-business-use model does not itself expressly address all intended external customer participation and browser-delivery scenarios.
 
-[PolyForm Internal Use 1.0.0](https://polyformproject.org/licenses/internal-use/1.0.0) erlaubt interne Geschäftsnutzung und dafür vorgenommene Änderungen, enthält aber keine allgemeine Distributionserlaubnis. Ihr Unternehmensbegriff umfasst auch bestimmte verbundene Organisationen. Externe Kunden sind nicht schon deshalb Teil dieses Unternehmensbegriffs, weil eine Geschäftsbeziehung besteht.
+The license uses a separate name and must not be represented as the unchanged standardized license. The PolyForm project's [license-text modification guidance](https://github.com/polyformproject/polyform-licenses/blob/1.0.0/README.md#license) requires removing its name and project address from changed license text. These references are explanatory background in this policy, not part of the custom license text.
 
-Deshalb darf die Standardlizenz nicht ohne Prüfung als vollständige Abdeckung aller gewünschten Kunden- und Browserzugriffsszenarien dargestellt werden. Die rechtliche Ausarbeitung soll insbesondere eine ausdrückliche Erlaubnis für die beschriebene Kundenmitwirkung und die dafür nötigen technischen Kopien vorsehen. Eine Ergänzung muss das allgemeine Vertriebsverbot klar und eng abgrenzen.
+This is a custom source-available license, not an open-source license. Apache 2.0 was previously a proposal only and is not the selected model. No CC license has been applied to documentation. Existing grants for previously released versions, if any, cannot simply be erased by a later license choice.
 
-Falls der Standardlizenztext angepasst wird, verlangt das PolyForm-Projekt, seine Bezeichnung und Projektadresse aus dem geänderten Lizenztext zu entfernen. Eine solche Fassung ist unter einem eigenen Namen zu veröffentlichen, nicht als unveränderte „PolyForm Internal Use“. Alternativ ist eine getrennte zusätzliche Erlaubnis zur unveränderten Basislizenz rechtlich auf ihre Konsistenz zu prüfen. [Vorgaben zur Veränderung der Lizenztexte](https://github.com/polyformproject/polyform-licenses/blob/1.0.0/README.md#license).
+## Public repository hosting
 
-## Vor der Veröffentlichung auszuarbeiten
+The rights holder can publish code while restricting broader use and distribution. However, publishing on GitHub grants other users certain platform rights, including viewing and forking within the service. The license preserves those rights rather than promising an absolute copying prohibition. See [GitHub's repository licensing guidance](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository) and [Terms of Service](https://docs.github.com/en/site-policy/github-terms/github-terms-of-service).
 
-1. Den tatsächlichen Rechteinhaber mit seiner korrekten rechtlichen Bezeichnung festlegen.
-2. Den oben beschriebenen Nutzungsumfang in einen konsistenten Lizenztext überführen; insbesondere Kundenmitwirkung, Unternehmensverbund, externe IT-Dienstleister und die technische Auslieferung über Microsoft 365 präzisieren.
-3. Den Umgang mit Beiträgen Dritter und deren erforderlichen Nutzungsrechten festlegen.
-4. Dokumentation und Marken getrennt regeln. Eine CC-Lizenz auf Anleitungen würde das Vertriebsverbot für Software nicht ersetzen oder erweitern.
-5. Drittanbieter-Lizenzen und erforderliche Hinweise prüfen und in die Auslieferung aufnehmen. Bestehende Rechte an fremden Bestandteilen werden durch die eigene Produktlizenz nicht eingeschränkt.
-6. Erst danach vollständigen Lizenztext, Paketmetadaten und README konsistent aktualisieren und in das Installationspaket aufnehmen.
+Public visibility does not make this an open-source license or automatically permit independent resale or SaaS operation. Repository visibility is managed separately from the license.
 
-Ein bereits wirksam erteiltes Nutzungsrecht an früher veröffentlichten Fassungen wird durch eine spätere Lizenzwahl nicht pauschal rückwirkend aufgehoben. Im vorliegenden Projekt war Apache 2.0 bisher ausdrücklich nur als Vorschlag dokumentiert.
+## Release and contribution maintenance
+
+- Include the license and applicable third-party notices with distributed artifacts. The root package metadata refers to `LICENSE.md`; the SPFx workspace refers to the same file in its parent directory.
+- Verify ownership and third-party obligations for each release. The license's third-party exception does not replace this review.
+- Agree any additional contribution rights before incorporating external code into a release requiring those rights. The license does not automatically assign contributor copyright or unrestricted relicensing rights.
+- Documentation is covered by the license's documentation clause; no separate Creative Commons license has been applied. Trademarks remain separately protected.
+- The license selects no governing law or exclusive venue. Applicable conflict-of-law and jurisdiction rules remain relevant.
+- Keep future license revisions clearly versioned. A new revision does not automatically replace the terms for previously licensed copies.

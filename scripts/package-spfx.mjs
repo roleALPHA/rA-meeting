@@ -10,4 +10,5 @@ for(const args of [['build','--clean','--production'],['package-solution','--pro
 }
 await mkdir(resolve(root,'dist'),{recursive:true});
 await copyFile(resolve(root,'spfx/sharepoint/solution/rolealpha-meetings.sppkg'),resolve(root,'dist/rolealpha-meetings.sppkg'));
+await copyFile(resolve(root,'LICENSE.md'),resolve(root,'dist/LICENSE.md'));
 console.log('Installable customer package: dist/rolealpha-meetings.sppkg');

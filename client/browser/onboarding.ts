@@ -1,5 +1,5 @@
 import { assert, AppError } from '../../shared/model';
-import { provisionWorkspace, SharePointRestStore, spJson, workspaceAccess, type SPRequest } from '../../shared/storage/sharepoint-rest';
+import { provisionWorkspace, SharePointRestStore, spJson, workspaceAccess } from '../../shared/storage/sharepoint-rest';
 import type { BrowserHost } from './host';
 import type { Language } from '../../shared/i18n';
 export const meetingsWebPartId='d7391660-3f52-4e4b-b95f-7a71e4c5092e';

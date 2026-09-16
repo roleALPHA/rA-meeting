@@ -1,234 +1,234 @@
-# roleALPHA Meetings installieren: Schritt für Schritt
+# Install roleALPHA Meetings: step-by-step administrator guide
 
-Diese Anleitung führt Sie durch die erstmalige Installation in Ihrer Microsoft-365-Umgebung. Sie benötigen keine Programmierkenntnisse und müssen keine Befehle ausführen. Sie installieren ein fertiges Paket über die Verwaltungsoberflächen von Microsoft.
+This guide walks you through a first installation in your Microsoft 365 environment. You do not need programming experience or command-line tools. You install a prepared package using Microsoft's administration screens.
 
-roleALPHA Meetings läuft innerhalb von SharePoint und Microsoft Teams. Meetings, Vorlagen, Spannungen beziehungsweise Agendapunkte und Ergebnisse werden in einer SharePoint-Website Ihrer Organisation gespeichert. Ein eigener Appserver, eine Datenbankinstallation oder Power Automate ist dafür nicht erforderlich.
+roleALPHA Meetings runs within SharePoint and Microsoft Teams. Meetings, templates, tensions or agenda items, and outcomes are stored in your organization's SharePoint site. You do not need an application server, a database installation, or Power Automate.
 
-Nach der Paketbereitstellung übernimmt ein Einrichtungsassistent die Websiteauswahl, die Speicherbereiche und Startvorlagen. Eine neue Website kann er bei ausreichenden Berechtigungen ebenfalls erstellen. Der Assistent startet beim ersten Öffnen eines noch nicht eingerichteten Arbeitsbereichs; später finden Sie ihn unter **Verbindungen → Einrichtungsassistent öffnen**.
+After package deployment, an onboarding wizard helps select the site and create storage and starter templates. With sufficient permissions, it can also create a new site. The wizard appears when opening an unconfigured workspace. You can reopen it through **Connections** using the setup wizard action.
 
-Führen Sie zuerst die Schritte 1 bis 6 durch. Danach können Sie die App in SharePoint verwenden. Die Schritte 7 bis 9 ergänzen Kalenderzugriff und Teams. KI und die Verbindung zur roleALPHA-Governance-Plattform sind optional und werden in Schritt 10 erklärt.
+Complete steps 1–6 to use the app in SharePoint. Steps 7–9 add calendar access and Teams. Step 10 covers optional AI and roleALPHA Governance integration.
 
-Microsoft ändert gelegentlich Menünamen. Deshalb stehen an wichtigen Stellen auch die englischen Bezeichnungen. Stand der Anleitung: 16. September 2026. Die Installation wurde noch nicht in einer echten Microsoft-365-Umgebung abgenommen; die Prüfungen in Schritt 11 sind vor der allgemeinen Freigabe erforderlich.
+This guide uses English screen labels. Microsoft may change menu names. Guide date: 16 September 2026. Deployment has not yet been accepted in a real Microsoft 365 environment; complete step 11 before general release.
 
-## 1. Unterlagen und Berechtigungen bereitlegen
+## 1. Prepare the package and administrator access
 
-1. Speichern Sie die bereitgestellte Datei **rolealpha-meetings.sppkg** auf Ihrem Computer. Die Endung `.sppkg` bezeichnet ein Installationspaket für SharePoint. Entpacken Sie die Datei nicht. Im Projekt liegt sie im Ordner `dist`.
-2. Halten Sie Ihr Microsoft-365-Administratorkonto bereit. Verwenden Sie ein Geschäftskonto Ihrer Organisation.
-3. Prüfen Sie, wer die folgenden Aufgaben übernehmen darf. Das können unterschiedliche Personen sein:
+1. Save the supplied **rolealpha-meetings.sppkg** file on your computer. The `.sppkg` extension identifies a SharePoint installation package. Do not unzip it. In the project, the build places it in `dist/`.
+2. Have your Microsoft 365 administrator account ready. Use your organization's work account.
+3. Identify who has permission for each task below. Different people may perform different steps.
 
-| Aufgabe | Benötigte Berechtigung |
+| Task | Required access |
 | --- | --- |
-| Paket in SharePoint bereitstellen | SharePoint-Administration und Zugriff auf den organisationsweiten App-Katalog |
-| Speicherbereich in einer Website einrichten | Websitebesitzer mit Berechtigung zum Verwalten von Listen |
-| Microsoft-Graph-Berechtigungen genehmigen | Globale Administration für die Microsoft-API-Freigabe |
-| App für Teams-Benutzer freigeben | Teams-Administration |
+| Deploy the SharePoint package | SharePoint administration and access to the organization-wide app catalog |
+| Provision storage in a site | Site owner with permission to manage lists |
+| Approve Microsoft Graph access | Global administration for Microsoft API approval |
+| Make apps available to Teams users | Teams administration |
 
-4. Vereinbaren Sie einen ersten Test mit einer kleinen Benutzergruppe. Benötigt werden Konten mit SharePoint-Zugriff; für die Teams-Schritte zusätzlich Teams-Zugriff.
-5. Notieren Sie, wer später die Websiteberechtigungen und die Aufbewahrung der Daten betreut.
+4. Arrange an initial test with a small group. Test accounts need SharePoint access and, for the Teams steps, Teams access.
+5. Record who will manage site permissions and data retention.
 
-**Prüfung:** Die Paketdatei liegt vor und für jede Aufgabe ist eine berechtigte Person verfügbar. Ist ein Verwaltungsbereich nicht sichtbar, lassen Sie die entsprechende Person diesen Teil durchführen.
+**Check:** You have the package and an authorized person for each task. If an administration screen is unavailable, ask the responsible administrator to perform that step.
 
-## 2. SharePoint-Website als Arbeitsbereich auswählen
+## 2. Choose a SharePoint workspace site
 
-Ein **Arbeitsbereich** ist hier die SharePoint-Website, in der eine Gruppe ihre Meetingdaten gemeinsam ablegt.
+A **workspace** is the SharePoint site where a group shares its meeting data.
 
-1. Öffnen Sie SharePoint über das Microsoft-365-App-Menü.
-2. Öffnen Sie die Website der vorgesehenen Gruppe. Wenn Sie bereits ein Team in Teams verwenden, können Sie dessen SharePoint-Website über den Dateibereich des Kanals und **In SharePoint öffnen** erreichen.
-3. Für einen neuen Arbeitsbereich können Sie später im Einrichtungsassistenten **Neue SharePoint-Website erstellen** wählen. Zum erstmaligen Öffnen der App verwenden Sie zunächst eine vorhandene Website mit dem Webpart aus Schritt 5 oder die freigegebene persönliche Teams-App aus Schritt 8. Die App startet nicht allein durch das Hochladen des Pakets. Alternativ lassen Sie eine neue Website über **SharePoint-Verwaltung → Aktive Websites → Erstellen** anlegen, wenn Organisationsrichtlinien besondere Vorlagen oder Vertraulichkeitskennzeichnungen verlangen.
-4. Kopieren Sie die Adresse der Website. Beispiel: `https://ihreorganisation.sharepoint.com/sites/Meetingteam`. Verwenden Sie die Websiteadresse ohne einen angehängten Seiten- oder Dateinamen wie `/SitePages/Start.aspx`.
-5. Öffnen Sie auf der Website **Zahnrad → Websiteberechtigungen**. Prüfen Sie Besitzer, Mitglieder und Besucher sowie eventuell vorhandene zusätzliche Freigaben.
-6. Geben Sie Bearbeitungsrechte nur den Personen, die Meetings, Vorlagen und Inhalte gemeinsam bearbeiten sollen. Die App benötigt dafür die Rechte zum Hinzufügen, Bearbeiten und Löschen von Elementen. Personen mit Leserechten können Inhalte ansehen.
+1. Open SharePoint from the Microsoft 365 app menu.
+2. Open the intended group's site. For an existing Teams team, you can open its SharePoint site from the channel's files area using **Open in SharePoint**.
+3. To create a new workspace, you can later choose the new-site option in onboarding. First open the app on an existing site using step 5, or through the personal Teams app enabled in step 8. Uploading the package alone does not launch the app. Alternatively, have an administrator create a site through **SharePoint admin center → Active sites → Create**, especially if your organization requires specific templates or sensitivity labels.
+4. Copy the site's address, for example `https://yourorganization.sharepoint.com/sites/MeetingTeam`. Use the site address without a page or file suffix such as `/SitePages/Home.aspx`.
+5. On the site, open **Settings (gear icon) → Site permissions**. Review owners, members, visitors, and any additional sharing.
+6. Grant editing access only to people who should jointly edit meetings, templates, and content. The app requires permission to add, edit, and delete items for editing. Readers can view content.
 
-**Wichtig:** Alle Personen mit Zugriff auf die gespeicherten Inhalte können auch Transkripte und ältere gespeicherte Fassungen lesen. Die Teilnehmerliste eines Teams-Termins begrenzt diesen Zugriff nicht. Für vertrauliche Gruppen verwenden Sie eine eigene Website mit entsprechend eingeschränkten Berechtigungen.
+Everyone with access to stored content can also read transcripts and historical versions. A Teams meeting's attendee list does not limit this access. Use a separate site with restricted permissions for confidential groups.
 
-**Prüfung:** Sie haben die Websiteadresse notiert und der zugriffsberechtigte Personenkreis ist bewusst festgelegt.
+**Check:** You have recorded the site address and deliberately chosen who can access it.
 
-## 3. Den SharePoint-App-Katalog öffnen
+## 3. Open the SharePoint app catalog
 
-Der **App-Katalog** ist die zentrale Ablage für zusätzliche SharePoint-Apps Ihrer Organisation. Er ist nicht die Website aus Schritt 2.
+The **app catalog** is your organization's central location for additional SharePoint apps. It is different from the workspace site in step 2.
 
-1. Öffnen Sie das [Microsoft-365 Admin Center](https://admin.microsoft.com/) und melden Sie sich an.
-2. Wählen Sie gegebenenfalls **Alle anzeigen**, dann unter **Admin Center** den Eintrag **SharePoint**.
-3. Öffnen Sie **Weitere Funktionen / More features**.
-4. Klicken Sie bei **Apps** auf **Öffnen / Open**.
-5. Es erscheint **Apps verwalten / Manage apps**. Falls zunächst die Einrichtung eines App-Katalogs angeboten wird, lassen Sie die SharePoint-Administration diese Einrichtung abschließen und öffnen Sie den Bereich danach erneut. Erstellen Sie keinen zusätzlichen Website-App-Katalog als Ersatz.
+1. Open the [Microsoft 365 admin center](https://admin.microsoft.com/) and sign in.
+2. If necessary, select **Show all**, then **Admin centers → SharePoint**.
+3. Open **More features**.
+4. Under **Apps**, select **Open**.
+5. You should see **Manage apps**. If prompted to create an app catalog first, have the SharePoint administrator complete that setup and reopen this screen. Do not substitute an additional site-level app catalog.
 
-**Prüfung:** Sie sehen eine App-Verwaltung mit der Möglichkeit **Hochladen / Upload**. Microsoft beschreibt diesen Zugang in der [Anleitung zum App-Katalog](https://learn.microsoft.com/en-us/sharepoint/use-app-catalog).
+**Check:** The app management screen offers **Upload**. See [Microsoft's app catalog guide](https://learn.microsoft.com/en-us/sharepoint/use-app-catalog).
 
-## 4. Installationspaket hochladen und aktivieren
+## 4. Upload and enable the package
 
-1. Wählen Sie **Hochladen / Upload** und anschließend die Datei `rolealpha-meetings.sppkg`.
-2. Lesen Sie den angezeigten Dialog zur Aktivierung. Falls die App bereits vorhanden ist, prüfen Sie zuerst, ob Sie bewusst ein Update installieren möchten; siehe Abschnitt „Später aktualisieren“.
-3. Für die hier beschriebene Bereitstellung wählen Sie **Diese App aktivieren und allen Websites hinzufügen / Enable this app and add it to all sites**. Damit wird der Baustein organisationsweit verfügbar. Meetingdaten werden dadurch nicht automatisch angelegt oder für andere Websites freigegeben. Falls Ihre Organisation diese breite Verfügbarkeit nicht erlaubt, klären Sie vor dem Fortfahren eine eingeschränkte Bereitstellung mit der SharePoint-Administration.
-4. Bestätigen Sie mit **App aktivieren / Enable app** beziehungsweise **Hinzufügen / Add**. Das Hinzufügen zu Teams können Sie zunächst auslassen; es folgt in Schritt 8.
-5. Schließen Sie den Dialog und prüfen Sie den App-Eintrag. Der technische Paketname kann `rolealpha-meetings-client-side-solution` lauten.
+1. Select **Upload**, then choose `rolealpha-meetings.sppkg`.
+2. Read the activation dialog. If the app already exists, confirm that you intend to update it; see “Install later updates” below.
+3. For this deployment, select **Enable this app and add it to all sites**. This makes the component available across the organization. It does not automatically create meeting data or share workspace data with other sites. If your organization does not allow this availability, arrange a restricted deployment with your SharePoint administrator before proceeding.
+4. Confirm with **Enable app** or **Add**. You can skip adding to Teams here; step 8 covers it.
+5. Close the dialog and inspect the app entry. Its technical package name may be `rolealpha-meetings-client-side-solution`.
 
-**Prüfung:** Das Paket wird als aktiviert angezeigt und es erscheint keine Bereitstellungsfehlermeldung. Ein Hinweis auf zusätzliche API-Berechtigungen ist noch kein Installationsfehler; diese werden in Schritt 7 behandelt.
+**Check:** The package is enabled without a deployment error. A notice about additional API permissions is not itself an installation failure; step 7 addresses those permissions.
 
-## 5. Die App auf einer SharePoint-Seite anzeigen
+## 5. Display the app on a SharePoint page
 
-Ein **Webpart** ist ein Baustein auf einer SharePoint-Seite. roleALPHA Meetings wird als solcher Baustein eingefügt.
+A **web part** is a component placed on a SharePoint page.
 
-1. Öffnen Sie die Websiteadresse aus Schritt 2.
-2. Wählen Sie **Neu → Seite**, legen Sie eine leere Seite an und geben Sie ihr beispielsweise den Namen **Meetings**. Alternativ bearbeiten Sie eine vorhandene geeignete Seite.
-3. Klicken Sie im Seiteninhalt auf das **Pluszeichen**, mit dem Sie einen Webpart hinzufügen.
-4. Suchen Sie nach **roleALPHA Meetings** und wählen Sie diesen Eintrag. Für die Übersicht verwenden Sie die Mehrzahl „Meetings“; der ähnlich benannte Eintrag „roleALPHA Meeting“ ist für einen einzelnen Meeting-Tab vorgesehen.
-5. Öffnen Sie über das Bearbeitungssymbol des Webparts dessen Eigenschaften.
-6. Lassen Sie **SharePoint site URL** leer, wenn Sie die gerade geöffnete Website verwenden möchten. Nur für eine andere Website tragen Sie deren vollständige Adresse ein. Diese muss auf demselben SharePoint-Host liegen, beispielsweise ebenfalls unter `ihreorganisation.sharepoint.com`.
-7. Lassen Sie im Feld **Meeting** die Auswahl **All meetings / Alle Meetings** stehen.
-8. Veröffentlichen Sie die Seite mit **Veröffentlichen** beziehungsweise **Erneut veröffentlichen**.
+1. Open the workspace site from step 2.
+2. Select **New → Page**, create a blank page, and name it **Meetings**, for example. You can instead edit an existing suitable page.
+3. In the page content, select the **plus sign** to add a web part.
+4. Search for and select **roleALPHA Meetings**. Use the plural “Meetings” for the workspace overview. The similarly named “roleALPHA Meeting” component is intended for an individual meeting tab.
+5. Open the web part's properties using its edit icon.
+6. Leave **SharePoint site URL** empty to use the current site. To use another site, enter its full address. It must use the same SharePoint host, such as `yourorganization.sharepoint.com`.
+7. Leave **Meeting** set to **All meetings**.
+8. Select **Publish** or **Republish**.
 
-**Prüfung:** Auf der veröffentlichten Seite erscheint roleALPHA Meetings. Beim ersten Aufruf ist die Aufforderung zur Einrichtung des Arbeitsbereichs erwartbar.
+**Check:** roleALPHA Meetings appears on the published page. A request to set up the workspace is expected on first use.
 
-## 6. Den Einrichtungsassistenten durchlaufen
+## 6. Complete onboarding
 
-1. Öffnen Sie die App als Websitebesitzer. Bei einem noch nicht eingerichteten Arbeitsbereich erscheint **Willkommen bei rA Meetings**. Bei einer bestehenden Einrichtung öffnen Sie **Verbindungen → Einrichtungsassistent öffnen**.
-2. Wählen Sie **Vorhandene SharePoint-Website verwenden**. Tragen Sie die Websiteadresse aus Schritt 2 ein und klicken Sie auf **Website prüfen**. Die App prüft Erreichbarkeit und Ihre Rechte, bevor sie Inhalte anlegt.
-3. Wenn Sie stattdessen einen neuen Arbeitsbereich benötigen, wählen Sie **Neue SharePoint-Website erstellen**. Geben Sie einen Namen und einen kurzen Adressnamen aus Buchstaben, Zahlen und Bindestrichen ein. Prüfen Sie die angezeigte Adresse und wählen Sie **Website erstellen**. Falls die Erstellung noch läuft, wählen Sie nach kurzer Zeit **Status prüfen**. Es entsteht eine eigenständige Teamwebsite; kein neues Microsoft-Team. Ihr angemeldetes Konto wird Besitzer. Die Organisationsrichtlinien gelten weiterhin. Bei einer Fehlermeldung lassen Sie die SharePoint-Administration die Websiteerstellung prüfen.
-4. Auf **Zugriff und Einstellungen prüfen** öffnen Sie **Websiteberechtigungen öffnen** in einem neuen Tab. Prüfen Sie die vorhandenen Personen und Gruppen. Benötigte Änderungen nehmen Sie bewusst in SharePoint vor. Kehren Sie anschließend zum Assistenten zurück. Er selbst ändert keine Zugriffsrechte.
-5. Wählen Sie oben die gewünschte Sprache für neue Startvorlagen und bei Bedarf die Anzeige **Agenda** statt **Spannungen**. Vorhandene Vorlagen werden nicht übersetzt oder überschrieben. Die Anzeigeauswahl gilt persönlich für Ihren Browser.
-6. Lassen Sie **Eine eigene Einstiegsseite für rA Meetings vorbereiten** aktiviert, wenn der Assistent eine Seite im gewählten Arbeitsbereich anlegen soll. Eine vorhandene Website-Startseite wird nicht ersetzt. Eine bereits vorhandene, nicht vom Assistenten angelegte Seite mit demselben Dateinamen wird nicht überschrieben. Für einen reinen Teams-Arbeitsbereich können Sie diese Option abwählen.
-7. Bestätigen Sie, dass Sie den zugriffsberechtigten Personenkreis geprüft haben, und wählen Sie **Arbeitsbereich einrichten**.
-8. Warten Sie auf **Ihr Arbeitsbereich ist bereit**. Die App erstellt Speicherbereiche und Startvorlagen und führt einen Schreib-/Lesetest aus. Bei einem Fehler bleiben bereits erstellte Bestandteile erhalten. Gehen Sie zurück, beheben Sie die Ursache und starten Sie die Einrichtung erneut. Löschen Sie die angelegten Listen nicht als ersten Fehlerbehebungsversuch.
-9. Wenn Sie eine Einstiegsseite angefordert haben, wählen Sie **Einstiegsseite prüfen und veröffentlichen**. Prüfen Sie in SharePoint die Seite und wählen Sie **Veröffentlichen**. Erst danach geben Sie deren Link an die Gruppe weiter. Eine gegebenenfalls vorgeschriebene Seitenfreigabe Ihrer Organisation bleibt bestehen.
-10. Optional wählen Sie **Kalenderzugriff testen**. Falls Berechtigungen fehlen, führen Sie Schritt 7 aus. Fehlende optionale Verbindungen verhindern nicht die grundlegende Nutzung der Meeting-App. Anzeigen wie „konfiguriert“ ersetzen keine tatsächlichen KI-/roleALPHA-Funktionstests.
-11. Wählen Sie **Arbeitsbereich öffnen**. Öffnen Sie **Templates**; dort sollten drei Startvorlagen vorhanden sein. Erstellen Sie anschließend über **Meetings → Meeting anlegen** ein Testmeeting und laden Sie die Seite neu. Das Meeting muss erhalten bleiben.
+1. Open the app as a site owner. An unconfigured workspace displays the welcome screen. For an existing workspace, open **Connections** and choose the setup wizard action.
+2. Choose the option to use an existing SharePoint site. Enter the address from step 2 and select the site-check action. The app checks reachability and permissions before creating content.
+3. If you need a new workspace instead, choose the option to create a SharePoint site. Enter a name and a short address name containing letters, numbers, and hyphens. Review the displayed address and create the site. If creation remains in progress, check its status again shortly. This creates a standalone team site, not a Microsoft Team. Your signed-in account becomes the owner. Organizational policies still apply. Ask your SharePoint administrator to investigate if creation fails.
+4. On the access/settings review screen, open the site-permissions link in a new tab. Review people and groups. Make any required changes in SharePoint, then return to the wizard. The wizard does not change access rights itself.
+5. At the top of the app, choose the language for new starter templates and, if preferred, **Agenda** instead of **Tensions**. Existing templates are not translated or overwritten. Display preferences are personal to your browser.
+6. Keep the landing-page option selected if you want the wizard to prepare a dedicated app page. It does not replace the site's home page or overwrite an unrelated existing page with the same filename. You can disable this option for a Teams-only workspace.
+7. Confirm that you have reviewed the authorized audience, then start workspace setup.
+8. Wait for the workspace-ready confirmation. The app creates storage and starter templates, then performs a write/read test. If an error occurs, previously created components remain. Go back, resolve the cause, and run setup again. Do not begin troubleshooting by deleting the created lists.
+9. If you requested a landing page, open the review-and-publish link. Review the page in SharePoint and select **Publish**. Share the link with the group only afterwards. Any organizational page approval requirement still applies.
+10. Optionally test calendar access. Complete step 7 if permissions are missing. Missing optional connections do not prevent basic meeting use. “Configured” does not replace actual AI or roleALPHA function tests.
+11. Open the workspace. Under **Templates**, verify that three starter templates exist. Create a test meeting from **Meetings** and reload the page. The meeting must remain available.
 
-**Prüfung:** Unter **Zahnrad → Websiteinhalte** der ausgewählten Website finden Sie:
+**Check:** Open **Settings → Site contents** on the selected site and find:
 
-| Name | Zweck |
+| Name | Purpose |
 | --- | --- |
-| `rA Meetings Browser Index` | Verzeichnis der gespeicherten Datensätze |
-| `rA Meetings Browser Data` | Inhalte und ältere gespeicherte Fassungen |
-| `rA-Meetings.aspx` in der Seitenbibliothek, falls ausgewählt | Vorbereitete Einstiegsseite mit der App |
+| `rA Meetings Browser Index` | Index of stored records |
+| `rA Meetings Browser Data` | Content and historical versions |
+| `rA-Meetings.aspx` in the pages library, if requested | Prepared landing page containing the app |
 
-Benennen Sie die Speicherbereiche nicht um. Nach einem Websitewechsel enthält die aktuelle App-Adresse die Arbeitsbereichsauswahl. Für einen dauerhaften Einstieg verwenden Sie vorzugsweise die veröffentlichte Einstiegsseite; bei Teams tragen Sie die ausgewählte Websiteadresse auch in der Registerkartenkonfiguration ein.
+Do not rename the storage areas. After switching sites, the current app URL includes the workspace selection. Prefer the published landing page for a lasting entry point. In Teams, also enter the selected site address in the tab configuration.
 
-## 7. Optional: Kalender und Teams-Transkripte freigeben
+## 7. Optional: approve calendar and Teams transcript access
 
-Überspringen Sie diesen Schritt, wenn Sie zunächst nur Meetings manuell anlegen und Transkriptdateien importieren möchten.
+Skip this step if you initially want to create meetings manually and import transcript files.
 
-**Microsoft Graph** ist die Schnittstelle, über die die App Kalender und Transkripte von Microsoft abruft. Die Freigabe erfolgt für angemeldete Benutzer; sie gibt niemandem automatisch Zugriff auf fremde Kalender oder Besprechungen.
+**Microsoft Graph** is the interface used to retrieve Microsoft calendar events and transcripts. Approval enables access on behalf of signed-in users; it does not automatically grant access to other people's calendars or meetings.
 
-1. Öffnen Sie erneut das **SharePoint Admin Center**.
-2. Wählen Sie **Erweitert → API-Zugriff / Advanced → API access**.
-3. Lassen Sie die für Microsoft-API-Freigaben berechtigte Administration die folgenden Anforderungen des Pakets prüfen:
+1. Reopen the **SharePoint admin center**.
+2. Select **Advanced → API access**.
+3. Have the administrator authorized to approve Microsoft API access review these package requests:
 
-| Angeforderte Berechtigung | Verwendungszweck |
+| Requested permission | Purpose |
 | --- | --- |
-| `Calendars.Read` | Eigene Kalendertermine anzeigen und verknüpfen |
-| `OnlineMeetings.Read` | Die verknüpfte Teams-Besprechung finden |
-| `OnlineMeetingTranscript.Read.All` | Verfügbare und für den Benutzer zugängliche Transkripte lesen |
+| `Calendars.Read` | Display and link the user's own calendar events |
+| `OnlineMeetings.Read` | Locate the linked Teams meeting |
+| `OnlineMeetingTranscript.Read.All` | Read available transcripts accessible to the user |
 
-4. Genehmigen Sie die benötigten Anforderungen einzeln. Bereits genehmigte Einträge müssen nicht erneut genehmigt werden.
-5. Öffnen Sie die App mit einem normalen Testkonto neu. Testen Sie an einem Meeting die Kalenderverknüpfung mit einem eigenen einzelnen Teams-Termin.
-6. Prüfen Sie nach einer Testbesprechung mit tatsächlich erstelltem Transkript den Abruf in **Transkript & Analyse**. Teams-Lizenz, Besprechungsrichtlinie und Benutzerzugriff müssen die Transkription und den Abruf erlauben.
+4. Approve required requests individually. Already approved entries do not require approval again.
+5. Reopen the app with an ordinary test account. Link an rA meeting to one of that account's nonrecurring Teams events.
+6. After a test meeting with an actual transcript, try retrieving it under the transcript/analysis tab. Teams licensing, meeting policy, and user access must permit transcription and retrieval.
 
-**Prüfung:** Kalendertermine werden angezeigt; ein zugängliches Transkript lässt sich abrufen. Die Anzeige „konfiguriert“ allein bestätigt noch keinen erfolgreichen Zugriff. Bei Serienterminen importieren Sie das Transkript der konkreten Durchführung manuell als VTT- oder TXT-Datei.
+**Check:** Calendar events appear and an accessible transcript can be retrieved. “Configured” alone does not confirm access. For recurring events, manually import the specific occurrence's VTT or TXT transcript.
 
-Diese Freigaben gelten für die gemeinsam verwendete SharePoint-Anmeldekomponente und sind nicht ausschließlich auf diesen Webpart begrenzt. Weitere Informationen: [Microsoft-Anleitung zu API-Freigaben](https://learn.microsoft.com/en-us/sharepoint/dev/spfx/use-aadhttpclient).
+These approvals apply to the shared SharePoint authentication component, not exclusively to this web part. See [Microsoft's API approval guidance](https://learn.microsoft.com/en-us/sharepoint/dev/spfx/use-aadhttpclient).
 
-## 8. Optional: Die Apps in Teams verfügbar machen
+## 8. Optional: make the apps available in Teams
 
-1. Öffnen Sie wieder **Apps verwalten** im SharePoint-App-Katalog.
-2. Markieren Sie das roleALPHA-Paket.
-3. Wählen Sie **Zu Teams hinzufügen / Add to Teams**. In älteren Ansichten heißt die Aktion **Mit Teams synchronisieren / Sync to Teams**.
-4. Warten Sie auf die Bestätigung. Microsoft erzeugt daraus die Teams-App-Einträge; Sie müssen die `.sppkg`-Datei nicht selbst in Teams hochladen.
-5. Öffnen Sie das [Teams Admin Center](https://admin.teams.microsoft.com/).
-6. Suchen Sie unter **Teams-Apps → Apps verwalten** nach **roleALPHA Meetings** und **roleALPHA Meeting**.
-7. Prüfen Sie für beide Einträge, ob sie zugelassen und für Ihre Testpersonen verfügbar sind. Je nach Verwaltungsmodell Ihrer Organisation erfolgt die Zuweisung direkt an der App oder über App-Berechtigungsrichtlinien. Lassen Sie dies gegebenenfalls die Teams-Administration einstellen.
-8. Öffnen Sie Teams mit einem Testkonto erneut und suchen Sie im App-Bereich nach **roleALPHA**.
+1. Return to **Manage apps** in the SharePoint app catalog.
+2. Select the roleALPHA package.
+3. Select **Add to Teams**, called **Sync to Teams** in older interfaces.
+4. Wait for confirmation. Microsoft generates the Teams app entries; do not upload the `.sppkg` directly to Teams.
+5. Open the [Teams admin center](https://admin.teams.microsoft.com/).
+6. Under **Teams apps → Manage apps**, find **roleALPHA Meetings** and **roleALPHA Meeting**.
+7. Check that both apps are allowed and available to your test users. Depending on your organization's management model, assignment may be configured directly on the app or through app permission policies. Have the Teams administrator configure this where necessary.
+8. Reopen Teams with a test account and search for **roleALPHA** in its apps area.
 
-**Prüfung:** Die freigegebenen Apps sind für das Testkonto sichtbar. Die Veröffentlichung und Richtlinienübernahme können verzögert erfolgen. Der [Microsoft-Leitfaden zur Teams-Bereitstellung](https://learn.microsoft.com/en-us/sharepoint/dev/spfx/deployment-spfx-teams-solutions) erklärt die automatische Erzeugung der Einträge.
+**Check:** The approved apps are visible to the test user. Publication and policy propagation may take time. See [Microsoft's Teams deployment guide](https://learn.microsoft.com/en-us/sharepoint/dev/spfx/deployment-spfx-teams-solutions).
 
-## 9. Optional: Arbeitsbereich oder einzelnes Meeting in Teams öffnen
+## 9. Optional: open a workspace or meeting in Teams
 
-### Arbeitsbereich in einem Kanal
+### Workspace in a channel
 
-1. Öffnen Sie den vorgesehenen Teams-Kanal.
-2. Fügen Sie über **+ / Registerkarte hinzufügen** die App **roleALPHA Meetings** hinzu.
-3. Tragen Sie im Konfigurationsbereich bei **SharePoint site URL** die Websiteadresse aus Schritt 2 ein. Verwenden Sie bewusst denselben Arbeitsbereich, damit die bereits angelegten Meetings erscheinen.
-4. Lassen Sie **Meeting** auf **All meetings / Alle Meetings** und speichern Sie die Konfiguration.
-5. Öffnen Sie die neue Registerkarte.
+1. Open the intended Teams channel.
+2. Use **+ / Add a tab** to add **roleALPHA Meetings**.
+3. In **SharePoint site URL**, enter the workspace address from step 2. Use the same workspace to see the meetings already created.
+4. Leave **Meeting** set to **All meetings** and save.
+5. Open the new tab.
 
-**Prüfung:** Sie sehen das Testmeeting aus Schritt 6. Eine leere Übersicht kann auf eine andere ausgewählte Website hinweisen.
+**Check:** The test meeting from step 6 appears. An empty overview may indicate a different selected site.
 
-### Ein bestimmtes Meeting in einem Teams-Termin
+### Individual meeting in a Teams event
 
-1. Legen Sie zunächst das gewünschte Meeting in roleALPHA Meetings an.
-2. Öffnen Sie einen geplanten Teams-Termin, den Sie bearbeiten dürfen. Falls der Termin gerade neu erstellt wurde, speichern und öffnen Sie ihn erneut.
-3. Fügen Sie über die Funktion zum Hinzufügen einer App beziehungsweise Registerkarte **roleALPHA Meeting** hinzu. Die Verfügbarkeit hängt vom Besprechungstyp und den Teams-Richtlinien ab.
-4. Tragen Sie dieselbe **SharePoint site URL** ein.
-5. Wählen Sie im Feld **Meeting** das zuvor angelegte Meeting anhand seines Namens. Wenn die Liste noch leer ist, warten Sie, bis der Arbeitsbereich geladen ist, und öffnen Sie den Konfigurationsbereich erneut.
-6. Speichern Sie und testen Sie den Tab mit einer weiteren berechtigten Person.
+1. First create the desired meeting in roleALPHA Meetings.
+2. Open a scheduled Teams event that you may edit. If newly created, save and reopen it first.
+3. Add **roleALPHA Meeting** using the event's add-app or add-tab action. Availability depends on the meeting type and Teams policies.
+4. Enter the same **SharePoint site URL**.
+5. In **Meeting**, select the previously created meeting by name. If the list is empty, wait for the workspace to load and reopen the configuration panel.
+6. Save and test the tab with another authorized person.
 
-**Prüfung:** Der Tab öffnet das ausgewählte Meeting. Ein Kalendertermin fügt diesen Tab nicht automatisch hinzu. Die Teilnahme am Termin ersetzt keine SharePoint-Berechtigung.
+**Check:** The tab opens the selected meeting. Linking a calendar event does not automatically add this tab. Attending the event does not grant SharePoint permissions.
 
-## 10. Optional: KI und roleALPHA Governance aktivieren
+## 10. Optional: enable AI and roleALPHA Governance
 
-Die Meeting-App funktioniert auch ohne diese Verbindungen. Im Standardpaket sind beide ausgeschaltet.
+The meeting app works without these connections. Both are disabled in the default package.
 
-1. Entscheiden Sie, ob Sie KI-Unterstützung, die Übergabe an roleALPHA Governance oder beides verwenden möchten.
-2. Wenden Sie sich an die für Ihre roleALPHA-Bereitstellung zuständige Person. Fordern Sie ein entsprechend konfiguriertes Installationspaket an. Endanwender müssen keine Serveradressen oder Schlüssel eingeben. Eine Aktivierung allein über die Seite **Verbindungen** ist derzeit nicht vorgesehen.
-3. Lassen Sie vorab bestätigen, welche Dienste verwendet werden und wo diese Daten verarbeiten. Für die Vorgabe, dass Inhalte keine Infrastruktur von roleALPHA durchlaufen, darf das Ziel kein zentral betriebener roleALPHA-Dienst sein; die vorgesehene organisationsgebundene Bereitstellung muss diese Vorgabe erfüllen.
-4. Die Schnittstellenverantwortlichen müssen die Anmeldung mit Ihrem Microsoft-Konto und direkte Browserzugriffe ermöglichen. Die technische Vorbereitung steht im [separaten technischen Anhang](technical-deployment.md). Ein Dienst, der ausschließlich einen geheimen API-Schlüssel erwartet, ist für diesen Betriebsmodus nicht geeignet.
-5. Installieren Sie das angepasste Paket wie unter „Später aktualisieren“ beschrieben und genehmigen Sie gegebenenfalls dessen zusätzliche API-Anforderungen.
-6. Prüfen Sie **Verbindungen** in der App. Testen Sie anschließend jede aktivierte Funktion mit Testdaten: einen KI-Vorschlag erzeugen, menschlich prüfen und erst danach ein bestätigtes Ergebnis an roleALPHA übergeben.
-7. Kontrollieren Sie in roleALPHA, ob der erwartete Entwurf angelegt wurde.
-8. Für Fragen zur bestehenden Governance lassen Sie zusätzlich die roleALPHA-Suchfunktion mit den passenden Leserechten im Paket freigeben. Eine reine Verbindung zum Anlegen von Entwürfen genügt dafür nicht.
-9. Öffnen Sie **Governance fragen** in der Navigation oder im Meeting. Stellen Sie eine Testfrage zu einer bekannten Rolle oder Regel und wählen Sie **Governance prüfen**.
-10. Vergleichen Sie die Antwort und die aufklappbaren Quelltexte mit der bestehenden Governance in roleALPHA. Testen Sie auch eine Frage ohne passende Quellen: Die App soll dann keine unbelegte Antwort als gesicherte Governance ausgeben.
+1. Decide whether to use AI assistance, transfers to roleALPHA Governance, or both.
+2. Ask the person responsible for your roleALPHA deployment for a configured installation package. End users do not enter server addresses or keys. Connections cannot currently be activated solely from the app's **Connections** page.
+3. Confirm which services will receive data and where they process it. If content must never pass through roleALPHA-operated infrastructure, a centrally operated roleALPHA service is not an appropriate endpoint; the organization-controlled deployment must meet that requirement.
+4. Integration operators must enable Microsoft-account authentication and direct browser access. See the [technical guide](technical-deployment.md). A service accepting only a secret API key is not compatible with this deployment mode.
+5. Install the configured package as described under “Install later updates” and approve any additional API requests.
+6. Inspect **Connections**, then test each enabled function using test data. Generate an AI suggestion, review it, and only then transfer an approved outcome to roleALPHA.
+7. Check in roleALPHA that the expected draft exists.
+8. For governance questions, also have the roleALPHA search integration and appropriate read access configured. Draft creation alone is insufficient.
+9. Open the governance assistant from the navigation or within a meeting. Ask about a known role or rule and start the governance check.
+10. Compare the answer and expandable original sources with roleALPHA's existing governance. Also test a question without relevant sources; the app must not present an unsupported answer as established governance.
 
-Die Governance-Hilfe liest ausschließlich über die freigegebene roleALPHA-Suchfunktion. Sie ändert keine Rollen oder Regeln. Die Frage geht an roleALPHA; gefundene Inhalte und Frage werden an den freigegebenen KI-Dienst weitergegeben. Ein Meeting oder Transkript wird nicht automatisch mitgesendet. Fragen und Antworten werden von der Meeting-App nicht dauerhaft gespeichert; für die angebundenen Dienste gelten deren eigene Protokollierungs- und Aufbewahrungseinstellungen.
+Governance assistance uses only the approved roleALPHA read tool and does not change roles or rules. The question goes to roleALPHA; the question and retrieved sources go to the approved AI service. Meeting content and transcripts are not automatically included. The meeting app does not persist these questions and answers. Connected services have their own logging and retention settings.
 
-**Prüfung:** Die konkrete Testaktion funktioniert. Für Governance ist ausschließlich eine roleALPHA-Verbindung vorgesehen; MCP bezeichnet ihr technisches Übertragungsprotokoll, keine Auswahl beliebiger Anbieter.
+**Check:** Each actual test action succeeds. Governance integration is specifically for roleALPHA; MCP is its transport protocol, not a choice of arbitrary providers.
 
-Bei einer unklaren Exportantwort prüfen Sie zuerst in roleALPHA, ob der Entwurf bereits existiert. Wiederholen Sie den Export nicht ungeprüft. Nach einer unterbrochenen Übertragung kann die App nach fünf Minuten einen manuellen Abgleich ermöglichen.
+If an export response is uncertain, first check whether the draft already exists in roleALPHA. Do not retry without checking. Following an interrupted transfer, the app may allow manual reconciliation after five minutes.
 
-## 11. Installation mit normalen Benutzerkonten prüfen
+## 11. Verify using ordinary user accounts
 
-Führen Sie diese Prüfungen durch, bevor Sie den Link an die gesamte Gruppe verteilen:
+Complete these checks before sharing the app with the full group:
 
-- [ ] Eine Person mit Bearbeitungsrechten kann ein Meeting anlegen und nach dem Neuladen wieder öffnen.
-- [ ] Eine zweite berechtigte Person sieht dasselbe Meeting im selben Arbeitsbereich.
-- [ ] Eine Person mit ausschließlichen Leserechten kann Inhalte ansehen, aber nicht bearbeiten.
-- [ ] Eine Person ohne Websitezugriff erhält keinen Zugriff auf die Meetingdaten.
-- [ ] Unter **Templates** lassen sich Vorlagen mit einem Bearbeitungskonto ändern.
-- [ ] Deutsch, Englisch, Französisch und Spanisch sowie die Begriffswahl „Spannungen/Agenda“ funktionieren.
-- [ ] Soweit eingerichtet: Teams-Tab, Kalender, Transkriptabruf, KI und roleALPHA-Übertragung wurden jeweils tatsächlich getestet.
-- [ ] Die Zuständigkeit für Berechtigungen, Aufbewahrung und Wiederherstellung ist dokumentiert.
+- [ ] An editor can create a meeting and reopen it after reloading.
+- [ ] A second authorized user sees the same meeting in the same workspace.
+- [ ] A read-only user can view content but cannot edit it.
+- [ ] A user without site access cannot access meeting data.
+- [ ] An editor can change templates.
+- [ ] German, English, French, Spanish, and Tensions/Agenda terminology work.
+- [ ] Every enabled integration has actually been tested: Teams tab, calendar, transcript retrieval, AI, and roleALPHA transfer.
+- [ ] Responsibility for permissions, retention, and recovery is documented.
 
-**Prüfung:** Erst nach den erfolgreichen Tests veröffentlichen Sie den Seitenlink beziehungsweise die Teams-Registerkarte für die vorgesehene Gruppe.
+**Check:** Share the page link or Teams tab with the intended group only after successful verification.
 
-## Wenn etwas nicht funktioniert
+## Troubleshooting
 
-| Beobachtung | Nächster Schritt |
+| Observation | Next step |
 | --- | --- |
-| „Apps“ oder „API-Zugriff“ fehlt in der Verwaltung | Konto und Administrationsrolle prüfen; bei fehlendem App-Katalog Schritt 3 abschließen lassen. |
-| Der Webpart fehlt beim Einfügen | Im App-Katalog die Aktivierung und Verfügbarkeit für Websites prüfen; anschließend die Seite neu öffnen. |
-| „Arbeitsbereich einrichten“ wird nicht angeboten | Websiteadresse prüfen und mit einem Websitebesitzer öffnen, der Listen verwalten darf. |
-| „Zugriff verweigert“ | Zugriff auf die Website sowie beide Speicherbereiche aus Schritt 6 prüfen. Eine Teams-Mitgliedschaft allein reicht nicht in jedem Fall. |
-| SharePoint zeigt Meetings, Teams aber nicht | Die konfigurierte Websiteadresse in beiden Ansichten vergleichen. |
-| App fehlt in Teams | Teams-Synchronisierung, App-Zulassung und Benutzerzuweisung aus Schritt 8 prüfen. |
-| Kalender oder Transkript nicht verfügbar | API-Freigabe, verwendetes Benutzerkonto, Terminart und tatsächliche Transkriptverfügbarkeit aus Schritt 7 prüfen. |
-| Gleichzeitige Bearbeitung führt zu einem Konflikt | Ungespeicherten Text sichern, aktuellen Stand laden und die Änderung erneut eintragen. |
-| KI oder roleALPHA schlägt trotz „konfiguriert“ fehl | Zuständige Schnittstellenadministration mit Zeitpunkt und Fehlermeldung informieren; Anmeldung und erlaubte Browserzugriffe prüfen lassen. Keine geheimen Schlüssel per Nachricht versenden. |
+| Apps or API access is missing | Check the account and administrator role; complete app catalog setup in step 3 if needed. |
+| Web part is missing | Check app activation and site availability in the catalog, then reopen the page. |
+| Workspace setup is unavailable | Check the site URL and sign in as an owner who can manage lists. |
+| Access denied | Check access to the site and both storage areas. Teams membership alone may be insufficient. |
+| Meetings appear in SharePoint but not Teams | Compare the configured site addresses. |
+| App is missing in Teams | Review synchronization, app approval, and user assignment in step 8. |
+| Calendar or transcript is unavailable | Review API approval, account, meeting type, and transcript availability in step 7. |
+| Concurrent editing causes a conflict | Save unsaved text elsewhere, load the latest version, and reapply the change. |
+| AI or roleALPHA fails despite being configured | Give the integration administrator the time and error message; have authentication and browser access checked. Do not send secret keys in messages. |
 
-## Laufender Betrieb und Datenaufbewahrung
+## Ongoing operation and retention
 
-Die App verarbeitet nur während ihrer Verwendung Daten. Kalenderabruf, Transkriptimport, KI-Aufrufe und Übergaben werden bewusst ausgelöst. Bei geschlossenem Tab läuft keine automatische Nachbearbeitung. Power Automate wird nicht benötigt und nicht mitinstalliert.
+The app processes data while it is in use. Calendar retrieval, transcript imports, AI calls, and transfers are explicitly started. There is no automatic background processing after the tab closes. Power Automate is neither required nor installed.
 
-Legen Sie für **beide** Speicherbereiche aus Schritt 6 die Aufbewahrung und Wiederherstellung nach den Regeln Ihrer Organisation fest. Ältere und nicht mehr referenzierte Inhaltsdateien werden derzeit nicht automatisch bereinigt. Das Löschen eines Eintrags in der Oberfläche bedeutet deshalb nicht, dass alle historischen Inhalte endgültig gelöscht sind. Lassen Sie eine Wiederherstellung von Liste und Bibliothek gemeinsam testen.
+Set retention and recovery rules for **both** storage areas from step 6. Historical and unreferenced content files are not automatically cleaned up. Deleting a record in the interface therefore does not permanently erase every historical copy. Test restoration of the index and library together.
 
-Falls Sie zuvor einen älteren Prototyp betrieben haben: Dessen Daten werden nicht automatisch übernommen. Lassen Sie eine Übernahme mit den zuständigen Personen planen, insbesondere wegen des gemeinsamen Leserechts im neuen Arbeitsbereich.
+Data from an older prototype is not automatically migrated. Plan any transfer with the responsible people, accounting for shared read access in the new workspace.
 
-## Später aktualisieren
+## Install later updates
 
-1. Lassen Sie sich das neue Paket mit erhöhter Versionsnummer und einer Beschreibung der Änderungen bereitstellen.
-2. Stellen Sie sicher, dass die vorhandenen Speicherbereiche nach Ihrem Sicherungsverfahren wiederherstellbar sind.
-3. Laden Sie das neue Paket in denselben App-Katalog hoch und bestätigen Sie das Ersetzen des vorhandenen Pakets.
-4. Prüfen Sie, ob neue API-Berechtigungen angefordert werden, und lassen Sie diese bei Bedarf genehmigen.
-5. Wiederholen Sie für Teams die Aktion **Zu Teams hinzufügen / Mit Teams synchronisieren** und kontrollieren Sie den Status.
-6. Öffnen Sie die App neu und wiederholen Sie die relevanten Tests aus Schritt 11.
+1. Obtain a new package with an increased version number and a description of changes.
+2. Confirm that your backup procedure can restore the existing storage areas.
+3. Upload the package to the same app catalog and confirm replacement.
+4. Review and approve any new API permission requests.
+5. Repeat **Add to Teams / Sync to Teams** and check the result.
+6. Reopen the app and repeat relevant checks from step 11.
 
-Löschen oder erstellen Sie den Arbeitsbereich bei einem gewöhnlichen Paketupdate nicht neu. Für das Erstellen des Pakets und die Schnittstellenkonfiguration gibt es den [technischen Anhang](technical-deployment.md); diese Arbeiten gehören nicht zur Installation durch Endanwender.
+Do not delete or recreate the workspace for a normal package update. Package creation and integration configuration are described in the [technical guide](technical-deployment.md); end users do not perform those development tasks.
