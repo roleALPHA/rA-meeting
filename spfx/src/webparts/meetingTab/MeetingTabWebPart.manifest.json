@@ -1,0 +1,30 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
+  "id": "a1aef306-48f2-4238-928a-fffd021b4a1c",
+  "alias": "RoleAlphaMeetingTabWebPart",
+  "componentType": "WebPart",
+  "version": "*",
+  "manifestVersion": 2,
+  "requiresCustomScript": false,
+  "supportedHosts": [
+    "SharePointWebPart",
+    "TeamsMeetingApp"
+  ],
+  "supportsFullBleed": true,
+  "preconfiguredEntries": [
+    {
+      "groupId": "5c03119e-3074-46fd-976b-c60198311f70",
+      "group": {
+        "default": "Collaboration"
+      },
+      "title": {
+        "default": "roleALPHA Meeting"
+      },
+      "description": {
+        "default": "Meetings, proposals and shared agenda in Microsoft 365"
+      },
+      "officeFabricIconFontName": "Calendar",
+      "properties": {}
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.19/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.19",
+  "version": "0.1.0",
+  "id": "{{APP_ID}}",
+  "packageName": "com.rolealpha.meeting",
+  "developer": {
+    "name": "{{CUSTOMER_NAME}}",
+    "websiteUrl": "{{PUBLIC_URL}}",
+    "privacyUrl": "{{PRIVACY_URL}}",
+    "termsOfUseUrl": "{{TERMS_URL}}"
+  },
+  "name": { "short": "roleALPHA Meetings", "full": "roleALPHA Meeting Templates & Facilitation" },
+  "description": {
+    "short": "Flexible Meetingabläufe und nachvollziehbare Ergebnisse.",
+    "full": "Kundenseitig betriebene Meeting-App mit konfigurierbaren Templates, Agenda, Transkriptanalyse und Ergebnisexport nach roleALPHA."
+  },
+  "icons": { "outline": "outline.png", "color": "color.png" },
+  "accentColor": "#173F35",
+  "staticTabs": [{ "entityId": "meetings", "name": "Meetings", "contentUrl": "{{PUBLIC_URL}}/?teams=1", "websiteUrl": "{{PUBLIC_URL}}", "scopes": ["personal"] }],
+  "configurableTabs": [{
+    "configurationUrl": "{{PUBLIC_URL}}/teams/config?teams=1",
+    "canUpdateConfiguration": true,
+    "scopes": ["groupChat", "team"],
+    "context": ["meetingChatTab", "meetingDetailsTab", "meetingSidePanel", "meetingStage"]
+  }],
+  "permissions": ["identity"],
+  "validDomains": ["{{DOMAIN}}"],
+  "webApplicationInfo": { "id": "{{ENTRA_CLIENT_ID}}", "resource": "api://{{DOMAIN}}/{{ENTRA_CLIENT_ID}}" }
+}

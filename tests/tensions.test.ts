@@ -1,0 +1,42 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { Store } from '../server/store.js';
+import { saveTension, attachTension } from '../server/tensions.js';
+import { createMeeting, command, saveMeeting } from '../server/domain.js';
+import type { Template, Tension } from '../shared/model.js';
+test('tensions live independently; resolving an agenda does not resolve the tension', async () => {
+  const store = new Store(':memory:'); await store.initialize(); await store.seed('tenant');
+  const actor = { id: 'owner', name: 'Owner', tenantId: 'tenant', admin: true };
+  const template = (await store.list<Template>('tenant', 'template')).find(t => t.category === 'tactical')!;
+  const tension = await saveTension(store, actor, { title: 'Unklare Verantwortung', circle: 'Produkt', description: 'Eine Beobachtung' });
+  const meeting = await createMeeting(store, actor, { templateId: template.id, title: 'Weekly', circle: 'Produkt' });
+  const step = template.steps.find(s => s.kind === 'agenda')!;
+  const linked = await attachTension(store, actor, tension.id, meeting.id, step.id, meeting.revision);
+  assert.equal(linked.agenda[0].tensionId, tension.id);
+  await assert.rejects(attachTension(store, actor, tension.id, meeting.id, step.id, linked.revision), /bereits/);
+  command(linked, actor, { type: 'start' }); while (linked.template.steps[linked.currentStep].kind !== 'agenda') command(linked, actor, { type: 'next' });
+  command(linked, actor, { type: 'agenda.resolve', id: linked.agenda[0].id }); await saveMeeting(store, actor, linked, linked.revision);
+  assert.equal((await store.get<Tension>('tenant', 'tension', tension.id)).status, 'open');
+  const second = await createMeeting(store, actor, { templateId: template.id, title: 'Next weekly', circle: 'Produkt' });
+  await attachTension(store, actor, tension.id, second.id, step.id, second.revision);
+  await assert.rejects(saveTension(store, { ...actor, id: 'stranger', admin: false }, tension, tension.id, 1), /Nur/);
+  const resolved = await saveTension(store, actor, { ...tension, status: 'resolved' }, tension.id, 1); assert.equal(resolved.version, 2);
+  await assert.rejects(saveTension(store, actor, tension, tension.id, 1), /inzwischen/);
+  await assert.rejects(attachTension(store, { ...actor, tenantId: 'other' }, tension.id, second.id, step.id, 1), /nicht gefunden/);
+  await store.close();
+});
+
+test('reader can contribute a tension but still cannot moderate the meeting', async () => {
+  const store = new Store(':memory:'); await store.initialize(); await store.seed('tenant');
+  const owner = { id: 'owner', name: 'Owner', tenantId: 'tenant', admin: true };
+  const participant = { id: '5d7507e5-b513-48f5-8de0-001000000001', name: 'Participant', tenantId: 'tenant', admin: false };
+  const template = (await store.list<Template>('tenant', 'template'))[0];
+  const meeting = await createMeeting(store, owner, { templateId: template.id, title: 'Meeting', circle: 'Team', members: [participant.id] });
+  const tension = await saveTension(store, participant, { title: 'Mein Anliegen', circle: 'Team' });
+  const agenda = template.steps.find(s => s.kind === 'agenda')!;
+  const linked = await attachTension(store, participant, tension.id, meeting.id, agenda.id, meeting.revision);
+  assert.equal(linked.agenda[0].tensionId, tension.id);
+  const { getMeeting } = await import('../server/domain.js');
+  await assert.rejects(getMeeting(store, participant, meeting.id, true), /Meeting-Leitung/);
+  await store.close();
+});

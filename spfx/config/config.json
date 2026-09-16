@@ -1,0 +1,24 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/config.2.0.schema.json",
+  "version": "2.0",
+  "bundles": {
+    "rolealpha-meetings-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/meetings/MeetingsWebPart.js",
+          "manifest": "./src/webparts/meetings/MeetingsWebPart.manifest.json"
+        }
+      ]
+    },
+    "rolealpha-meeting-tab-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/meetingTab/MeetingTabWebPart.js",
+          "manifest": "./src/webparts/meetingTab/MeetingTabWebPart.manifest.json"
+        }
+      ]
+    }
+  },
+  "externals": {},
+  "localizedResources": {}
+}

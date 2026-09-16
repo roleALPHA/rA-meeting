@@ -1,0 +1,55 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import type { AddressInfo } from 'node:net';
+import { Store } from '../server/store.js';
+import { createApp } from '../server/app.js';
+import { config } from '../server/config.js';
+import type { Bootstrap, Meeting } from '../shared/model.js';
+
+test('HTTP workflow: create, run, import, approve; stale revision and cross-origin requests rejected', async t => {
+  const store = new Store(':memory:'); await store.initialize();
+  const server = createApp(store).listen(0, '127.0.0.1'); await new Promise<void>(r => server.once('listening', r));
+  t.after(async () => { await new Promise<void>(r => server.close(() => r())); await store.close(); });
+  const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}/api`;
+  const call = async (path: string, body?: unknown, method = 'POST') => fetch(base + path, { method: body === undefined ? 'GET' : method, headers: { 'Content-Type': 'application/json' }, ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
+  const data = await (await call('/bootstrap')).json() as Bootstrap; assert.equal(data.templates.length, 3);
+  const template = data.templates.find(t => t.category === 'tactical')!;
+  let m = await (await call('/meetings', { templateId: template.id, title: 'Product sync', circle: 'Product' })).json() as Meeting;
+  assert.equal(m.revision, 1);
+  const route = `/meetings/${m.id}`;
+  m = await (await call(route + '/command', { revision: 1, type: 'start' })).json() as Meeting; assert.equal(m.status, 'active');
+  assert.equal((await call(route + '/command', { revision: 1, type: 'next' })).status, 409);
+  const malicious = await fetch(base + '/templates', { method: 'POST', headers: { Origin: 'https://attacker.invalid', 'Content-Type': 'application/json' }, body: '{}' }); assert.equal(malicious.status, 403);
+  m = await (await call(route + '/transcript', { revision: m.revision, text: '[00:01 - 00:05] Anna: Ich schreibe den Entwurf.' })).json() as Meeting;
+  assert.equal(m.transcript.length, 1);
+  assert.equal((await call(route + '/analyze', { revision: m.revision })).status, 503);
+  const agenda = m.template.steps.find(s => s.kind === 'agenda')!;
+  m = await (await call(route + '/command', { revision: m.revision, type: 'outcome.add', outcome: { stepId: agenda.id, type: 'task', title: 'Entwurf schreiben', owner: 'Anna' } })).json() as Meeting;
+  m = await (await call(route + '/command', { revision: m.revision, type: 'outcome.review', id: m.outcomes[0].id, status: 'approved' })).json() as Meeting;
+  assert.equal(m.outcomes[0].status, 'approved');
+  assert.equal((await call(route + '/export', { revision: m.revision, ids: [m.outcomes[0].id] })).status, 503);
+  const webhook = await fetch(base + '/graph/notifications?validationToken=challenge', { method: 'POST' }); assert.equal(await webhook.text(), 'challenge');
+  assert.equal((await call('/graph/notifications', { value: [{ subscriptionId: 'fake', clientState: 'fake' }] })).status, 202); assert.equal(await store.claimJob(), undefined);
+});
+
+test('uncertain remote export persists the lock and cannot be blindly retried', async t => {
+  const express = (await import('express')).default;
+  let remoteCalls = 0;
+  const remoteApp = express(); remoteApp.all('/mcp', (_req, res) => { remoteCalls++; res.sendStatus(500); });
+  const remote = remoteApp.listen(0, '127.0.0.1'); await new Promise<void>(r => remote.once('listening', r));
+  const prior = { mcpUrl: config.mcpUrl, mcpToken: config.mcpToken, rolealphaTenant: config.rolealphaTenant };
+  config.mcpUrl = `http://127.0.0.1:${(remote.address() as AddressInfo).port}/mcp`; config.mcpToken = 'test'; config.rolealphaTenant = 'test';
+  const store = new Store(':memory:'); await store.initialize(); const server = createApp(store).listen(0, '127.0.0.1'); await new Promise<void>(r => server.once('listening', r));
+  t.after(async () => { Object.assign(config, prior); await new Promise<void>(r => server.close(() => r())); await new Promise<void>(r => remote.close(() => r())); await store.close(); });
+  const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}/api`;
+  const call = (path: string, body?: unknown) => fetch(base + path, { method: body ? 'POST' : 'GET', headers: { 'Content-Type': 'application/json' }, ...(body ? { body: JSON.stringify(body) } : {}) });
+  const bootstrap = await (await call('/bootstrap')).json() as Bootstrap; const template = bootstrap.templates.find(t => t.category === 'tactical')!;
+  let m = await (await call('/meetings', { title: 'Export test', circle: 'Team', templateId: template.id })).json() as Meeting;
+  const path = `/meetings/${m.id}`; const step = template.steps.find(s => s.kind === 'agenda')!;
+  m = await (await call(path + '/command', { revision: m.revision, type: 'outcome.add', outcome: { stepId: step.id, type: 'task', title: 'Example' } })).json() as Meeting;
+  const id = m.outcomes[0].id;
+  m = await (await call(path + '/command', { revision: m.revision, type: 'outcome.review', id, status: 'approved' })).json() as Meeting;
+  const result = await call(path + '/export', { revision: m.revision, ids: [id] }); assert.equal(result.status, 502);
+  m = (await result.json()).meeting; assert.equal(m.outcomes[0].export?.state, 'uncertain'); const calls = remoteCalls;
+  assert.equal((await call(path + '/export', { revision: m.revision, ids: [id] })).status, 409); assert.equal(remoteCalls, calls);
+});
