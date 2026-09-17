@@ -1,0 +1,55 @@
+name: Something is broken
+description: A bug in the app, the SharePoint package or the documentation
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **A security problem does not belong here.** Use
+        [private reporting](https://github.com/roleALPHA/rA-meeting/security/advisories/new)
+        instead — see [SECURITY.md](https://github.com/roleALPHA/rA-meeting/blob/main/SECURITY.md).
+
+        Do not paste transcripts, meeting content or tenant identifiers. This repository is public.
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what you got instead.
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The package version shown in the SharePoint app catalog. "latest" is not a version.
+      placeholder: 1.1.0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Where
+      options:
+        - SharePoint page
+        - Teams meeting tab
+        - Teams personal app
+        - Onboarding or site setup
+        - AI assistance
+        - Transfer to roleALPHA
+        - Local preview (npm run dev)
+        - Package build
+        - Somewhere else
+    validations:
+      required: true
+
+  - type: input
+    id: client
+    attributes:
+      label: Client and theme
+      description: >
+        Only if it is a thing you see on screen. Teams desktop, Teams web and SharePoint in a browser render
+        differently, and so do the light, dark and high-contrast themes.
+      placeholder: Teams desktop, dark theme, Windows 11

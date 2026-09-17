@@ -1,0 +1,51 @@
+version: 2
+updates:
+  # Actions are pinned to full-length commit SHAs, which only a bot that understands the pin can update. Without
+  # this entry the pinning convention silently turns into "we run this year's actions forever".
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ['*']
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      dev-dependencies:
+        dependency-type: development
+      production-minor-patch:
+        dependency-type: production
+        update-types: [minor, patch]
+    ignore:
+      # React is pinned to the version SPFx 1.23 supports (docs/technical-deployment.md).
+      - dependency-name: 'react'
+        update-types: ['version-update:semver-major']
+      - dependency-name: 'react-dom'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@types/react*'
+        update-types: ['version-update:semver-major']
+
+  # The SPFx toolchain moves as one release; a single @microsoft/* bump without the others breaks the build.
+  - package-ecosystem: npm
+    directory: /spfx
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    groups:
+      spfx:
+        patterns: ['@microsoft/*', '@rushstack/*']
+    ignore:
+      - dependency-name: '@microsoft/*'
+        update-types: ['version-update:semver-major', 'version-update:semver-minor']
+      - dependency-name: 'react'
+        update-types: ['version-update:semver-major']
+      - dependency-name: 'react-dom'
+        update-types: ['version-update:semver-major']
+      # The project-local Node.js the SPFx toolchain runs on; SPFx 1.23 requires 22.
+      - dependency-name: 'node'
+        update-types: ['version-update:semver-major']

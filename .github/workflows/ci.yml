@@ -1,0 +1,161 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  # Nightly on main, and not redundant with the push runs.
+  #
+  # Nothing here is hermetic: the lockfiles pin packages but not the registry, the SPFx toolchain downloads its
+  # own Node.js, and the runner image is rebuilt weekly. A pipeline that only runs when somebody pushes tells you
+  # that the code was fine on the day it was written. What matters is finding out on a Tuesday that `main` stopped
+  # building, not from the first pull request after a quiet fortnight.
+  #
+  # 03:40 rather than on the hour: GitHub's scheduler queues everything written at :00.
+  schedule:
+    - cron: '40 3 * * *'
+  # So a run can be asked for after changing something outside this repository.
+  workflow_dispatch:
+
+concurrency:
+  # Scheduled runs share `github.ref` with pushes to main; cancelling one because the other started would mean
+  # the nightly quietly never completes.
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: '24'
+
+# The job names are required status checks on main (docs/ci-conventions.md). Renaming one silently drops it
+# from the ruleset.
+jobs:
+  lint:
+    name: Lint & Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run format:check
+      # A new transitive dependency turns this red on purpose: that is the moment its licence gets looked at.
+      # Reads the lockfiles only, so the SPFx toolchain does not have to be installed for it.
+      - name: Dependency licences may ship
+        run: npm run check:licenses
+
+  # Every commit has to carry a Signed-off-by trailer -- the Developer Certificate of Origin. CONTRIBUTING.md
+  # says what that certifies.
+  #
+  # Only on pull requests: the range base..head is what a contributor can still fix with `git rebase --signoff`.
+  # On push to main it would fail on history that is already merged.
+  dco:
+    name: Sign-off
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # A shallow clone has neither the base commit nor the bodies of the commits in between.
+          fetch-depth: 0
+      - name: Every commit is signed off
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          missing=0
+          # NUL-separated, because a commit body contains newlines.
+          while IFS= read -r -d '' commit; do
+            sha=${commit%%$'\n'*}
+            rest=${commit#*$'\n'}
+            author=${rest%%$'\n'*}
+            body=${rest#*$'\n'}
+
+            # Bots cannot certify anything, and blocking Dependabot would mean turning the check off.
+            case "$author" in
+              *'[bot] <'*) continue ;;
+            esac
+
+            # A merge commit is somebody else's history joined in, not a contribution of its own.
+            if [ "$(git rev-list --parents -n 1 "$sha" | wc -w)" -gt 2 ]; then
+              continue
+            fi
+
+            email=${author##*<}
+            email=${email%>}
+            if ! grep -qiF "Signed-off-by: " <<< "$body"; then
+              echo "::error::$sha has no Signed-off-by line ($author)"
+              missing=$((missing + 1))
+            elif ! grep -qiF "<${email}>" <<< "$(grep -i '^Signed-off-by: ' <<< "$body")"; then
+              echo "::error::$sha is signed off by somebody other than its author ($author)"
+              missing=$((missing + 1))
+            fi
+          done < <(git log -z --format='%H%n%an <%ae>%n%B' "$BASE..$HEAD")
+
+          if [ "$missing" -gt 0 ]; then
+            echo
+            echo "$missing commit(s) are missing a sign-off. Add it with:"
+            echo "    git rebase --signoff $BASE"
+            echo "    git push --force-with-lease"
+            echo
+            echo "What you are certifying is in CONTRIBUTING.md."
+            exit 1
+          fi
+          echo "Every commit in this pull request is signed off."
+
+  unit:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      # Fails below the coverage thresholds for shared/, the domain logic every host runs.
+      - run: npm run test:coverage
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: coverage
+          path: coverage/
+          retention-days: 7
+
+  # The package a customer installs. A change that breaks the SPFx build -- a dependency the SPFx compiler cannot
+  # read, a bundle input the browser-only guard rejects -- has to surface in the pull request that caused it,
+  # not when somebody cuts a tag. `npm test` and `tsc` pass in exactly those cases.
+  package:
+    name: SharePoint Package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            spfx/package-lock.json
+      - run: npm ci
+      # Installs the project-local Node.js 22 the SPFx toolchain runs on.
+      - run: npm run spfx:install
+      # spfx:build rather than build: the checks in `build` already run in the lint job.
+      - run: npm run spfx:build
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: rolealpha-meetings-sppkg
+          path: |
+            dist/rolealpha-meetings.sppkg
+            dist/LICENSE.md
+          if-no-files-found: error
+          retention-days: 7

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: A security problem
+    url: https://github.com/roleALPHA/rA-meeting/security/advisories/new
+    about: Report it privately, never in a public issue. See SECURITY.md.
+  - name: Licensing or a commercial question
+    url: mailto:office@rolealpha.com
+    about: Questions about the rA Meetings licence go to roleALPHA GmbH directly.

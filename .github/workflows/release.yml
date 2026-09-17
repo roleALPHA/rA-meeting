@@ -1,0 +1,88 @@
+name: Release
+
+# A release is a tag. The version is raised in package.json and spfx/package.json in a pull request, merged, and
+# then `vX.Y.Z` is pushed as an annotated tag whose message is the release note (docs/ci-conventions.md).
+#
+# What this attaches is what somebody asks for when they install a package into their tenant: the package itself,
+# the terms it comes under, the notices of everyone whose code is inside it, and the dependency closure with
+# versions.
+on:
+  push:
+    tags: ['v*']
+  # Builds the release files without publishing anything, to check the mechanics before a tag.
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    name: Package and release
+    runs-on: ubuntu-latest
+    permissions:
+      # To create the release and attach files. Nothing else.
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # SharePoint shows the solution version from spfx/package.json. A tag that says something else would
+      # publish a package that contradicts its own release.
+      - name: Tag matches the package version
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          version=$(node -p "require('./spfx/package.json').version")
+          if [ "$TAG" != "v$version" ]; then
+            echo "::error::Tag $TAG does not match spfx/package.json version $version"
+            exit 1
+          fi
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            spfx/package-lock.json
+      - run: npm ci
+      - run: npm run spfx:install
+      # The full build, checks included: a release does not rely on a CI run of the same commit having happened.
+      - run: npm run build
+
+      - name: Notices and SBOM
+        env:
+          RELEASE_VERSION: ${{ github.ref_name }}
+        run: |
+          npm run licenses:notices
+          npm run licenses:sbom
+
+      # Kept regardless of what happens to the release below, so a failed upload never means the files are lost.
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release
+          path: |
+            dist/rolealpha-meetings.sppkg
+            dist/LICENSE.md
+            dist/THIRD-PARTY-LICENSES.txt
+            dist/sbom.cdx.json
+          if-no-files-found: error
+
+      - name: Attach to the release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          # The release may be written by hand after the tag is pushed, and this job may get there first. The tag
+          # annotation is already the release note; `gh release edit` can still improve it afterwards.
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" --verify-tag --title "$TAG" --notes-from-tag
+          fi
+          gh release upload "$TAG" \
+            dist/rolealpha-meetings.sppkg dist/LICENSE.md dist/THIRD-PARTY-LICENSES.txt dist/sbom.cdx.json \
+            --clobber

@@ -81,7 +81,7 @@ Concurrent updates are checked for conflicts. Earlier versions of content files 
 
 Microsoft 365 administrators install the package once. End users do not need development tools.
 
-1. Deploy `rolealpha-meetings.sppkg` in the SharePoint app catalog. The build produces it in `dist/`.
+1. Deploy `rolealpha-meetings.sppkg` in the SharePoint app catalog. Each [GitHub release](https://github.com/roleALPHA/rA-meeting/releases) carries the package together with its third-party notices and an SBOM; a local build writes it to `dist/`.
 2. Open the app and complete onboarding: select or create a SharePoint site, check access, and provision storage and starter templates.
 3. Review and publish the optional landing page. Approve calendar access, Teams availability, and optional services as needed.
 4. Verify the deployment with ordinary user accounts.
@@ -105,6 +105,8 @@ npm run check
 npm test
 npm run build
 ```
+
+`npm run check` runs TypeScript, ESLint and Prettier. Commits are signed off (`git commit -s`); see [CONTRIBUTING.md](CONTRIBUTING.md). CI, the licence policy and the release process are described in [docs/ci-conventions.md](docs/ci-conventions.md).
 
 The package is written to `dist/rolealpha-meetings.sppkg`. Optional integration settings are in `spfx/customer.config.json`.
 
