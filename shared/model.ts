@@ -164,6 +164,7 @@ export type Bootstrap = {
     entityTypes: OutputType[];
     storage: string;
     ai: boolean;
+    aiProvider?: 'copilot' | 'claude-foundry' | 'openai-compatible' | null;
     mcp: boolean;
     graph: boolean;
   };

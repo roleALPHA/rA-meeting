@@ -59,21 +59,33 @@ export const meetingActions: Record<string, MeetingAction> = {
     command(m, actor, body);
     return save(m);
   },
-  assist: async ({ host }, { body }, m) => ({
-    revision: m.revision,
-    suggestion: await assistBrowser(host, m, assistanceInput.parse(body.input)),
-  }),
+  assist: async ({ host }, { body }, m) => {
+    const { suggestion, completion } = await assistBrowser(host, m, assistanceInput.parse(body.input));
+    return {
+      revision: m.revision,
+      suggestion,
+      ai: { provider: completion.provider, sensitivityLabel: completion.sensitivityLabel },
+    };
+  },
   transcript: async ({ actor, save }, { body }, m) =>
     setTranscript(m, actor, parseTranscript(z.string().max(1_000_000).parse(body.text))) ? save(m) : m,
   analyze: async ({ host, actor, save }, { body }, m) => {
-    const results = await analyzeBrowser(
+    const { outcomes, completion } = await analyzeBrowser(
       host,
       m,
       parseLanguage(typeof body.language === 'string' ? body.language : host.settings.language),
     );
-    for (const output of results) addOutcome(m, actor, output, 'ai');
+    for (const output of outcomes) addOutcome(m, actor, output, 'ai');
     m.analyzedHash = m.transcriptHash;
-    event(m, actor, 'analysis.completed', `${results.length} Ergebnisvorschläge extrahiert.`);
+    event(m, actor, 'analysis.completed', `${outcomes.length} Ergebnisvorschläge extrahiert.`);
+    // Proposals stay unapproved; the label is kept in the history so reviewers see it before approving.
+    if (completion.sensitivityLabel)
+      event(
+        m,
+        actor,
+        'analysis.sensitivity',
+        `Vertraulichkeitsbezeichnung der KI-Antwort: ${completion.sensitivityLabel}`,
+      );
     return save(m);
   },
   'graph-fetch': async (ctx, _req, m) => {

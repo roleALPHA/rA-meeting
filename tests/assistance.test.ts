@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { TestStore } from './helpers/workspace.js';
 import { createMeeting, command, getMeeting } from '../shared/domain.js';
-import { assistanceMessages } from '../shared/assistance-messages.js';
+import { assistanceTask } from '../shared/assistance-task.js';
 import { assistanceInput, assistanceResult } from '../shared/assistance.js';
 import type { Actor, Template } from '../shared/model.js';
 const actor: Actor = { id: 'owner', name: 'Owner', tenantId: 'tenant', workspace: 'write' };
@@ -21,11 +21,11 @@ test('proposal forming uses scoped context; generation never changes meeting or 
     context: 'Need an owner',
     language: 'fr',
   });
-  const messages = assistanceMessages(m, input);
-  assert.match(messages[0].content, /Respond in fr/);
-  assert.match(messages[0].content, /never claim approval/);
-  assert.ok(!JSON.stringify(messages).includes('PRIVATE TRANSCRIPT'));
-  assert.throws(() => assistanceMessages(m, { ...input, mode: 'integration' }), /Einwände/);
+  const task = assistanceTask(m, input);
+  assert.match(task.instructions, /Respond in fr/);
+  assert.match(task.instructions, /never claim approval/);
+  assert.ok(!JSON.stringify(task).includes('PRIVATE TRANSCRIPT'));
+  assert.throws(() => assistanceTask(m, { ...input, mode: 'integration' }), /Einwände/);
   command(m, actor, { type: 'agenda.proposal', id: m.agenda[0].id, proposal: 'Reviewed wording', objections: 'Cost' });
   assert.equal(m.agenda[0].proposal, 'Reviewed wording');
   assert.equal(m.agenda[0].phase, 0);

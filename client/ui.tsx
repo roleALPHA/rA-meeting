@@ -1,3 +1,4 @@
+import { aiProviderLabels } from './labels';
 import React, { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { t as tr } from './i18n';
@@ -44,5 +45,28 @@ export function Field({ label, children }: { label: string; children: React.Reac
       <span>{tr(label)}</span>
       {children}
     </label>
+  );
+}
+export function AiProvenance({
+  provider,
+  sensitivityLabel,
+}: {
+  provider?: keyof typeof aiProviderLabels | null;
+  sensitivityLabel?: string | null;
+}) {
+  return (
+    <>
+      {provider && (
+        <p className="small muted">
+          {tr('Erstellt mit')} {tr(aiProviderLabels[provider])}
+        </p>
+      )}
+      {sensitivityLabel && (
+        <p className="notice">
+          {tr('Die KI-Antwort trägt eine Vertraulichkeitsbezeichnung:')} {sensitivityLabel}.{' '}
+          {tr('Prüfe vor dem Übernehmen, ob dieser Inhalt in diesem Arbeitsbereich gespeichert werden darf.')}
+        </p>
+      )}
+    </>
   );
 }

@@ -18,6 +18,7 @@ test('governance questions use the approved read tool, cite actual sources and n
     writeCalls = 0;
   let sources = [{ id: 'role-finance', title: 'Finance', content: 'Finance approves expenditure up to 1000 EUR.' }];
   let sourceId = 'role-finance';
+  let copilotGrounding = true;
   async function connect() {
     const server = new McpServer({ name: 'rolealpha-test', version: '1.0.0' });
     servers.push(server);
@@ -85,6 +86,25 @@ test('governance questions use the approved read tool, cite actual sources and n
     const url = String(input);
     assert.equal(new Headers(init?.headers).get('Authorization'), 'Bearer test-token');
     assert.equal(init?.redirect, 'error');
+    if (url.startsWith('https://workiq.svc.cloud.microsoft/')) {
+      if (url.endsWith('/conversations')) return Response.json({ id: 'conv', messages: [] });
+      const chat = JSON.parse(String(init?.body));
+      assert.equal(chat.contextualResources.webContext.isWebEnabled, false);
+      return Response.json({
+        id: 'conv',
+        messages: [
+          {
+            text: JSON.stringify({
+              statements: [{ text: 'Finance approves.', sourceIds: [sourceId] }],
+              limitations: [],
+            }),
+            attributions: copilotGrounding
+              ? [{ attributionType: 'citation', attributionSource: 'grounding', seeMoreWebUrl: 'https://mail' }]
+              : [],
+          },
+        ],
+      });
+    }
     if (url === host.settings.roleAlpha!.url) {
       if (init?.method === 'POST' && JSON.parse(String(init.body)).method === 'initialize') await connect();
       return transport.handleRequest(new Request(url, init));
@@ -136,9 +156,24 @@ test('governance questions use the approved read tool, cite actual sources and n
   assert.deepEqual([...sp.records.values()], before);
   assert.equal(sp.files.size, filesBefore);
   assert.ok(tokens.every(token => ['api://ai', 'api://rolealpha'].includes(token)));
+  // Copilot answers that cite tenant content beyond the retrieved governance are discarded.
+  readOnly = true;
+  sourceId = 'role-finance';
+  sources = [{ id: 'role-finance', title: 'Finance', content: 'Finance approves expenditure up to 1000 EUR.' }];
+  host.settings.ai = customerSettingsSchema.parse({
+    ai: { provider: 'copilot', resource: 'api://workiq', permissionResource: 'Work IQ' },
+  }).ai;
+  const copilotApi = await createBrowserApi(host);
+  const askCopilot = () =>
+    copilotApi.request<GovernanceReply>('/governance/ask', { question: 'Who approves expenditure?', language: 'fr' });
+  await assert.rejects(askCopilot(), /außerhalb der roleALPHA-Quellen/);
+  copilotGrounding = false;
+  const copilotAnswer = await askCopilot();
+  assert.equal(copilotAnswer.aiProvider, 'copilot');
+  assert.equal(copilotAnswer.statements[0].sourceIds[0], 'role-finance');
   host.settings.roleAlpha!.governance = null;
   await assert.rejects(ask(), /eingerichtet/);
-  assert.equal(calls, 3);
+  assert.equal(calls, 5, 'no search without an approved read tool');
 });
 
 test('governance configuration rejects write tools and a separate endpoint', () => {

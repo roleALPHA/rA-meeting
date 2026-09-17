@@ -3,6 +3,7 @@ import { WandSparkles } from 'lucide-react';
 import { useApi } from './api-context';
 import { t as tr, language } from './i18n';
 import type { GovernanceReply } from '../shared/governance';
+import { AiProvenance } from './ui';
 export function GovernanceAssistant({ enabled }: { enabled: boolean }) {
   const { request } = useApi();
   const [question, setQuestion] = useState('');
@@ -67,6 +68,7 @@ export function GovernanceAssistant({ enabled }: { enabled: boolean }) {
       {reply && (
         <div aria-live="polite">
           <h3>{tr('Antwort mit Quellen')}</h3>
+          <AiProvenance provider={reply.aiProvider} sensitivityLabel={reply.sensitivityLabel} />
           <p className="notice">
             {tr(
               'Die Antwort berücksichtigt nur die abgerufenen Quellen. Sie ersetzt keinen Governance-Beschluss. Prüfe die Originaltexte und mögliche weitere Regeln.',

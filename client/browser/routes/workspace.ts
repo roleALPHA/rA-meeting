@@ -18,6 +18,7 @@ export const workspaceRoutes: Route[] = [
           storage: 'sharepoint',
           governance: !!host.settings.ai && !!host.settings.roleAlpha?.governance,
           ai: !!host.settings.ai,
+          aiProvider: host.settings.ai?.provider ?? null,
           mcp: !!host.settings.roleAlpha?.meeting,
           entityTypes: outputTypes.filter(type => host.settings.roleAlpha?.entities[type]),
           graph: true,

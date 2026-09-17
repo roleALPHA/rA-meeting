@@ -169,6 +169,7 @@ These approvals apply to the shared SharePoint authentication component, not exc
 The meeting app works without these connections. Both are disabled in the default package.
 
 1. Decide whether to use AI assistance, transfers to roleALPHA Governance, or both.
+   For AI, choose one provider: **Microsoft 365 Copilot** (default; requires Work IQ and Copilot usage billing), **Claude via Microsoft Foundry** (requires a Foundry resource, a Claude deployment, and the Foundry User role for app users), or an organization-operated **OpenAI-compatible** endpoint. The [technical guide](technical-deployment.md#ai-providers) lists prerequisites and limits.
 2. Ask the person responsible for your roleALPHA deployment for a configured installation package. End users do not enter server addresses or keys. Connections cannot currently be activated solely from the app's **Connections** page.
 3. Confirm which services will receive data and where they process it. If content must never pass through roleALPHA-operated infrastructure, a centrally operated roleALPHA service is not an appropriate endpoint; the organization-controlled deployment must meet that requirement.
 4. Integration operators must enable Microsoft-account authentication and direct browser access. See the [technical guide](technical-deployment.md). A service accepting only a secret API key is not compatible with this deployment mode.

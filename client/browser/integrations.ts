@@ -2,8 +2,9 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { z } from 'zod';
 import { assert, type Meeting, type Outcome } from '../../shared/model';
-import { analysisMessages, validateAnalysis } from '../../shared/analysis';
-import { assistanceMessages } from '../../shared/assistance-messages';
+import { analysisTask, validateAnalysis } from '../../shared/analysis';
+import { assistanceTask } from '../../shared/assistance-task';
+import { completeTask } from './ai/provider';
 import { assistanceResult, type AssistanceInput } from '../../shared/assistance';
 import { type BrowserHost, type Endpoint, endpointFetch } from './host';
 const receipt = z.object({
@@ -12,27 +13,14 @@ const receipt = z.object({
   entityUuid: z.string().min(1),
   status: z.literal('draft'),
 });
-export async function complete(host: BrowserHost, messages: { role: string; content: string }[]) {
-  const ai = host.settings.ai;
-  assert(ai, 'KI ist nicht konfiguriert.', 503);
-  const r = await endpointFetch(host, ai)(ai.url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: ai.model, messages, response_format: { type: 'json_object' } }),
-  });
-  assert(r.ok, `KI-Dienst nicht verfügbar (HTTP ${r.status}).`, 502);
-  const body = (await r.json()) as { choices?: { message?: { content?: string } }[] };
-  try {
-    return JSON.parse(body.choices?.[0]?.message?.content || '') as unknown;
-  } catch {
-    throw new Error('Die KI-Antwort ist ungültig. Es wurde nichts übernommen.');
-  }
-}
+/** Validated outcome proposals plus provenance of the AI answer. */
 export async function analyzeBrowser(host: BrowserHost, m: Meeting, language: 'de' | 'en' | 'fr' | 'es') {
-  return validateAnalysis(await complete(host, analysisMessages(m, language)), m);
+  const completion = await completeTask(host, analysisTask(m, language));
+  return { outcomes: validateAnalysis(completion.output, m), completion };
 }
 export async function assistBrowser(host: BrowserHost, m: Meeting, input: AssistanceInput) {
-  return assistanceResult.parse(await complete(host, assistanceMessages(m, input)));
+  const completion = await completeTask(host, assistanceTask(m, input));
+  return { suggestion: assistanceResult.parse(completion.output), completion };
 }
 export type ExportPlan = {
   destination: string;

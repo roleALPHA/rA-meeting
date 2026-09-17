@@ -2763,4 +2763,59 @@ export const catalog: Record<string, { en: string; fr: string; es: string }> = {
     fr: 'Le test de stockage a échoué.',
     es: 'La prueba de almacenamiento ha fallado.',
   },
+  'Erstellt mit': {
+    en: 'Created with',
+    fr: 'Créé avec',
+    es: 'Creado con',
+  },
+  'KI-Dienst der Organisation': {
+    en: "Your organization's AI service",
+    fr: 'Service d’IA de l’organisation',
+    es: 'Servicio de IA de la organización',
+  },
+  'Die KI-Antwort trägt eine Vertraulichkeitsbezeichnung:': {
+    en: 'The AI response carries a sensitivity label:',
+    fr: 'La réponse de l’IA porte une étiquette de confidentialité :',
+    es: 'La respuesta de la IA tiene una etiqueta de confidencialidad:',
+  },
+  'Prüfe vor dem Übernehmen, ob dieser Inhalt in diesem Arbeitsbereich gespeichert werden darf.': {
+    en: 'Before accepting it, check whether this content may be stored in this workspace.',
+    fr: 'Avant de l’accepter, vérifiez si ce contenu peut être enregistré dans cet espace de travail.',
+    es: 'Antes de aceptarlo, compruebe si este contenido puede guardarse en este espacio de trabajo.',
+  },
+  'Microsoft 365 Copilot': {
+    en: 'Microsoft 365 Copilot',
+    fr: 'Microsoft 365 Copilot',
+    es: 'Microsoft 365 Copilot',
+  },
+  'Claude (Microsoft Foundry)': {
+    en: 'Claude (Microsoft Foundry)',
+    fr: 'Claude (Microsoft Foundry)',
+    es: 'Claude (Microsoft Foundry)',
+  },
+  'Microsoft 365 Copilot hat kein gültiges JSON geliefert. Es wurde nichts übernommen.': {
+    en: 'Microsoft 365 Copilot did not return valid JSON. Nothing was applied.',
+    fr: 'Microsoft 365 Copilot n’a pas renvoyé de JSON valide. Rien n’a été appliqué.',
+    es: 'Microsoft 365 Copilot no devolvió un JSON válido. No se aplicó nada.',
+  },
+  'Die Anfrage ist für Microsoft 365 Copilot zu groß. Es wurde nichts gesendet.': {
+    en: 'The request is too large for Microsoft 365 Copilot. Nothing was sent.',
+    fr: 'La demande est trop volumineuse pour Microsoft 365 Copilot. Rien n’a été envoyé.',
+    es: 'La solicitud es demasiado grande para Microsoft 365 Copilot. No se envió nada.',
+  },
+  'Microsoft 365 Copilot hat Inhalte außerhalb der roleALPHA-Quellen herangezogen. Die Antwort wurde verworfen.': {
+    en: 'Microsoft 365 Copilot used content beyond the roleALPHA sources. The answer was discarded.',
+    fr: 'Microsoft 365 Copilot a utilisé du contenu hors des sources roleALPHA. La réponse a été écartée.',
+    es: 'Microsoft 365 Copilot utilizó contenido fuera de las fuentes de roleALPHA. La respuesta se descartó.',
+  },
+  'Claude hat die Anfrage abgelehnt. Es wurde nichts übernommen.': {
+    en: 'Claude declined the request. Nothing was applied.',
+    fr: 'Claude a refusé la demande. Rien n’a été appliqué.',
+    es: 'Claude rechazó la solicitud. No se aplicó nada.',
+  },
+  'Die KI-Antwort war zu lang und ist unvollständig. Es wurde nichts übernommen.': {
+    en: 'The AI response was too long and is incomplete. Nothing was applied.',
+    fr: 'La réponse de l’IA était trop longue et est incomplète. Rien n’a été appliqué.',
+    es: 'La respuesta de la IA era demasiado larga y está incompleta. No se aplicó nada.',
+  },
 };

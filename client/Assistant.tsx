@@ -4,6 +4,10 @@ import type { Meeting, AgendaItem } from '../shared/model';
 import type { AssistanceInput, AssistanceResult } from '../shared/assistance';
 import { useApi } from './api-context';
 import { t as tr, language } from './i18n';
+import { AiProvenance } from './ui';
+import type { aiProviderLabels } from './labels';
+
+type AiInfo = { provider: keyof typeof aiProviderLabels; sensitivityLabel: string | null };
 export function Assistant({
   meeting,
   item,
@@ -26,6 +30,7 @@ export function Assistant({
   const [context, setContext] = useState('');
   const [objections, setObjections] = useState(item.objections || '');
   const [result, setResult] = useState<AssistanceResult | null>(null);
+  const [ai, setAi] = useState<AiInfo | null>(null);
   const [revision, setRevision] = useState(meeting.revision);
   const stale = revision !== meeting.revision;
   const edit = (setter: (v: string) => void, value: string) => {
@@ -106,7 +111,7 @@ export function Assistant({
             disabled={busy || !enabled || stale || (mode === 'integration' && (!proposal.trim() || !objections.trim()))}
             onClick={() =>
               run(async () => {
-                const reply = await request<{ revision: number; suggestion: AssistanceResult }>(
+                const reply = await request<{ revision: number; suggestion: AssistanceResult; ai: AiInfo }>(
                   `/meetings/${meeting.id}/assist`,
                   {
                     revision: meeting.revision,
@@ -114,6 +119,7 @@ export function Assistant({
                   },
                 );
                 setResult(reply.suggestion);
+                setAi(reply.ai);
                 setRevision(reply.revision);
               })
             }
@@ -124,6 +130,7 @@ export function Assistant({
           {result && (
             <div className="result-card">
               <h4>{tr('KI-Vorschlag · noch nicht übernommen')}</h4>
+              <AiProvenance provider={ai?.provider} sensitivityLabel={ai?.sensitivityLabel} />
               <p className="preserve">{result.proposal}</p>
               <p>{result.rationale}</p>
               {result.objectionResponses.map((r, i) => (

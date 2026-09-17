@@ -17,6 +17,8 @@
     "spfx:install": "npm ci --prefix spfx --cache .npm-cache --no-audit --no-fund"
   },
   "dependencies": {
+    "@anthropic-ai/foundry-sdk": "^0.4.7",
+    "@anthropic-ai/sdk": "^0.126.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@noble/hashes": "^2.4.0",
     "lucide-react": "^0.453.0",

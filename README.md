@@ -54,7 +54,7 @@ The app is delivered as a **SharePoint Framework (SPFx)** package. Microsoft 365
 | Templates, agenda, meetings, and outcomes | Your organization's SharePoint site |
 | Imported transcripts | SharePoint workspace; the original recording is not downloaded by the app |
 | Calendar and transcript retrieval | Direct Microsoft Graph requests with the signed-in user's permissions |
-| Optional AI | Direct requests to the administratively configured AI service |
+| Optional AI | Direct requests to the configured AI service: Microsoft 365 Copilot (default), Claude via Microsoft Foundry, or an OpenAI-compatible endpoint |
 | Optional governance connection | Direct MCP requests to the configured roleALPHA endpoint |
 | Language and terminology | Personal browser preferences |
 

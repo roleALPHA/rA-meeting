@@ -16,11 +16,42 @@ const https = z
 const endpoint = z
   .object({ url: https, resource: z.string().min(1), permissionResource: z.string().min(1), scope: z.string().min(1) })
   .strict();
+/** Microsoft 365 Copilot Chat API (Work IQ) with the signed-in user's delegated permission. */
+const copilotSettings = endpoint
+  .extend({
+    provider: z.literal('copilot'),
+    url: https.default('https://workiq.svc.cloud.microsoft/rest'),
+    scope: z.string().min(1).default('WorkIQAgent.Ask'),
+    /** Upper bound for instructions plus context sent in one request; verify against the tenant's limits. */
+    maxInputChars: z.number().int().min(1_000).max(1_000_000).default(200_000),
+  })
+  .strict();
+/** Claude through a Microsoft Foundry deployment, authenticated with Microsoft Entra ID. */
+const claudeFoundrySettings = endpoint
+  .extend({
+    provider: z.literal('claude-foundry'),
+    resource: z.string().min(1).default('https://ai.azure.com'),
+    /** Foundry deployment name, passed as the model parameter. */
+    model: z.string().min(1).default('claude-opus-5'),
+    /** Optional deployment that retries requests the primary model declines. */
+    fallbackModel: z.string().min(1).nullable().default(null),
+  })
+  .strict();
+const openAiCompatibleSettings = endpoint
+  .extend({ provider: z.literal('openai-compatible'), model: z.string().min(1) })
+  .strict();
 export const customerSettingsSchema = z
   .object({
     language: z.enum(['de', 'en', 'fr', 'es']).default('de'),
-    ai: endpoint
-      .extend({ model: z.string().min(1) })
+    ai: z
+      .preprocess(
+        // Configurations from before provider selection existed use the OpenAI-compatible adapter.
+        value =>
+          value && typeof value === 'object' && !('provider' in value)
+            ? { ...value, provider: 'openai-compatible' }
+            : value,
+        z.discriminatedUnion('provider', [copilotSettings, claudeFoundrySettings, openAiCompatibleSettings]),
+      )
       .nullable()
       .default(null),
     roleAlpha: endpoint
@@ -46,6 +77,8 @@ export const customerSettingsSchema = z
   .strict();
 export type CustomerSettings = z.infer<typeof customerSettingsSchema>;
 export type Endpoint = z.infer<typeof endpoint>;
+export type AiSettings = NonNullable<CustomerSettings['ai']>;
+export type AiProviderName = AiSettings['provider'];
 export type BrowserHost = {
   tenantId: string;
   userId: string;
@@ -60,10 +93,31 @@ export type BrowserHost = {
   sharepoint: (path: string, init?: RequestInit) => Promise<Response>;
   token: (resource: string) => Promise<string>;
 };
-export function endpointFetch(host: BrowserHost, target: Endpoint): typeof fetch {
+/** True when url is the configured endpoint or, for 'prefix', a path below it on the same origin. */
+export function allowedDestination(url: string, configured: string, match: 'exact' | 'prefix') {
+  if (url === configured) return true;
+  if (match === 'exact') return false;
+  let actual: URL, base: URL;
+  try {
+    actual = new URL(url);
+    base = new URL(configured);
+  } catch {
+    return false;
+  }
+  const root = base.pathname.replace(/\/$/, '');
+  return (
+    actual.origin === base.origin &&
+    !actual.username &&
+    !actual.password &&
+    !actual.hash &&
+    !actual.pathname.includes('..') &&
+    (actual.pathname === root || actual.pathname.startsWith(root + '/'))
+  );
+}
+export function endpointFetch(host: BrowserHost, target: Endpoint, match: 'exact' | 'prefix' = 'exact'): typeof fetch {
   return async (input, init = {}) => {
     const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
-    if (url !== target.url)
+    if (!allowedDestination(url, target.url, match))
       throw new Error('Integration request destination does not match the administrator configuration.');
     const headers = new Headers(init.headers);
     headers.set('Authorization', `Bearer ${await host.token(target.resource)}`);
