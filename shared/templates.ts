@@ -18,6 +18,7 @@ export function seedTemplates(language = 'de'): Template[] {
       id: randomUUID(),
       name: 'seed.tacticalMeeting',
       category: 'tactical',
+      terminology: 'tensions',
       description: 'seed.createOperationalClarityAddress',
       steps: [
         step('check-in', 'seed.arrive', 'seed.shortRoundWhatDo'),
@@ -33,6 +34,7 @@ export function seedTemplates(language = 'de'): Template[] {
       id: randomUUID(),
       name: 'seed.governanceMeeting',
       category: 'governance',
+      terminology: 'tensions',
       description: 'seed.developRolesCollaborationProcess',
       steps: [
         step('check-in', 'labels.checkIn', 'seed.becomePresentWithoutDiscussion'),
@@ -61,6 +63,7 @@ export function seedTemplates(language = 'de'): Template[] {
       id: randomUUID(),
       name: 'seed.teamReflection',
       category: 'custom',
+      terminology: 'agenda',
       description: 'seed.spaceReflectionLearningShared',
       steps: [
         step('check-in', 'seed.howWeDoing', 'seed.oneWordShortSentence'),

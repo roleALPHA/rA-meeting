@@ -1,7 +1,9 @@
 import { AppError } from '../shared/model';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
+  ArrowDown,
   ArrowRight,
+  ArrowUp,
   Check,
   CheckCircle2,
   Clock3,
@@ -12,8 +14,10 @@ import {
   Upload,
   WandSparkles,
   Send,
+  ExternalLink,
 } from 'lucide-react';
-import { outputLabels, type Bootstrap, type Meeting, type Outcome } from '../shared/model';
+import { outputLabels, terminologyOf, type Bootstrap, type Meeting, type Outcome } from '../shared/model';
+import { pendingTensions } from '../shared/tensions';
 import { useApi } from './api-context';
 import { checkMeeting } from '../shared/integrity';
 import { GovernanceAssistant } from './GovernanceAssistant';
@@ -28,6 +32,8 @@ export function MeetingRoom({
   meeting: m,
   actor,
   integrations,
+  tensions,
+  refresh,
   update,
   busy,
   run,
@@ -35,6 +41,9 @@ export function MeetingRoom({
   meeting: Meeting;
   actor: Bootstrap['actor'];
   integrations: Bootstrap['integrations'];
+  tensions: Bootstrap['tensions'];
+  /** Reloads the workspace overview; submitted tensions change when the meeting takes them over or resolves them. */
+  refresh: () => Promise<unknown>;
   update: (m: Meeting) => void;
   busy: boolean;
   run: (task: () => Promise<void>) => void;
@@ -76,7 +85,13 @@ export function MeetingRoom({
   const elapsed = m.stepStartedAt ? Math.max(0, Math.floor((clock - Date.parse(m.stepStartedAt)) / 1000)) : 0;
   const remaining = step.minutes * 60 - elapsed;
   const act = (body: Record<string, unknown>) =>
-    run(async () => update(await request<Meeting>(`/meetings/${m.id}/command`, { ...body, revision: m.revision })));
+    run(async () => {
+      update(await request<Meeting>(`/meetings/${m.id}/command`, { ...body, revision: m.revision }));
+      if (['start', 'agenda.import', 'agenda.resolve'].includes(String(body.type))) await refresh();
+    });
+  const term = terminologyOf(m.template);
+  const pending = pendingTensions(m, tensions);
+  const draftOf = (tensionId?: string) => tensions.find(t => t.id === tensionId)?.draft;
   const post = (path: string, body: Record<string, unknown> = {}) =>
     request<Meeting>(`/meetings/${m.id}/${path}`, { ...body, revision: m.revision });
   const approved = m.outcomes.filter(o => o.status === 'approved' && !o.export);
@@ -186,22 +201,86 @@ export function MeetingRoom({
                 )}
               </div>
             )}
+            {m.status === 'scheduled' && m.template.steps.some(s => s.kind === 'agenda') && (
+              <section className="submitted">
+                <div className="section-heading">
+                  <h3>{tr('meeting.submittedItems', { count: pending.length }, term)}</h3>
+                </div>
+                {pending.length ? (
+                  <ul>
+                    {pending.map(t => (
+                      <li key={t.id}>
+                        <strong>{t.title}</strong>
+                        {t.createdByName && <span className="muted"> · {t.createdByName}</span>}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="small muted">{tr('meeting.nothingSubmitted', undefined, term)}</p>
+                )}
+                <p className="small muted">{tr('meeting.submittedJoinOnStart', undefined, term)}</p>
+              </section>
+            )}
             {step.kind === 'agenda' && (
               <section>
                 <div className="section-heading">
-                  <h3>{tr('meeting.tensionsTopics')}</h3>
+                  <h3>{tr('meeting.tensionsTopics', undefined, term)}</h3>
                   <span className="muted">
                     {m.agenda.filter(a => a.stepId === step.id && a.status === 'open').length} {tr('meeting.open')}
                   </span>
                 </div>
+                {m.status === 'active' && pending.length > 0 && (
+                  <div className="notice">
+                    <span>{tr('meeting.newlySubmitted', { count: pending.length }, term)}</span>
+                    {editable && (
+                      <Button disabled={busy} onClick={() => act({ type: 'agenda.import' })}>
+                        <Plus size={15} />
+                        {tr('meeting.takeOver')}
+                      </Button>
+                    )}
+                  </div>
+                )}
                 {m.agenda
                   .filter(a => a.stepId === step.id)
-                  .map(a => (
+                  .map((a, index, items) => (
                     <article className={`agenda-card ${a.status === 'resolved' ? 'resolved' : ''}`} key={a.id}>
                       <div className="row">
                         <strong>{a.title}</strong>
                         {a.status === 'resolved' && <CheckCircle2 size={18} />}
+                        {editable && m.status !== 'completed' && items.length > 1 && (
+                          <span className="agenda-order">
+                            <Button
+                              className="icon"
+                              aria-label={tr('meeting.moveUp')}
+                              disabled={busy || index === 0}
+                              onClick={() => act({ type: 'agenda.move', id: a.id, offset: -1 })}
+                            >
+                              <ArrowUp size={15} />
+                            </Button>
+                            <Button
+                              className="icon"
+                              aria-label={tr('meeting.moveDown')}
+                              disabled={busy || index === items.length - 1}
+                              onClick={() => act({ type: 'agenda.move', id: a.id, offset: 1 })}
+                            >
+                              <ArrowDown size={15} />
+                            </Button>
+                          </span>
+                        )}
                       </div>
+                      {draftOf(a.tensionId) && (
+                        <p>
+                          <a
+                            className="text-button"
+                            href={draftOf(a.tensionId)!.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <ExternalLink size={15} />
+                            {tr('tensions.openDraft')}: {draftOf(a.tensionId)!.title}
+                          </a>
+                        </p>
+                      )}
                       {a.owner && (
                         <p className="small muted">
                           {tr('meeting.raised')} {a.owner}
@@ -271,8 +350,8 @@ export function MeetingRoom({
                     }}
                   >
                     <input
-                      aria-label={tr('meeting.tensionTopic')}
-                      placeholder={tr('meeting.whichTensionWouldLike')}
+                      aria-label={tr('meeting.tensionTopic', undefined, term)}
+                      placeholder={tr('meeting.whichTensionWouldLike', undefined, term)}
                       required
                       value={agendaTitle}
                       onChange={e => setAgendaTitle(e.target.value)}
@@ -668,7 +747,7 @@ export function MeetingRoom({
           title={`${entityPreview.plan.label} ${tr('meeting.createRolealpha')}`}
           close={() => setEntityPreview(null)}
         >
-          <p>{tr('meeting.confirmedWordingBecomesNew')}</p>
+          <p>{tr('meeting.confirmedWordingBecomesNew', undefined, term)}</p>
           <h3>{m.outcomes.find(o => o.id === entityPreview.outcomeId)?.title}</h3>
           <p className="preserve">{m.outcomes.find(o => o.id === entityPreview.outcomeId)?.description}</p>
           <p>

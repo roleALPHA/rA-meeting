@@ -63,6 +63,15 @@ export const customerSettingsSchema = z
           .strict()
           .nullable()
           .default(null),
+        /**
+         * The user's own drafts, searched with a read-only tool and attached to tensions as links. `appUrl` is the
+         * roleALPHA web application; only draft links on its origin are stored.
+         */
+        drafts: z
+          .object({ searchTool: z.string().regex(/^search_[a-z0-9_]+$/), appUrl: https })
+          .strict()
+          .nullable()
+          .default(null),
         meeting: z.boolean().default(false),
         entities: z
           .record(

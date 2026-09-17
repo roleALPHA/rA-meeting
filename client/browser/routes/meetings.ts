@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { assert, calendarLinker, type Meeting } from '../../../shared/model';
+import { assert, calendarLinker, type Meeting, type Tension } from '../../../shared/model';
+import { importTensions, resolveTension } from '../../../shared/tensions';
 import { calendarEntry, findCalendarEntry } from '../../../shared/calendar';
 import { addOutcome, command, createMeeting, event, setTranscript } from '../../../shared/domain';
 import { parseTranscript } from '../../../shared/transcript';
@@ -75,9 +76,21 @@ async function transcriptParts(ctx: RouteContext, m: Meeting) {
 }
 
 export const meetingActions: Record<string, MeetingAction> = {
-  command: async ({ actor, save }, { body }, m) => {
-    command(m, actor, body);
-    return save(m);
+  command: async ({ actor, save, store }, { body }, m) => {
+    const tensions = () => store.list<Tension>(actor.tenantId, 'tension');
+    if (body.type === 'agenda.import') {
+      // Brings tensions submitted while the meeting is already running onto its agenda.
+      assert(importTensions(m, actor, await tensions()), 'error.tensions.nothingToImport');
+    } else {
+      command(m, actor, body);
+      // Starting the meeting puts everything submitted to it onto the agenda.
+      if (body.type === 'start') importTensions(m, actor, await tensions());
+    }
+    const saved = await save(m);
+    // A finished agenda item resolves the tension behind it; unfinished ones stay open for another meeting.
+    const item = body.type === 'agenda.resolve' ? saved.agenda.find(a => a.id === body.id) : undefined;
+    if (item?.tensionId) await resolveTension(store, actor, item.tensionId);
+    return saved;
   },
   assist: async ({ host }, { body }, m) => {
     const { suggestion, completion } = await assistBrowser(host, m, assistanceInput.parse(body.input));

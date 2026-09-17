@@ -108,7 +108,7 @@ export function setTranscript(m: Meeting, actor: Actor, segments: Segment[]) {
 export function command(m: Meeting, actor: Actor, body: Record<string, unknown>) {
   const type = z.string().parse(body.type);
   const step = m.template.steps[m.currentStep];
-  if (['start', 'next', 'skip', 'agenda.add', 'agenda.phase', 'agenda.resolve', 'note'].includes(type))
+  if (['start', 'next', 'skip', 'agenda.add', 'agenda.move', 'agenda.phase', 'agenda.resolve', 'note'].includes(type))
     assert(m.status !== 'completed', 'error.assistanceTask.meetingCompleted');
   switch (type) {
     case 'start':
@@ -155,6 +155,20 @@ export function command(m: Meeting, actor: Actor, body: Record<string, unknown>)
         status: 'open',
       });
       event(m, actor, 'agenda.added', String(body.title));
+      break;
+    }
+    case 'agenda.move': {
+      // Reorders an item among the items of its agenda step; the facilitator sets the order before discussing.
+      const a = m.agenda.find(a => a.id === body.id);
+      assert(a, 'error.domain.agendaItemMissing');
+      const offset = z.union([z.literal(-1), z.literal(1)]).parse(body.offset);
+      const siblings = m.agenda.filter(x => x.stepId === a.stepId);
+      const target = siblings[siblings.indexOf(a) + offset];
+      if (!target) break;
+      const from = m.agenda.indexOf(a);
+      const to = m.agenda.indexOf(target);
+      [m.agenda[from], m.agenda[to]] = [m.agenda[to], m.agenda[from]];
+      event(m, actor, 'agenda.moved', a.title);
       break;
     }
     case 'agenda.proposal': {

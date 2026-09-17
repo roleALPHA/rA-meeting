@@ -37,6 +37,9 @@ export const stepLabels: Record<(typeof stepKinds)[number], MessageId> = {
   'check-out': 'labels.checkOut',
 };
 const text = z.string().trim().min(1).max(200);
+/** How a template names the items its agenda steps process: "Tensions" or "Agenda items". */
+export const terminologies = ['tensions', 'agenda'] as const;
+export type Terminology = (typeof terminologies)[number];
 export const stepSchema = z.object({
   id: z.string().uuid(),
   kind: z.enum(stepKinds),
@@ -53,6 +56,7 @@ export const templateInput = z
     name: text,
     description: z.string().max(4000).default(''),
     category: z.enum(['tactical', 'governance', 'custom']),
+    terminology: z.enum(terminologies).default('tensions'),
     enabled: z.boolean(),
     steps: z.array(stepSchema).min(1).max(40),
   })
@@ -62,6 +66,9 @@ export const templateInput = z
   });
 export type TemplateInput = z.infer<typeof templateInput>;
 export type Template = TemplateInput & { id: string; version: number; createdAt: string; updatedAt: string };
+/** Templates and meeting snapshots stored before the setting existed use "Tensions". */
+export const terminologyOf = (template: Pick<Template, 'terminology'>): Terminology =>
+  template.terminology === 'agenda' ? 'agenda' : 'tensions';
 export type Actor = { id: string; name: string; tenantId: string; workspace: 'read' | 'write' };
 export type Segment = { id: string; start: string; end: string; speaker: string; text: string };
 export const outcomeInput = z.object({
@@ -180,13 +187,23 @@ export type Meeting = {
 };
 /** Meeting without transcript segments, as listed in the workspace overview. */
 export type MeetingSummary = Omit<Meeting, 'transcript'> & { transcriptSegments: number };
+/** A roleALPHA draft attached to a tension. The URL opens the draft in roleALPHA; nothing else is stored. */
+export type DraftLink = { draftId: string; title: string; entityType: string; url: string };
 export type Tension = {
   id: string;
   version: number;
   title: string;
   description: string;
+  /** Copied from the meeting the tension is submitted to. */
   circle: string;
+  /** The meeting where the tension is processed; null for tensions stored before submission required one. */
+  meetingId?: string | null;
+  /** The agenda step of that meeting. */
+  stepId?: string | null;
+  draft?: DraftLink | null;
   createdBy: string;
+  /** Display name of the person who submitted it, shown as the agenda item's owner. */
+  createdByName?: string;
   createdAt: string;
   updatedAt: string;
   status: 'open' | 'resolved';
@@ -201,6 +218,8 @@ export type Bootstrap = {
   canManageWorkspace: boolean;
   integrations: {
     governance?: boolean;
+    /** Own roleALPHA drafts can be searched and attached to tensions. */
+    drafts?: boolean;
     entityTypes: OutputType[];
     storage: string;
     ai: boolean;
