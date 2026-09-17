@@ -91,6 +91,12 @@ test('VTT import preserves speaker and source timestamps; repeated import is ide
   assert.equal(setTranscript(meeting, actor, segments), false);
   assert.equal(parseTranscript('[01:00 - 01:05] Alex: Hallo')[0].start, '01:00');
 });
+test('VTT text is decoded once and cannot reassemble tags', () => {
+  const [segment] = parseTranscript(
+    'WEBVTT\n\n00:00:01.000 --> 00:00:02.000\n<v Anna>a &amp;lt;b&amp;gt; <scr<b>ipt>x &quot;y&quot;</v>',
+  );
+  assert.equal(segment.text, 'a &lt;b&gt; x "y"');
+});
 test('AI results need real references and cannot invent target UUIDs or allowed outputs', async () => {
   const { meeting } = await fixture();
   const step = meeting.template.steps.find(s => s.kind === 'agenda')!;

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import ts from 'typescript';
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { de, type MessageId } from '../shared/locales/de.js';
 import { en } from '../shared/locales/en.js';
@@ -16,9 +16,10 @@ const ids = Object.keys(de) as MessageId[];
 function sourceLiterals() {
   const literals = new Set<string>();
   const walk = (dir: string) => {
-    for (const name of readdirSync(dir)) {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const name = entry.name;
       const path = join(dir, name);
-      if (statSync(path).isDirectory()) {
+      if (entry.isDirectory()) {
         if (!path.endsWith('locales')) walk(path);
       } else if (/\.tsx?$/.test(name)) {
         const source = ts.createSourceFile(path, readFileSync(path, 'utf8'), ts.ScriptTarget.Latest, true);

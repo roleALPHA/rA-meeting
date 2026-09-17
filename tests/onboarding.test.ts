@@ -131,8 +131,12 @@ test('landing page resumes its own draft and never overwrites an existing page o
   assert.equal(creates, 1);
   assert.equal(saves, 3);
   assert.equal(result.pageUrl, url + '/SitePages/rA-Meetings.aspx');
-  assert.ok(canvas.includes(meetingsWebPartId));
-  assert.ok(canvas.includes(url));
+  const [control] = JSON.parse(canvas) as {
+    webPartId: string;
+    webPartData: { properties: { workspaceUrl: string } };
+  }[];
+  assert.equal(control.webPartId, meetingsWebPartId);
+  assert.equal(control.webPartData.properties.workspaceUrl, url);
   assert.ok(extra.every(p => !p.includes('publish') && !p.includes('WelcomePage')));
   await setupWorkspace(host, 'de', true, () => {});
   assert.equal(creates, 1);
