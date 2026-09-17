@@ -39,17 +39,17 @@ export function CalendarLink({
       <div className="row wrap">
         <span className="small muted">
           {m.calendar
-            ? `${m.calendar.cancelled ? tr('Abgesagt · ') : ''}${new Date(m.calendar.start).toLocaleString(language())} – ${new Date(m.calendar.end).toLocaleTimeString(language(), { hour: '2-digit', minute: '2-digit' })}${m.calendar.occurrence ? tr(' · Einzeltermin einer Serie') : ''}`
-            : tr('Noch kein Kalendertermin verknüpft')}
+            ? `${m.calendar.cancelled ? tr('calendar.cancelled') : ''}${new Date(m.calendar.start).toLocaleString(language())} – ${new Date(m.calendar.end).toLocaleTimeString(language(), { hour: '2-digit', minute: '2-digit' })}${m.calendar.occurrence ? tr('calendar.seriesOccurrence') : ''}`
+            : tr('calendar.calendarEventLinkedYet')}
         </span>
         {m.calendar?.joinUrl && !m.calendar.cancelled && (
           <a className="button" href={safeLink(m.calendar.joinUrl)} target="_blank" rel="noreferrer">
-            {tr('Teams beitreten')}
+            {tr('calendar.joinTeams')}
           </a>
         )}
         {m.calendar?.webUrl && (
           <a className="button" href={safeLink(m.calendar.webUrl)} target="_blank" rel="noreferrer">
-            {tr('In Outlook öffnen')}
+            {tr('calendar.openOutlook')}
           </a>
         )}
         {editable && m.status !== 'completed' && (
@@ -58,18 +58,14 @@ export function CalendarLink({
             disabled={!enabled}
             onClick={() => (m.calendar ? link(m.calendar) : setShow(!show))}
           >
-            {m.calendar ? tr('Termin abgleichen') : tr('Kalender verbinden')}
+            {m.calendar ? tr('calendar.syncEvent') : tr('calendar.linkCalendar')}
           </button>
         )}
       </div>
       {show && (
         <div className="result-card">
-          <h3>{tr('Vorhandenen Termin auswählen')}</h3>
-          <p>
-            {tr(
-              'Es werden keine Einladungen versendet. Kalenderdaten werden beim Verbinden und mit „Termin abgleichen“ aktualisiert.',
-            )}
-          </p>
+          <h3>{tr('calendar.selectExistingEvent')}</h3>
+          <p>{tr('calendar.invitationsSentCalendarData')}</p>
           <button
             className="button"
             disabled={!organizer}
@@ -84,10 +80,10 @@ export function CalendarLink({
               })
             }
           >
-            {tr('Termine laden')}
+            {tr('calendar.loadEvents')}
           </button>
-          {truncated && <p className="notice">{tr('Nur die ersten 200 Termine werden angezeigt.')}</p>}
-          {loaded && !entries.length && <p>{tr('Keine Termine im Zeitraum gefunden.')}</p>}
+          {truncated && <p className="notice">{tr('calendar.onlyFirst200Events')}</p>}
+          {loaded && !entries.length && <p>{tr('calendar.eventsFoundPeriod')}</p>}
           {entries.map(e => (
             <div className="meeting-row" key={e.eventId}>
               <div className="meeting-title">
@@ -95,7 +91,7 @@ export function CalendarLink({
                 <span>{new Date(e.start).toLocaleString(language())}</span>
               </div>
               <button className="button" onClick={() => link(e)}>
-                {tr('Verbinden')}
+                {tr('calendar.connect')}
               </button>
             </div>
           ))}

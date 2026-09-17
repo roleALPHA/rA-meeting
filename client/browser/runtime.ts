@@ -34,7 +34,7 @@ const meetingItemRoutes: Route[] = [
     path: /^\/meetings\/([^/]+)\/([^/]+)$/,
     handle: async (ctx, req, [id, action]) => {
       const handler = Object.prototype.hasOwnProperty.call(actions, action) ? actions[action] : undefined;
-      assert(handler, 'API-Endpunkt nicht gefunden.', 404);
+      assert(handler, 'error.runtime.apiEndpointFound', 404);
       const m = await ctx.get(id, true);
       verifyRevision(m, req.body);
       return handler(ctx, req, m, id);
@@ -70,7 +70,7 @@ export function browserApi(host: BrowserHost, store: Repository, actor: Actor): 
   const ctx = createContext(host, store, actor);
   async function dispatch(path: string, raw?: unknown, method = 'POST'): Promise<unknown> {
     const url = new URL(path, 'https://local.invalid');
-    assert(url.origin === 'https://local.invalid', 'Invalid local route');
+    assert(url.origin === 'https://local.invalid', 'error.runtime.invalidRoute');
     const body = raw === undefined ? {} : requestBody.parse(raw);
     const verb = raw === undefined ? 'GET' : method;
     for (const route of routes) {
@@ -78,10 +78,10 @@ export function browserApi(host: BrowserHost, store: Repository, actor: Actor): 
       const match = route.path.exec(url.pathname);
       if (!match) continue;
       if (verb !== 'GET' && !route.allowReaders)
-        assert(actor.workspace === 'write', 'Keine Berechtigung für diesen SharePoint-Arbeitsbereich.', 403);
+        assert(actor.workspace === 'write', 'error.runtime.permissionSharepointWorkspace', 403);
       return route.handle(ctx, { url, body }, match.slice(1));
     }
-    throw new AppError(404, 'API-Endpunkt nicht gefunden.');
+    throw new AppError(404, 'error.runtime.apiEndpointFound');
   }
   return {
     initialMeeting: host.initialMeeting,
@@ -90,7 +90,7 @@ export function browserApi(host: BrowserHost, store: Repository, actor: Actor): 
       try {
         return (await dispatch(path, body, method)) as T;
       } catch (error) {
-        if (error instanceof z.ZodError) throw new AppError(400, 'Bitte die markierten Eingaben prüfen.');
+        if (error instanceof z.ZodError) throw new AppError(400, 'error.runtime.pleaseCheckSubmittedValues');
         throw error;
       }
     },

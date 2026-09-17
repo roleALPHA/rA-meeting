@@ -1,3 +1,4 @@
+import { translate, type MessageId, type MessageParams } from './i18n.js';
 import { z } from 'zod';
 
 export const outputTypes = [
@@ -12,28 +13,28 @@ export const outputTypes = [
   'it_system',
   'note',
 ] as const;
-export const outputLabels: Record<OutputType, string> = {
-  task: 'Aufgabe',
-  project: 'Projekt',
-  governance: 'Rollenänderung',
-  policy: 'Policy',
-  metric: 'Kennzahl',
-  checklist: 'Checkliste',
-  okr: 'OKR',
-  risk: 'Risiko',
-  it_system: 'IT-System',
-  note: 'Notiz',
+export const outputLabels: Record<OutputType, MessageId> = {
+  task: 'labels.task',
+  project: 'labels.project',
+  governance: 'labels.roleChange',
+  policy: 'labels.policy',
+  metric: 'labels.metric',
+  checklist: 'labels.checklist',
+  okr: 'labels.okr',
+  risk: 'labels.risk',
+  it_system: 'labels.system',
+  note: 'labels.note',
 };
 export type OutputType = (typeof outputTypes)[number];
 export const stepKinds = ['check-in', 'checklist', 'metrics', 'projects', 'agenda', 'custom', 'check-out'] as const;
-export const stepLabels: Record<(typeof stepKinds)[number], string> = {
-  'check-in': 'Check-in',
-  checklist: 'Checklisten',
-  metrics: 'Kennzahlen',
-  projects: 'Projektupdates',
-  agenda: 'Agenda',
-  custom: 'Freier Schritt',
-  'check-out': 'Check-out',
+export const stepLabels: Record<(typeof stepKinds)[number], MessageId> = {
+  'check-in': 'labels.checkIn',
+  checklist: 'labels.checklists',
+  metrics: 'labels.metrics',
+  projects: 'labels.projectUpdates',
+  agenda: 'preferences.agenda',
+  custom: 'labels.customStep',
+  'check-out': 'labels.checkOut',
 };
 const text = z.string().trim().min(1).max(200);
 export const stepSchema = z.object({
@@ -182,14 +183,16 @@ export type Bootstrap = {
     graph: boolean;
   };
 };
+/** Error with a translatable message ID. The message is the German text for logs and diagnostics. */
 export class AppError extends Error {
   constructor(
     public status: number,
-    message: string,
+    public id: MessageId,
+    public params?: MessageParams,
   ) {
-    super(message);
+    super(translate(id, 'de', params));
   }
 }
-export function assert(condition: unknown, message: string, status = 400): asserts condition {
-  if (!condition) throw new AppError(status, message);
+export function assert(condition: unknown, id: MessageId, status = 400, params?: MessageParams): asserts condition {
+  if (!condition) throw new AppError(status, id, params);
 }

@@ -6,7 +6,7 @@ import { createBrowserApi, type AppApi } from './runtime';
 import type { BrowserHost } from './host';
 import { Onboarding } from '../Onboarding';
 import { AppError } from '../../shared/model';
-import { t, usePreferences } from '../i18n';
+import { errorText, t, usePreferences } from '../i18n';
 import { Preferences } from '../Preferences';
 import css from '../style.css?inline';
 function Start({ host: initialHost }: { host: BrowserHost }) {
@@ -26,7 +26,7 @@ function Start({ host: initialHost }: { host: BrowserHost }) {
       })
       .catch((error: unknown) => {
         if (!alive) return;
-        setError(error instanceof Error ? t(error.message) : t('Verbindung erforderlich'));
+        setError(errorText(error));
         if (error instanceof AppError && (error.status === 404 || error.status === 503)) setWizard(true);
       });
     return () => {
@@ -65,14 +65,14 @@ function Start({ host: initialHost }: { host: BrowserHost }) {
         <>
           <p role="alert">{error}</p>
           <button className="button" onClick={() => setRetry(n => n + 1)}>
-            {t('Erneut versuchen')}
+            {t('startup.tryAgain')}
           </button>
           <button className="button" onClick={() => setWizard(true)}>
-            {t('Einrichtungsassistent öffnen')}
+            {t('app.openSetupWizard')}
           </button>
         </>
       ) : (
-        <p>{t('Arbeitsbereich wird geladen')}</p>
+        <p>{t('app.loadingWorkspace')}</p>
       )}
     </section>
   );

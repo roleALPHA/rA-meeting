@@ -41,5 +41,5 @@ export function createContext(host: BrowserHost, store: Repository, actor: Actor
 }
 
 export function verifyRevision(m: Meeting, body: Record<string, unknown>) {
-  assert(m.revision === rev.parse(body.revision), 'Meeting wurde inzwischen geändert. Bitte neu laden.', 409);
+  assert(m.revision === rev.parse(body.revision), 'error.types.meetingHasChangedPlease', 409);
 }

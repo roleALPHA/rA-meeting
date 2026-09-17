@@ -9,7 +9,7 @@ export function event(m: Meeting, actor: Actor, type: string, detail: string) {
 }
 export async function getMeeting(store: Store, actor: Actor, id: string, write = false): Promise<Meeting> {
   const m = await store.get<Meeting>(actor.tenantId, 'meeting', id);
-  if (write) assert(actor.workspace === 'write', 'Keine Berechtigung für diesen SharePoint-Arbeitsbereich.', 403);
+  if (write) assert(actor.workspace === 'write', 'error.runtime.permissionSharepointWorkspace', 403);
   return m;
 }
 export async function saveMeeting(store: Store, actor: Actor, m: Meeting, revision: number) {
@@ -19,10 +19,10 @@ export async function saveMeeting(store: Store, actor: Actor, m: Meeting, revisi
   return m;
 }
 export async function saveTemplate(store: Store, actor: Actor, body: unknown, id?: string, version?: number) {
-  assert(actor.workspace === 'write', 'Keine Berechtigung für diesen SharePoint-Arbeitsbereich.', 403);
+  assert(actor.workspace === 'write', 'error.runtime.permissionSharepointWorkspace', 403);
   const input = templateInput.parse(body);
   const existing = id ? await store.get<Template>(actor.tenantId, 'template', id) : null;
-  if (existing) assert(existing.version === version, 'Das Template wurde inzwischen geändert.', 409);
+  if (existing) assert(existing.version === version, 'error.domain.templateHasChanged', 409);
   const t: Template = {
     ...input,
     id: existing?.id ?? randomUUID(),
@@ -43,7 +43,7 @@ export const createMeetingInput = z.object({
 export async function createMeeting(store: Store, actor: Actor, body: unknown) {
   const input = createMeetingInput.parse(body);
   const template = await store.get<Template>(actor.tenantId, 'template', input.templateId);
-  assert(template.enabled, 'Dieses Template ist deaktiviert.');
+  assert(template.enabled, 'error.domain.templateDisabled');
   const m: Meeting = {
     id: randomUUID(),
     revision: 1,
@@ -72,33 +72,33 @@ export async function createMeeting(store: Store, actor: Actor, body: unknown) {
 export function addOutcome(m: Meeting, actor: Actor, raw: unknown, source: 'manual' | 'ai' = 'manual') {
   const input = outcomeInput.parse(raw);
   const step = m.template.steps.find(s => s.id === input.stepId);
-  assert(step?.outputs.includes(input.type), 'Dieser Ergebnistyp ist in diesem Schritt nicht erlaubt.');
+  assert(step?.outputs.includes(input.type), 'error.domain.outcomeTypeAllowedStep');
   if (input.agendaId)
     assert(
       m.agenda.some(a => a.id === input.agendaId && a.stepId === input.stepId),
-      'Agendaelement gehört nicht zu diesem Schritt.',
+      'error.domain.agendaItemDoesBelong',
     );
   const ids = new Set(m.transcript.map(s => s.id));
   assert(
     input.evidence.every(id => ids.has(id)),
-    'Ungültige Transkriptreferenz.',
+    'error.domain.invalidTranscriptReference',
   );
-  if (source === 'ai') assert(input.evidence.length > 0, 'KI-Ergebnisse benötigen eine Quelle.');
+  if (source === 'ai') assert(input.evidence.length > 0, 'error.domain.aiOutcomesRequireSource');
   m.outcomes.push({ ...input, id: randomUUID(), source, status: 'proposed' });
   event(m, actor, 'outcome.proposed', input.title);
 }
 export function setTranscript(m: Meeting, actor: Actor, segments: Segment[]) {
-  assert(segments.length > 0, 'Das Transkript enthält keinen Text.');
+  assert(segments.length > 0, 'error.domain.transcriptContainsText');
   const hash = sha256Hex(JSON.stringify(segments));
   if (m.transcriptHash === hash) return false;
   assert(
     !m.outcomes.some(o => o.source === 'ai' && (o.status === 'approved' || o.export)),
-    'Bestätigte KI-Ergebnisse referenzieren dieses Transkript. Neues Meeting für eine andere Transkriptversion anlegen.',
+    'error.domain.confirmedAiOutcomesReference',
     409,
   );
   m.outcomes = m.outcomes.filter(o => o.source !== 'ai');
   // Manual evidence must not silently point to a different transcript version.
-  assert(!m.outcomes.some(o => o.evidence.length), 'Ergebnisse referenzieren das bestehende Transkript.', 409);
+  assert(!m.outcomes.some(o => o.evidence.length), 'error.domain.outcomesReferenceExistingTranscript', 409);
   m.transcript = segments;
   m.transcriptHash = hash;
   m.analyzedHash = undefined;
@@ -109,18 +109,18 @@ export function command(m: Meeting, actor: Actor, body: Record<string, unknown>)
   const type = z.string().parse(body.type);
   const step = m.template.steps[m.currentStep];
   if (['start', 'next', 'skip', 'agenda.add', 'agenda.phase', 'agenda.resolve', 'note'].includes(type))
-    assert(m.status !== 'completed', 'Das Meeting ist abgeschlossen.');
+    assert(m.status !== 'completed', 'error.assistanceTask.meetingCompleted');
   switch (type) {
     case 'start':
-      assert(m.status === 'scheduled', 'Meeting wurde bereits gestartet.');
+      assert(m.status === 'scheduled', 'error.domain.meetingHasAlreadyStarted');
       m.status = 'active';
       m.stepStartedAt = now();
       event(m, actor, 'started', 'Meeting gestartet.');
       break;
     case 'next':
     case 'skip': {
-      assert(m.status === 'active', 'Meeting zuerst starten.');
-      if (type === 'skip') assert(step.optional, 'Dieser Schritt ist nicht optional.');
+      assert(m.status === 'active', 'error.domain.startMeetingFirst');
+      if (type === 'skip') assert(step.optional, 'error.domain.stepOptional');
       if (type === 'next') m.completedSteps.push(step.id);
       event(m, actor, type === 'skip' ? 'step.skipped' : 'step.completed', step.title);
       if (m.currentStep === m.template.steps.length - 1) {
@@ -141,7 +141,7 @@ export function command(m: Meeting, actor: Actor, body: Record<string, unknown>)
       const stepId = z.string().parse(body.stepId);
       assert(
         m.template.steps.some(s => s.id === stepId && s.kind === 'agenda'),
-        'Kein Agenda-Schritt.',
+        'error.domain.agendaStep',
       );
       m.agenda.push({
         id: randomUUID(),
@@ -159,8 +159,8 @@ export function command(m: Meeting, actor: Actor, body: Record<string, unknown>)
     }
     case 'agenda.proposal': {
       const a = m.agenda.find(a => a.id === body.id);
-      assert(a, 'Agendaelement fehlt.');
-      assert(m.status !== 'completed' && a.status === 'open', 'Das Meeting oder der Agendapunkt ist abgeschlossen.');
+      assert(a, 'error.domain.agendaItemMissing');
+      assert(m.status !== 'completed' && a.status === 'open', 'error.domain.meetingAgendaItemCompleted');
       a.proposal = z.string().trim().min(1).max(12000).parse(body.proposal);
       a.objections = z
         .string()
@@ -172,9 +172,9 @@ export function command(m: Meeting, actor: Actor, body: Record<string, unknown>)
     case 'agenda.phase':
     case 'agenda.resolve': {
       const a = m.agenda.find(a => a.id === body.id);
-      assert(a, 'Agendaelement fehlt.');
-      assert(m.status === 'active' && a.stepId === step.id, 'Agendaelement ist nicht im aktiven Schritt.');
-      assert(a.status === 'open', 'Agendaelement bereits abgeschlossen.');
+      assert(a, 'error.domain.agendaItemMissing');
+      assert(m.status === 'active' && a.stepId === step.id, 'error.domain.agendaItemActiveStep');
+      assert(a.status === 'open', 'error.domain.agendaItemAlreadyCompleted');
       if (type === 'agenda.phase') {
         const p = z
           .number()
@@ -195,8 +195,8 @@ export function command(m: Meeting, actor: Actor, body: Record<string, unknown>)
       break;
     case 'outcome.review': {
       const o = m.outcomes.find(o => o.id === body.id);
-      assert(o, 'Ergebnis fehlt.');
-      assert(!o.export, 'Exportierte Ergebnisse sind unveränderlich.', 409);
+      assert(o, 'error.export.outcomeMissing');
+      assert(!o.export, 'error.domain.exportedOutcomesCannotChanged', 409);
       const status = z.enum(['approved', 'rejected', 'proposed']).parse(body.status);
       o.status = status;
       o.approvedBy = status === 'approved' ? actor.id : undefined;
@@ -206,7 +206,7 @@ export function command(m: Meeting, actor: Actor, body: Record<string, unknown>)
     }
     case 'outcome.edit': {
       const o = m.outcomes.find(o => o.id === body.id);
-      assert(o && !o.export, 'Ergebnis kann nicht bearbeitet werden.', 409);
+      assert(o && !o.export, 'error.domain.outcomeCannotEdited', 409);
       const input = outcomeInput.parse(body.outcome);
       const temp = structuredClone(m);
       addOutcome(temp, actor, input, o.source);
@@ -215,6 +215,6 @@ export function command(m: Meeting, actor: Actor, body: Record<string, unknown>)
       break;
     }
     default:
-      assert(false, 'Unbekannte Aktion.');
+      assert(false, 'error.domain.unknownAction');
   }
 }

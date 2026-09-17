@@ -18,6 +18,6 @@ export function parseJsonText(text: string): unknown {
   try {
     return JSON.parse(fenced ? fenced[1] : trimmed) as unknown;
   } catch {
-    throw new AppError(502, 'Die KI-Antwort ist ungültig. Es wurde nichts übernommen.');
+    throw new AppError(502, 'error.copilot.aiResponseInvalidNothing');
   }
 }

@@ -60,7 +60,7 @@ export function TemplateEditor({
     });
   };
   return (
-    <Modal title={template ? tr('Template bearbeiten') : tr('Neues Meeting-Template')} close={close} wide>
+    <Modal title={template ? tr('templates.editTemplate') : tr('templates.newMeetingTemplate')} close={close} wide>
       <form
         onSubmit={e => {
           e.preventDefault();
@@ -68,16 +68,16 @@ export function TemplateEditor({
         }}
       >
         <div className="editor-meta">
-          <Field label={tr('Name')}>
+          <Field label={tr('templates.name')}>
             <input
               required
               maxLength={200}
               value={draft.name}
               onChange={e => setDraft({ ...draft, name: e.target.value })}
-              placeholder={tr('z. B. Monatliche Strategie-Runde')}
+              placeholder={tr('templates.eGMonthlyStrategy')}
             />
           </Field>
-          <Field label={tr('Meetingtyp')}>
+          <Field label={tr('templates.meetingType')}>
             <select
               value={draft.category}
               onChange={e => setDraft({ ...draft, category: e.target.value as TemplateInput['category'] })}
@@ -90,7 +90,7 @@ export function TemplateEditor({
             </select>
           </Field>
         </div>
-        <Field label={tr('Beschreibung')}>
+        <Field label={tr('templates.description')}>
           <textarea
             rows={2}
             maxLength={4000}
@@ -101,9 +101,9 @@ export function TemplateEditor({
         <div className="editor-grid">
           <section className="step-list">
             <div className="section-label">
-              {tr('ABLAUF')}
+              {tr('templates.flow')}
               <span>
-                {draft.steps.length} {tr('Schritte')}
+                {draft.steps.length} {tr('app.steps')}
               </span>
             </div>
             {draft.steps.map((s, i) => (
@@ -126,7 +126,7 @@ export function TemplateEditor({
                 <div className="step-actions">
                   <button
                     type="button"
-                    aria-label={`${s.title} ${tr('nach oben')} `}
+                    aria-label={`${s.title} ${tr('templates.moveUp')} `}
                     disabled={i === 0}
                     onClick={() => move(i, i - 1)}
                   >
@@ -134,7 +134,7 @@ export function TemplateEditor({
                   </button>
                   <button
                     type="button"
-                    aria-label={`${s.title} ${tr('nach unten')} `}
+                    aria-label={`${s.title} ${tr('templates.moveDown')} `}
                     disabled={i === draft.steps.length - 1}
                     onClick={() => move(i, i + 1)}
                   >
@@ -143,7 +143,7 @@ export function TemplateEditor({
                 </div>
               </div>
             ))}
-            <Field label={tr('Schritt hinzufügen')}>
+            <Field label={tr('templates.addStep')}>
               <select
                 value=""
                 onChange={e => {
@@ -153,7 +153,7 @@ export function TemplateEditor({
                 }}
               >
                 <option value="" disabled>
-                  {tr('Schritttyp auswählen …')}
+                  {tr('templates.selectStepType')}
                 </option>
                 {stepKinds.map(k => (
                   <option key={k} value={k}>
@@ -169,8 +169,8 @@ export function TemplateEditor({
               <Button
                 type="button"
                 className="icon danger"
-                title={tr('Schritt entfernen')}
-                aria-label={tr('Schritt entfernen')}
+                title={tr('templates.removeStep')}
+                aria-label={tr('templates.removeStep')}
                 disabled={draft.steps.length === 1}
                 onClick={() => {
                   const steps = draft.steps.filter(s => s.id !== step.id);
@@ -181,20 +181,20 @@ export function TemplateEditor({
                 <Trash2 size={17} />
               </Button>
             </div>
-            <Field label={tr('Schrittname')}>
+            <Field label={tr('templates.stepName')}>
               <input required maxLength={200} value={step.title} onChange={e => update({ title: e.target.value })} />
             </Field>
-            <Field label={tr('Hinweis für die Moderation')}>
+            <Field label={tr('templates.facilitatorGuidance')}>
               <textarea
                 rows={3}
                 maxLength={4000}
                 value={step.description}
                 onChange={e => update({ description: e.target.value })}
-                placeholder={tr('Was soll in diesem Schritt passieren?')}
+                placeholder={tr('templates.whatShouldHappenStep')}
               />
             </Field>
             <div className="inline-fields">
-              <Field label={tr('Zeitbox in Minuten')}>
+              <Field label={tr('templates.timeboxMinutes')}>
                 <input
                   type="number"
                   min={0}
@@ -205,11 +205,11 @@ export function TemplateEditor({
               </Field>
               <label className="check">
                 <input type="checkbox" checked={step.optional} onChange={e => update({ optional: e.target.checked })} />
-                {tr('Optionaler Schritt')}
+                {tr('templates.optionalStep')}
               </label>
             </div>
             <div className="field">
-              <span>{tr('Erlaubte Ergebnisse')}</span>
+              <span>{tr('templates.allowedOutcomes')}</span>
               <div className="output-choices">
                 {outputTypes.map(type => (
                   <label className={`output-choice ${step.outputs.includes(type) ? 'checked' : ''}`} key={type}>
@@ -226,15 +226,15 @@ export function TemplateEditor({
                   </label>
                 ))}
               </div>
-              <small>{tr('Ohne Auswahl werden in diesem Schritt nur Notizen und Agendaelemente erfasst.')}</small>
+              <small>{tr('templates.withoutSelectionStepCaptures')}</small>
             </div>
-            <Field label={tr('Unterphasen pro Agendaelement (eine pro Zeile)')}>
+            <Field label={tr('templates.phasesPerAgendaItem')}>
               <textarea
                 rows={4}
                 value={step.phases.join('\n')}
                 onChange={e => update({ phases: e.target.value.split('\n') })}
                 onBlur={() => update({ phases: step.phases.map(p => p.trim()).filter(Boolean) })}
-                placeholder={tr('Vorschlag vorstellen\nVerständnisfragen\nErgebnis dokumentieren')}
+                placeholder={tr('templates.presentProposalClarifyingQuestions')}
               />
             </Field>
           </section>
@@ -246,11 +246,11 @@ export function TemplateEditor({
               checked={draft.enabled}
               onChange={e => setDraft({ ...draft, enabled: e.target.checked })}
             />
-            {tr('Für neue Meetings verfügbar')}
+            {tr('templates.availableNewMeetings')}
           </label>
           <Button type="submit" className="primary" disabled={busy}>
             {busy ? <Loader2 className="spin" size={16} /> : <Check size={16} />}
-            {tr('Template speichern')}
+            {tr('templates.saveTemplate')}
           </Button>
         </div>
       </form>

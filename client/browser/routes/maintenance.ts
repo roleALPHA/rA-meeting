@@ -5,12 +5,8 @@ import type { Route, RouteContext } from './types';
 
 /** Storage maintenance is reserved for site owners, like the initial provisioning. */
 async function ownerStore({ host, store }: RouteContext) {
-  assert(
-    (await workspaceAccess(host.sharepoint)).provision,
-    'Nur Websitebesitzer können den Speicher bereinigen.',
-    403,
-  );
-  assert(store instanceof SharePointRestStore, 'Die Speicherbereinigung ist für diesen Speicher nicht verfügbar.', 501);
+  assert((await workspaceAccess(host.sharepoint)).provision, 'error.maintenance.onlySiteOwnersCan', 403);
+  assert(store instanceof SharePointRestStore, 'error.maintenance.storageCleanupAvailableStorage', 501);
   return store;
 }
 

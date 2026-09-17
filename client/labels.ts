@@ -1,7 +1,15 @@
-export const categoryLabels = { tactical: 'Tactical', governance: 'Governance', custom: 'Individuell' };
-export const statusLabels = { scheduled: 'Geplant', active: 'Läuft', completed: 'Abgeschlossen' };
+export const categoryLabels = {
+  tactical: 'labels.tactical',
+  governance: 'labels.governance',
+  custom: 'labels.custom',
+} as const;
+export const statusLabels = {
+  scheduled: 'labels.scheduled',
+  active: 'labels.active',
+  completed: 'labels.completed',
+} as const;
 export const aiProviderLabels = {
-  copilot: 'Microsoft 365 Copilot',
-  'claude-foundry': 'Claude (Microsoft Foundry)',
-  'openai-compatible': 'KI-Dienst der Organisation',
-};
+  copilot: 'labels.microsoft365Copilot',
+  'claude-foundry': 'labels.claudeMicrosoftFoundry',
+  'openai-compatible': 'labels.organizationSAiService',
+} as const;

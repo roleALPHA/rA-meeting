@@ -37,14 +37,14 @@ export function OutcomeForm({
         },
   );
   return (
-    <Modal title={initial ? tr('Ergebnis bearbeiten') : tr('Ergebnis festhalten')} close={close}>
+    <Modal title={initial ? tr('outcomes.editOutcome') : tr('meeting.recordOutcome')} close={close}>
       <form
         onSubmit={e => {
           e.preventDefault();
           save(value);
         }}
       >
-        <Field label={tr('Ergebnistyp')}>
+        <Field label={tr('outcomes.outcomeType')}>
           <select
             value={value.type}
             onChange={e => setValue({ ...value, type: e.target.value as OutcomeInput['type'] })}
@@ -56,19 +56,19 @@ export function OutcomeForm({
             ))}
           </select>
         </Field>
-        <Field label={tr('Titel')}>
+        <Field label={tr('outcomes.title')}>
           <input required value={value.title} onChange={e => setValue({ ...value, title: e.target.value })} />
         </Field>
-        <Field label={tr('Inhalt / genauer Wortlaut')}>
+        <Field label={tr('outcomes.contentExactWording')}>
           <textarea
             rows={5}
             value={value.description}
             onChange={e => setValue({ ...value, description: e.target.value })}
           />
         </Field>
-        <Field label={tr('Agendaelement')}>
+        <Field label={tr('outcomes.agendaItem')}>
           <select value={value.agendaId || ''} onChange={e => setValue({ ...value, agendaId: e.target.value || null })}>
-            <option value="">{tr('Keine Zuordnung')}</option>
+            <option value="">{tr('outcomes.link')}</option>
             {meeting.agenda
               .filter(a => a.stepId === stepId)
               .map(a => (
@@ -79,14 +79,14 @@ export function OutcomeForm({
           </select>
         </Field>
         <div className="inline-fields">
-          <Field label={tr('Verantwortlich')}>
+          <Field label={tr('outcomes.owner')}>
             <input
               value={value.owner || ''}
               onChange={e => setValue({ ...value, owner: e.target.value || null })}
-              placeholder={tr('Offen')}
+              placeholder={tr('meeting.open2')}
             />
           </Field>
-          <Field label={tr('Fällig am')}>
+          <Field label={tr('outcomes.dueDate')}>
             <input
               type="date"
               value={value.dueDate || ''}
@@ -94,14 +94,12 @@ export function OutcomeForm({
             />
           </Field>
         </div>
-        <p className="muted">
-          {tr('Nach dem Speichern als Vorschlag prüfen. Eine Änderung hebt eine frühere Bestätigung auf.')}
-        </p>
+        <p className="muted">{tr('outcomes.reviewSavedProposalEditing')}</p>
         <div className="modal-footer">
           <span />
           <Button className="primary" disabled={busy}>
             <Check size={16} />
-            {tr('Vorschlag speichern')}
+            {tr('outcomes.saveProposal')}
           </Button>
         </div>
       </form>

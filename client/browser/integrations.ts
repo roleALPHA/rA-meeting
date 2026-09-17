@@ -29,17 +29,10 @@ export type ExportPlan = {
   arguments: { tenant_uuid: string; name: string; custom_id: string; data: unknown };
 };
 export function entityPlan(host: BrowserHost, m: Meeting, o: Outcome): ExportPlan {
-  assert(
-    o.status === 'approved' && !o.export,
-    'Nur bestätigte, nicht exportierte Ergebnisse können übertragen werden.',
-    409,
-  );
-  assert(
-    !o.targetId,
-    'Dieser Adapter legt neue Entitäten an; Änderungen an bestehenden Objekten sind nicht konfiguriert.',
-  );
+  assert(o.status === 'approved' && !o.export, 'error.integrations.onlyConfirmedUnexportedOutcomes', 409);
+  assert(!o.targetId, 'error.integrations.adapterCreatesNewEntities');
   const route = host.settings.roleAlpha?.entities[o.type];
-  assert(route && host.settings.roleAlpha, 'Für diesen Ergebnistyp ist kein MCP-Ziel konfiguriert.', 503);
+  assert(route && host.settings.roleAlpha, 'error.integrations.mcpDestinationConfiguredOutcome', 503);
   return {
     destination: host.settings.roleAlpha.url,
     tool: route.tool,
@@ -68,10 +61,10 @@ export function entityPlan(host: BrowserHost, m: Meeting, o: Outcome): ExportPla
 }
 export function meetingPlan(host: BrowserHost, m: Meeting, outputs: Outcome[]): ExportPlan {
   const settings = host.settings.roleAlpha;
-  assert(settings?.meeting, 'roleALPHA ist nicht verbunden.', 503);
+  assert(settings?.meeting, 'error.integrations.rolealphaConnected', 503);
   assert(
     outputs.length && outputs.every(o => o.status === 'approved' && !o.export),
-    'Nur bestätigte, noch nicht exportierte Ergebnisse sind zulässig.',
+    'error.integrations.onlyConfirmedOutcomesHave',
     409,
   );
   return {
@@ -107,10 +100,10 @@ export async function prepareExport(host: BrowserHost, plan: ExportPlan, target:
     host.settings.roleAlpha &&
       target.url === host.settings.roleAlpha.url &&
       target.resource === host.settings.roleAlpha.resource,
-    'roleALPHA ist nicht verbunden.',
+    'error.integrations.rolealphaConnected',
     503,
   );
-  assert(plan.destination === target.url, 'Exportvorschau hat sich geändert. Erneut prüfen.', 409);
+  assert(plan.destination === target.url, 'error.integrations.exportPreviewHasChanged', 409);
   const client = new Client({ name: 'ra-meeting-spfx', version: '1.0.0' });
   try {
     const transport = new StreamableHTTPClientTransport(new URL(target.url), { fetch: endpointFetch(host, target) });
@@ -122,18 +115,18 @@ export async function prepareExport(host: BrowserHost, plan: ExportPlan, target:
       const response = await client.listTools(cursor ? { cursor } : {});
       found = response.tools.find(t => t.name === plan.tool);
       if (found || !response.nextCursor) break;
-      assert(!seen.has(response.nextCursor), 'Ungültige MCP-Folgeseite.', 502);
+      assert(!seen.has(response.nextCursor), 'error.integrations.invalidMcpContinuationPage', 502);
       seen.add(response.nextCursor);
       cursor = response.nextCursor;
     }
-    assert(found, 'Das konfigurierte MCP-Tool wird vom Zielserver nicht angeboten.', 502);
+    assert(found, 'error.integrations.destinationServerDoesOffer', 502);
     const properties = found.inputSchema.properties as Record<string, { type?: string }> | undefined;
     assert(
       properties &&
         ['tenant_uuid', 'name', 'custom_id'].every(k => properties[k]?.type === 'string') &&
         properties.data?.type === 'object' &&
         (found.inputSchema.required || []).every(k => k in plan.arguments),
-      'MCP-Tool unterstützt den roleALPHA-Erstellvertrag nicht.',
+      'error.integrations.mcpToolDoesSupport',
       502,
     );
     return {
@@ -142,7 +135,7 @@ export async function prepareExport(host: BrowserHost, plan: ExportPlan, target:
         const result = await client.callTool({ name: plan.tool, arguments: plan.arguments }, undefined, {
           timeout: 30_000,
         });
-        assert(!result.isError, 'roleALPHA hat den Entwurf nicht bestätigt.', 502);
+        assert(!result.isError, 'error.integrations.rolealphaDidConfirmDraft', 502);
         const text = Array.isArray(result.content) ? result.content.find(c => c.type === 'text') : undefined;
         return receipt.parse(
           result.structuredContent ?? (text && 'text' in text ? JSON.parse(String(text.text)) : null),

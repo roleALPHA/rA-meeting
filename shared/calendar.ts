@@ -18,7 +18,7 @@ const fields = 'id,subject,start,end,isCancelled,type,seriesMasterId,iCalUId,ori
 function entry(raw: unknown, linkedBy: string): CalendarEntry {
   const e = eventSchema.parse(raw);
   const utc = (date: { dateTime: string; timeZone: string }) => {
-    assert(date.timeZone === 'UTC', 'Kalenderantwort muss UTC-Zeitstempel liefern.', 502);
+    assert(date.timeZone === 'UTC', 'error.calendar.calendarResponseMustContain', 502);
     return new Date(/[Zz]$|[+-]\d\d:\d\d$/.test(date.dateTime) ? date.dateTime : `${date.dateTime}Z`).toISOString();
   };
   return {

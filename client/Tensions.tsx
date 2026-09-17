@@ -33,18 +33,18 @@ export function Tensions({
     <>
       <div className="page-heading">
         <div>
-          <div className="eyebrow">{tr('VOM IMPULS ZUR VERÄNDERUNG')}</div>
-          <h1>{tr('Spannungsspeicher')}</h1>
-          <p>{tr('Spannungen sammeln, im Meeting bearbeiten und bewusst abschließen.')}</p>
+          <div className="eyebrow">{tr('tensions.impulseChange')}</div>
+          <h1>{tr('app.tensionBacklog')}</h1>
+          <p>{tr('tensions.collectTensionsAddressThem')}</p>
         </div>
         <button className="button primary" disabled={data.actor.workspace === 'read'} onClick={() => open('new')}>
           <Plus size={17} />
-          {tr('Spannung erfassen')}
+          {tr('tensions.addTension')}
         </button>
       </div>
       <label className="check">
         <input type="checkbox" checked={showResolved} onChange={e => setShowResolved(e.target.checked)} />
-        {tr('Auch gelöste Spannungen anzeigen')}
+        {tr('tensions.showResolvedTensions')}
       </label>
       {editing && (
         <form
@@ -64,23 +64,23 @@ export function Tensions({
             });
           }}
         >
-          <h2>{editing === 'new' ? tr('Neue Spannung') : tr('Spannung bearbeiten')}</h2>
+          <h2>{editing === 'new' ? tr('tensions.newTension') : tr('tensions.editTension')}</h2>
           <label className="field">
-            <span>{tr('Titel')}</span>
+            <span>{tr('outcomes.title')}</span>
             <input required value={title} onChange={e => setTitle(e.target.value)} />
           </label>
           <label className="field">
-            <span>{tr('Kreis / Team')}</span>
+            <span>{tr('meetings.circleTeam')}</span>
             <input required value={circle} onChange={e => setCircle(e.target.value)} />
           </label>
           <label className="field">
-            <span>{tr('Was ist die Spannung?')}</span>
+            <span>{tr('tensions.whatTension')}</span>
             <textarea rows={4} value={description} onChange={e => setDescription(e.target.value)} />
           </label>
           <div className="row">
-            <button className="button primary">{tr('Speichern')}</button>
+            <button className="button primary">{tr('tensions.save')}</button>
             <button className="button" type="button" onClick={() => setEditing(null)}>
-              {tr('Abbrechen')}
+              {tr('app.cancel')}
             </button>
           </div>
         </form>
@@ -91,7 +91,7 @@ export function Tensions({
           <article className="result-card" style={{ marginTop: 20 }} key={t.id}>
             <div className="result-top">
               <span className="pill">{t.circle}</span>
-              <span className="pill">{t.status === 'open' ? tr('Offen') : tr('Gelöst')}</span>
+              <span className="pill">{t.status === 'open' ? tr('meeting.open2') : tr('tensions.resolved')}</span>
             </div>
             <h2>{t.title}</h2>
             <p className="preserve">{t.description}</p>
@@ -99,13 +99,13 @@ export function Tensions({
               {data.meetings
                 .filter(m => m.agenda.some(a => a.tensionId === t.id))
                 .map(m => m.title)
-                .join(' · ') || tr('Noch keinem sichtbaren Meeting zugeordnet')}
+                .join(' · ') || tr('tensions.linkedAnyVisibleMeeting')}
             </p>
             <div className="row">
               {data.actor.workspace === 'write' && (
                 <>
                   <button className="button" onClick={() => open(t)}>
-                    {tr('Bearbeiten')}
+                    {tr('app.edit')}
                   </button>
                   <button
                     className="button"
@@ -121,7 +121,7 @@ export function Tensions({
                     }
                   >
                     <Check size={16} />
-                    {t.status === 'open' ? tr('Als gelöst markieren') : tr('Wieder öffnen')}
+                    {t.status === 'open' ? tr('tensions.markResolved') : tr('tensions.reopen')}
                   </button>
                 </>
               )}
@@ -135,7 +135,7 @@ export function Tensions({
                     setStepId('');
                   }}
                 >
-                  {tr('Ins Meeting aufnehmen')}
+                  {tr('tensions.addMeeting')}
                   <ArrowRight size={16} />
                 </button>
               )}
@@ -144,27 +144,19 @@ export function Tensions({
         ))}
       {!data.tensions.length && (
         <div className="empty">
-          <h2>{tr('Platz für eure Spannungen')}</h2>
-          <p>
-            {tr(
-              'Der Spannungsspeicher gehört zur Meeting-App. Eine Spannung kann in mehreren Meetings bearbeitet werden und mehrere Ergebnisse auslösen.',
-            )}
-          </p>
+          <h2>{tr('tensions.spaceTensions')}</h2>
+          <p>{tr('tensions.tensionBacklogBelongsMeeting')}</p>
         </div>
       )}
       {attachment && (
         <div className="result-card">
           <h2>
             „{attachment.title}
-            {tr('“ ins Meeting aufnehmen')}
+            {tr('tensions.addMeeting2')}
           </h2>
-          <p className="muted">
-            {tr(
-              'Der Titel wird für alle Mitglieder des ausgewählten Meetings sichtbar. Die Spannung bleibt offen, bis sie bewusst als gelöst markiert wird.',
-            )}
-          </p>
+          <p className="muted">{tr('tensions.titleBecomesVisibleAll')}</p>
           <label className="field">
-            <span>{tr('Meeting')}</span>
+            <span>{tr('tensions.meeting')}</span>
             <select
               value={meetingId}
               onChange={e => {
@@ -172,7 +164,7 @@ export function Tensions({
                 setStepId('');
               }}
             >
-              <option value="">{tr('Meeting auswählen …')}</option>
+              <option value="">{tr('tensions.selectMeeting')}</option>
               {meetings.map(m => (
                 <option key={m.id} value={m.id}>
                   {m.title}
@@ -181,9 +173,9 @@ export function Tensions({
             </select>
           </label>
           <label className="field">
-            <span>{tr('Agendaschritt')}</span>
+            <span>{tr('tensions.agendaStep')}</span>
             <select value={stepId} onChange={e => setStepId(e.target.value)}>
-              <option value="">{tr('Schritt auswählen …')}</option>
+              <option value="">{tr('tensions.selectStep')}</option>
               {selected?.template.steps
                 .filter(s => s.kind === 'agenda')
                 .map(s => (
@@ -209,10 +201,10 @@ export function Tensions({
                 })
               }
             >
-              {tr('Aufnehmen')}
+              {tr('tensions.add')}
             </button>
             <button className="button" onClick={() => setAttachment(null)}>
-              {tr('Abbrechen')}
+              {tr('app.cancel')}
             </button>
           </div>
         </div>

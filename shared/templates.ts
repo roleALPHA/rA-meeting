@@ -1,4 +1,4 @@
-import { translate, parseLanguage } from './i18n.js';
+import { translate, parseLanguage, isMessageId } from './i18n.js';
 const randomUUID = () => crypto.randomUUID();
 import type { Step, Template } from './model.js';
 const step = (
@@ -16,71 +16,62 @@ export function seedTemplates(language = 'de'): Template[] {
     {
       ...base,
       id: randomUUID(),
-      name: 'Tactical Meeting',
+      name: 'seed.tacticalMeeting',
       category: 'tactical',
-      description: 'Operative Klarheit schaffen. Spannungen bearbeiten und nächste Schritte festhalten.',
+      description: 'seed.createOperationalClarityAddress',
       steps: [
-        step('check-in', 'Ankommen', 'Eine kurze Runde: Was brauchst du, um präsent zu sein?'),
-        step('checklist', 'Checklisten', 'Wiederkehrende Aktivitäten durchgehen. Erledigt oder nicht erledigt?', 5),
-        step('metrics', 'Kennzahlen', 'Aktuelle Zahlen teilen. Verständnisfragen sind willkommen.', 8),
-        step('projects', 'Projektupdates', 'Was hat sich seit dem letzten Meeting verändert?', 10),
-        step('agenda', 'Spannungen bearbeiten', 'Was brauchst du? Halte konkrete nächste Schritte fest.', 25, [
-          'task',
-          'project',
-          'note',
-        ]),
-        step('check-out', 'Abschlussrunde', 'Was nimmst du mit? Was können wir verbessern?', 5),
+        step('check-in', 'seed.arrive', 'seed.shortRoundWhatDo'),
+        step('checklist', 'labels.checklists', 'seed.reviewRecurringActivitiesDone', 5),
+        step('metrics', 'labels.metrics', 'seed.shareCurrentFiguresClarifying', 8),
+        step('projects', 'labels.projectUpdates', 'seed.whatHasChangedSince', 10),
+        step('agenda', 'seed.addressTensions', 'seed.whatDoNeedRecord', 25, ['task', 'project', 'note']),
+        step('check-out', 'seed.closingRound', 'seed.whatTakingAwayWhat', 5),
       ],
     },
     {
       ...base,
       id: randomUUID(),
-      name: 'Governance Meeting',
+      name: 'seed.governanceMeeting',
       category: 'governance',
-      description: 'Rollen und Zusammenarbeit weiterentwickeln. Vorschläge strukturiert bearbeiten.',
+      description: 'seed.developRolesCollaborationProcess',
       steps: [
-        step('check-in', 'Check-in', 'Präsent werden, ohne Diskussion.'),
-        step('custom', 'Organisatorisches', 'Zeit, Teilnahme und Rahmen klären.', 3),
+        step('check-in', 'labels.checkIn', 'seed.becomePresentWithoutDiscussion'),
+        step('custom', 'seed.practicalMatters', 'seed.clarifyTimingAttendanceGround', 3),
         step(
           'agenda',
-          'Governance-Vorschläge',
-          'Spannung und Vorschlag erfassen. Den endgültigen Wortlaut gemeinsam prüfen.',
+          'seed.governanceProposals',
+          'seed.recordTensionProposalReview',
           45,
           ['governance', 'policy', 'note'],
           [
-            'Vorschlag vorstellen',
-            'Verständnisfragen',
-            'Reaktionsrunde',
-            'Anpassen & klären',
-            'Einwandrunde',
-            'Integration',
-            'Ergebnis dokumentieren',
+            'seed.presentProposal',
+            'seed.clarifyingQuestions',
+            'seed.reactionRound',
+            'seed.amendClarify',
+            'seed.objectionRound',
+            'seed.integration',
+            'seed.recordOutcome',
           ],
         ),
-        step('check-out', 'Abschlussrunde', 'Reflexion des Prozesses.', 5),
+        step('check-out', 'seed.closingRound', 'seed.reflectProcess', 5),
       ],
     },
     {
       ...base,
       id: randomUUID(),
-      name: 'Team-Reflexion',
+      name: 'seed.teamReflection',
       category: 'custom',
-      description: 'Raum für Rückblick, Lernen und gemeinsame Vereinbarungen.',
+      description: 'seed.spaceReflectionLearningShared',
       steps: [
-        step('check-in', 'Wie geht es uns?', 'Ein Wort oder ein kurzer Satz.'),
-        step('custom', 'Rückblick', 'Was hat gut funktioniert? Was hat uns gebremst?', 15, ['note']),
-        step(
-          'agenda',
-          'Experimente vereinbaren',
-          'Welche konkrete Veränderung probieren wir bis zum nächsten Mal aus?',
-          20,
-          ['task', 'project'],
-        ),
-        step('check-out', 'Check-out', 'Mit welchem Gefühl gehst du?'),
+        step('check-in', 'seed.howWeDoing', 'seed.oneWordShortSentence'),
+        step('custom', 'seed.retrospective', 'seed.whatWorkedWellWhat', 15, ['note']),
+        step('agenda', 'seed.agreeExperiments', 'seed.whatConcreteChangeWill', 20, ['task', 'project']),
+        step('check-out', 'labels.checkOut', 'seed.howDoFeelLeave'),
       ],
     },
   ];
-  const tr = (s: string) => translate(s, parseLanguage(language));
+  // Starter content is defined as message IDs and stored as text in the selected language.
+  const tr = (s: string) => (isMessageId(s) ? translate(s, parseLanguage(language)) : s);
   return templates.map(t => ({
     ...t,
     name: tr(t.name),

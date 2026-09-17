@@ -82,7 +82,7 @@ test('browser workspace creates, edits and reloads meetings directly in SharePoi
     api.request(`/meetings/${m.id}/command`, { revision: m.revision, type: 'start' }),
     /Berechtigung/,
   );
-  await assert.rejects(api.request('https://attacker.invalid/bootstrap'), /Invalid/);
+  await assert.rejects(api.request('https://attacker.invalid/bootstrap'), /interne Anfrage/);
 });
 test('SharePoint REST snapshots and ETags reject concurrent writes and foreign tenants', async () => {
   const { host, sp } = fixture();

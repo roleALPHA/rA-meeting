@@ -10,7 +10,7 @@ export type { AiCompletion } from './types';
 
 export async function completeTask(host: BrowserHost, task: AiTask): Promise<AiCompletion> {
   const ai = host.settings.ai;
-  assert(ai, 'KI ist nicht konfiguriert.', 503);
+  assert(ai, 'error.provider.aiConfigured', 503);
   switch (ai.provider) {
     case 'copilot':
       return copilotComplete(host, ai, task);

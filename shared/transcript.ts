@@ -1,6 +1,6 @@
 import { assert, type Segment } from './model.js';
 export function parseTranscript(raw: string): Segment[] {
-  assert(raw.length <= 1_000_000, 'Transkript ist zu groß (max. 1 MB).', 413);
+  assert(raw.length <= 1_000_000, 'error.meetings.transcriptTooLargeMax', 413);
   const source = raw
     .replace(/^\uFEFF/, '')
     .replace(/\r\n?/g, '\n')

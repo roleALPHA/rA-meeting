@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { languages } from '../shared/assistance';
-import { translate } from '../shared/i18n';
+import { isMessageId, translate, type MessageId, type MessageParams } from '../shared/i18n';
+import { AppError } from '../shared/model';
 export type Language = (typeof languages)[number];
 export type Terminology = 'tensions' | 'agenda';
 const supported = ['de', 'en', 'fr', 'es'];
@@ -41,32 +42,17 @@ export function usePreferences() {
   }, []);
   return `${lang}:${term}`;
 }
-const agendaTerms: Record<string, string> = {
-  Spannungen: 'Agenda',
-  Spannungsspeicher: 'Agenda',
-  'Spannungen & Themen': 'Agenda & Themen',
-  'Spannung erfassen': 'Agendapunkt erfassen',
-  'Neue Spannung': 'Neuer Agendapunkt',
-  'Spannung bearbeiten': 'Agendapunkt bearbeiten',
-  'Was ist die Spannung?': 'Worum geht es?',
-  'Spannung oder Thema': 'Agendapunkt oder Thema',
-  'Welche Spannung möchtest du bearbeiten?': 'Welchen Agendapunkt möchtest du bearbeiten?',
-  'Auch gelöste Spannungen anzeigen': 'Auch abgeschlossene Agendapunkte anzeigen',
-  'Platz für eure Spannungen': 'Platz für eure Agenda',
-  'Spannungen sammeln, im Meeting bearbeiten und bewusst abschließen.':
-    'Agendapunkte sammeln, im Meeting bearbeiten und bewusst abschließen.',
-  'Spannungen bearbeiten. Entscheidungen festhalten. Gemeinsam handeln.':
-    'Agenda bearbeiten. Entscheidungen festhalten. Gemeinsam handeln.',
-  'Der Spannungsspeicher gehört zur Meeting-App. Eine Spannung kann in mehreren Meetings bearbeitet werden und mehrere Ergebnisse auslösen.':
-    'Die Agenda gehört zur Meeting-App. Ein Agendapunkt kann in mehreren Meetings bearbeitet werden und mehrere Ergebnisse auslösen.',
-  'Der Titel wird für alle Mitglieder des ausgewählten Meetings sichtbar. Die Spannung bleibt offen, bis sie bewusst als gelöst markiert wird.':
-    'Der Titel wird für alle Mitglieder des ausgewählten Meetings sichtbar. Der Agendapunkt bleibt offen, bis er bewusst abgeschlossen wird.',
-  'Der bestätigte Wortlaut wird als neuer Entwurf angelegt. Die bestehende Spannung bleibt in der Meeting-App.':
-    'Der bestätigte Wortlaut wird als neuer Entwurf angelegt. Der bestehende Agendapunkt bleibt in der Meeting-App.',
-};
-export function t(source: string): string {
-  const key = term === 'agenda' ? agendaTerms[source] || source : source;
-  return translate(key, lang);
+/** Translates a message ID, preferring its `@agenda` variant when the "Agenda" terminology is selected. */
+export function t(id: MessageId, params?: MessageParams): string {
+  const variant = `${id}@agenda`;
+  return translate(term === 'agenda' && isMessageId(variant) ? variant : id, lang, params);
 }
 
-export const terminologyLabel = () => translate('Spannungen', lang);
+/** User-facing text for any error: translated for app errors, generic with the original message otherwise. */
+export function errorText(error: unknown): string {
+  if (error instanceof AppError) return t(error.id, error.params);
+  const detail = error instanceof Error && error.message ? ` (${error.message})` : '';
+  return t('error.common.unexpected') + detail;
+}
+
+export const terminologyLabel = () => translate('app.tensions', lang);

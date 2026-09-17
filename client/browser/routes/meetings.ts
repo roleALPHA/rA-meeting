@@ -27,7 +27,7 @@ const windowMargin = 30 * 60 * 1000;
  */
 async function transcriptParts(ctx: RouteContext, m: Meeting) {
   const { read, actor } = ctx;
-  assert(m.calendar?.joinUrl, 'Meeting ist nicht mit Teams verknüpft.');
+  assert(m.calendar?.joinUrl, 'error.meetings.meetingLinkedTeams');
   const linker = calendarLinker(m.calendar);
   const current =
     linker === actor.id
@@ -36,27 +36,27 @@ async function transcriptParts(ctx: RouteContext, m: Meeting) {
         ? await findCalendarEntry(actor.id, m.calendar.iCalUId, m.calendar.originalStart ?? m.calendar.start, read)
         : null;
   const { start, end, joinUrl } = current ?? m.calendar;
-  assert(joinUrl, 'Meeting ist nicht mit Teams verknüpft.');
+  assert(joinUrl, 'error.meetings.meetingLinkedTeams');
   const filter = encodeURIComponent(`JoinWebUrl eq '${joinUrl.replaceAll("'", "''")}'`);
   const meetings = (await (await read(`/me/onlineMeetings?$filter=${filter}`)).json()) as {
     value: { id: string }[];
   };
-  assert(meetings.value.length === 1, 'Meeting ist nicht mit Teams verknüpft.');
+  assert(meetings.value.length === 1, 'error.meetings.meetingLinkedTeams');
   const prefix = `/me/onlineMeetings/${encodeURIComponent(meetings.value[0].id)}/transcripts`;
   let path: string | undefined = prefix;
   const parts: TranscriptPart[] = [];
   const pages = new Set<string>();
   while (path) {
-    assert(!pages.has(path) && pages.size < 20, 'Ungültige Graph-Folgeseite.');
+    assert(!pages.has(path) && pages.size < 20, 'error.meetings.invalidGraphContinuationPage');
     pages.add(path);
     const result: { value: TranscriptPart[]; '@odata.nextLink'?: string } = await (await read(path)).json();
     parts.push(...result.value);
-    assert(parts.length <= 100, 'Zu viele Transkriptteile.');
+    assert(parts.length <= 100, 'error.meetings.tooManyTranscriptParts');
     if (!result['@odata.nextLink']) break;
     const u = new URL(result['@odata.nextLink']);
     assert(
       u.origin === 'https://graph.microsoft.com' && u.pathname === `/v1.0${prefix}`,
-      'Ungültige Graph-Folgeseite.',
+      'error.meetings.invalidGraphContinuationPage',
     );
     path = u.pathname.slice(5) + u.search;
   }
@@ -125,16 +125,12 @@ export const meetingActions: Record<string, MeetingAction> = {
     const partIds = z.array(z.string().min(1).max(500)).min(1).max(100).parse(body.partIds);
     const { prefix, matching } = await transcriptParts(ctx, m);
     const selected = matching.filter(p => partIds.includes(p.id));
-    assert(
-      selected.length === new Set(partIds).size,
-      'Die Transkriptauswahl hat sich geändert. Bitte die Vorschau erneut laden.',
-      409,
-    );
+    assert(selected.length === new Set(partIds).size, 'error.meetings.transcriptSelectionHasChanged', 409);
     let raw = '';
     for (const part of selected) {
       raw +=
         '\n\n' + (await (await ctx.read(`${prefix}/${encodeURIComponent(part.id)}/content?$format=text/vtt`)).text());
-      assert(raw.length <= 1_000_000, 'Transkript ist zu groß (max. 1 MB).', 413);
+      assert(raw.length <= 1_000_000, 'error.meetings.transcriptTooLargeMax', 413);
     }
     return setTranscript(m, ctx.actor, parseTranscript(raw)) ? ctx.save(m) : m;
   },

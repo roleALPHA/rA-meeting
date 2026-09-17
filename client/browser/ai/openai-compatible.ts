@@ -19,7 +19,7 @@ export async function openAiCompatibleComplete(host: BrowserHost, ai: Settings, 
       response_format: { type: 'json_object' },
     }),
   });
-  assert(r.ok, `KI-Dienst nicht verfügbar (HTTP ${r.status}).`, 502);
+  assert(r.ok, 'error.ai.serviceUnavailableHttp', 502, { status: r.status });
   const body = (await r.json()) as { choices?: { message?: { content?: string } }[] };
   return {
     output: parseJsonText(body.choices?.[0]?.message?.content || ''),

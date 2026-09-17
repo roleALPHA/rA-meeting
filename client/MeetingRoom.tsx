@@ -1,3 +1,4 @@
+import { AppError } from '../shared/model';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ArrowRight,
@@ -82,7 +83,7 @@ export function MeetingRoom({
       <div className="meeting-heading">
         <div>
           <div className="eyebrow">
-            {m.circle} <span> / </span> {m.template.name} {tr('· v')}
+            {m.circle} <span> / </span> {m.template.name} {tr('meeting.v')}
             {m.template.version}
           </div>
           <h1>{m.title}</h1>
@@ -94,17 +95,13 @@ export function MeetingRoom({
       </div>
       {issues.length > 0 && (
         <div className="notice" role="status">
-          <strong>{tr('Hinweis zur Datenkonsistenz')}</strong>
+          <strong>{tr('meeting.dataConsistencyNotice')}</strong>
           <ul>
             {[...new Set(issues.map(i => i.message))].map(message => (
               <li key={message}>{tr(message)}</li>
             ))}
           </ul>
-          <p className="small">
-            {tr(
-              'Diese Prüfung erkennt Abweichungen von den Regeln der App, zum Beispiel nach direkter Bearbeitung in SharePoint. Sie ist kein Manipulationsschutz.',
-            )}
-          </p>
+          <p className="small">{tr('meeting.checkDetectsDeviationsApp')}</p>
         </div>
       )}
       <CalendarLink
@@ -118,22 +115,22 @@ export function MeetingRoom({
       <div className="tabs" role="tablist">
         {(
           [
-            ['flow', tr('Meetingablauf')],
-            ['results', `${tr('Ergebnisse')} (${m.outcomes.length})`],
-            ['transcript', tr('Transkript & Analyse')],
-            ['history', tr('Verlauf')],
-            ['governance', tr('Governance fragen')],
+            ['flow', tr('meeting.meetingFlow')],
+            ['results', `${tr('meeting.outcomes')} (${m.outcomes.length})`],
+            ['transcript', tr('meeting.transcriptAnalysis')],
+            ['history', tr('meeting.history')],
+            ['governance', tr('app.askGovernance')],
           ] as const
         ).map(([key, label]) => (
           <button role="tab" aria-selected={tab === key} key={key} onClick={() => setTab(key)}>
-            {tr(label)}
+            {label}
           </button>
         ))}
       </div>
       {tab === 'flow' && (
         <div className="room-grid">
           <aside className="flow-sidebar">
-            <div className="section-label">{tr('UNSER ABLAUF')}</div>
+            <div className="section-label">{tr('meeting.ourFlow')}</div>
             {m.template.steps.map((s, i) => (
               <div
                 className={`flow-step ${i === m.currentStep && m.status !== 'completed' ? 'active' : ''}`}
@@ -143,21 +140,21 @@ export function MeetingRoom({
                 <div>
                   <strong>{s.title}</strong>
                   <small>
-                    {s.minutes ? `${s.minutes} ${tr('Min.')}` : tr('Ohne Zeitbox')}
-                    {s.optional ? tr(' · Optional') : ''}
+                    {s.minutes ? `${s.minutes} ${tr('app.min')}` : tr('meeting.timebox')}
+                    {s.optional ? tr('meeting.optional') : ''}
                   </small>
                 </div>
               </div>
             ))}
             <p className="small muted">
-              {tr('Vorlage v')}
-              {m.template.version} {tr('· Änderungen am Template beeinflussen dieses Meeting nicht.')}
+              {tr('meeting.templateV')}
+              {m.template.version} {tr('meeting.templateChangesDoAffect')}
             </p>
           </aside>
           <section className="meeting-work">
             <div className="active-step-heading">
               <span className="eyebrow">
-                {tr('SCHRITT')} {m.currentStep + 1} {tr('VON')} {m.template.steps.length}
+                {tr('meeting.step')} {m.currentStep + 1} {tr('meeting.text')} {m.template.steps.length}
               </span>
               <span className={`timer ${remaining < 0 ? 'overtime' : ''}`}>
                 <Clock3 size={17} />
@@ -165,24 +162,22 @@ export function MeetingRoom({
                   ? `${remaining < 0 ? '+' : ''}${Math.floor(Math.abs(remaining) / 60)
                       .toString()
                       .padStart(2, '0')}:${(Math.abs(remaining) % 60).toString().padStart(2, '0')}`
-                  : tr('Offene Zeitbox')}
+                  : tr('meeting.timeLimit')}
               </span>
             </div>
-            <h2>{m.status === 'completed' ? tr('Meeting abgeschlossen') : step.title}</h2>
+            <h2>{m.status === 'completed' ? tr('meeting.meetingCompleted') : step.title}</h2>
             <p className="step-description">
-              {m.status === 'completed'
-                ? tr('Prüfe die Ergebnisse und halte die vereinbarten nächsten Schritte fest.')
-                : step.description}
+              {m.status === 'completed' ? tr('meeting.reviewOutcomesRecordAgreed') : step.description}
             </p>
             {m.status === 'scheduled' && (
               <div className="start-banner">
                 <div>
-                  <strong>{tr('Bereit, gemeinsam Klarheit zu schaffen?')}</strong>
-                  <p>{tr('Die Vorlage ist vorbereitet. Mit dem Start beginnt die erste Zeitbox.')}</p>
+                  <strong>{tr('meeting.readyFindClarityTogether')}</strong>
+                  <p>{tr('meeting.templateReadyStartingBegins')}</p>
                 </div>
                 {editable && (
                   <Button className="primary" disabled={busy} onClick={() => act({ type: 'start' })}>
-                    {tr('Meeting starten')}
+                    {tr('meeting.startMeeting')}
                     <ArrowRight size={17} />
                   </Button>
                 )}
@@ -191,9 +186,9 @@ export function MeetingRoom({
             {step.kind === 'agenda' && (
               <section>
                 <div className="section-heading">
-                  <h3>{tr('Spannungen & Themen')}</h3>
+                  <h3>{tr('meeting.tensionsTopics')}</h3>
                   <span className="muted">
-                    {m.agenda.filter(a => a.stepId === step.id && a.status === 'open').length} {tr('offen')}
+                    {m.agenda.filter(a => a.stepId === step.id && a.status === 'open').length} {tr('meeting.open')}
                   </span>
                 </div>
                 {m.agenda
@@ -206,7 +201,7 @@ export function MeetingRoom({
                       </div>
                       {a.owner && (
                         <p className="small muted">
-                          {tr('Eingebracht von')} {a.owner}
+                          {tr('meeting.raised')} {a.owner}
                         </p>
                       )}
                       {step.phases.length > 0 && (
@@ -225,13 +220,13 @@ export function MeetingRoom({
                       )}
                       {a.proposal && (
                         <p className="preserve">
-                          <strong>{tr('Vorschlagsentwurf')}: </strong>
+                          <strong>{tr('assistant.proposalDraft')}: </strong>
                           {a.proposal}
                         </p>
                       )}
                       {a.objections && (
                         <details>
-                          <summary>{tr('Einwände (einer pro Absatz)')}</summary>
+                          <summary>{tr('assistant.objectionsOnePerParagraph')}</summary>
                           <p className="preserve">{a.objections}</p>
                         </details>
                       )}
@@ -248,7 +243,7 @@ export function MeetingRoom({
                       {editable && a.status === 'open' && m.status === 'active' && (
                         <Button disabled={busy} onClick={() => act({ type: 'agenda.resolve', id: a.id })}>
                           <Check size={15} />
-                          {tr('Bearbeitung abschließen')}
+                          {tr('meeting.finishDiscussion')}
                         </Button>
                       )}
                     </article>
@@ -273,32 +268,32 @@ export function MeetingRoom({
                     }}
                   >
                     <input
-                      aria-label={tr('Spannung oder Thema')}
-                      placeholder={tr('Welche Spannung möchtest du bearbeiten?')}
+                      aria-label={tr('meeting.tensionTopic')}
+                      placeholder={tr('meeting.whichTensionWouldLike')}
                       required
                       value={agendaTitle}
                       onChange={e => setAgendaTitle(e.target.value)}
                     />
                     <input
-                      aria-label={tr('Eingebracht von')}
-                      placeholder={tr('Eingebracht von')}
+                      aria-label={tr('meeting.raised')}
+                      placeholder={tr('meeting.raised')}
                       value={agendaOwner}
                       onChange={e => setAgendaOwner(e.target.value)}
                     />
-                    <Button disabled={busy} aria-label={tr('Thema hinzufügen')}>
+                    <Button disabled={busy} aria-label={tr('meeting.addTopic')}>
                       <Plus size={18} />
                     </Button>
                   </form>
                 )}
               </section>
             )}
-            <Field label={tr('Notizen zu diesem Schritt')}>
+            <Field label={tr('meeting.notesStep')}>
               <textarea
                 rows={6}
                 readOnly={!editable || m.status === 'completed'}
                 value={note}
                 onChange={e => setNote(e.target.value)}
-                placeholder={tr('Beobachtungen, Antworten und wichtige Punkte festhalten …')}
+                placeholder={tr('meeting.recordObservationsAnswersKey')}
               />
             </Field>
             <div className="row wrap">
@@ -308,13 +303,13 @@ export function MeetingRoom({
                   onClick={() => act({ type: 'note', text: note })}
                 >
                   <Check size={15} />
-                  {tr('Notizen speichern')}
+                  {tr('meeting.saveNotes')}
                 </Button>
               )}
               {step.outputs.length > 0 && editable && (
                 <Button disabled={busy} onClick={() => setOutcome({ stepId: step.id })}>
                   <Plus size={15} />
-                  {tr('Ergebnis festhalten')}
+                  {tr('meeting.recordOutcome')}
                 </Button>
               )}
               <div className="output-tags">
@@ -328,7 +323,7 @@ export function MeetingRoom({
                 <span>
                   {step.optional && (
                     <Button disabled={busy} onClick={() => act({ type: 'skip' })}>
-                      {tr('Überspringen')}
+                      {tr('meeting.skip')}
                     </Button>
                   )}
                 </span>
@@ -349,7 +344,7 @@ export function MeetingRoom({
                     })
                   }
                 >
-                  {m.currentStep === m.template.steps.length - 1 ? tr('Meeting abschließen') : tr('Nächster Schritt')}
+                  {m.currentStep === m.template.steps.length - 1 ? tr('meeting.finishMeeting') : tr('meeting.nextStep')}
                   <ArrowRight size={17} />
                 </Button>
               </div>
@@ -361,27 +356,23 @@ export function MeetingRoom({
         <section className="results-view">
           <div className="section-heading">
             <div>
-              <h2>{tr('Vom Gespräch zum nächsten Schritt')}</h2>
-              <p className="muted">
-                {tr(
-                  'Vorschläge prüfen und verbindliche Ergebnisse festhalten. Eine Übertragung nach roleALPHA ist optional.',
-                )}
-              </p>
+              <h2>{tr('meeting.discussionNextSteps')}</h2>
+              <p className="muted">{tr('meeting.reviewProposalsRecordAgreed')}</p>
             </div>
             {editable && integrations.mcp && (
               <Button className="primary" disabled={busy || !approved.length} onClick={() => setConfirmExport(true)}>
                 <Send size={16} />
-                {approved.length} {tr('als Protokoll')}
+                {approved.length} {tr('meeting.minutes')}
               </Button>
             )}
           </div>
           {!m.outcomes.length && (
             <div className="empty">
               <ListChecks size={32} />
-              <h3>{tr('Noch keine Ergebnisse')}</h3>
-              <p>{tr('Halte Ergebnisse im Meetingablauf fest oder werte ein Transkript aus.')}</p>
+              <h3>{tr('meeting.outcomesYet')}</h3>
+              <p>{tr('meeting.recordOutcomesDuringMeeting')}</p>
               <Button onClick={() => setTab('transcript')}>
-                {tr('Transkript öffnen')}
+                {tr('meeting.openTranscript')}
                 <ArrowRight size={15} />
               </Button>
             </div>
@@ -392,24 +383,26 @@ export function MeetingRoom({
                 <span className="pill">{tr(outputLabels[o.type])}</span>
                 <span className={`pill ${o.status === 'approved' ? 'green' : ''}`}>
                   {o.export?.state === 'draft_created'
-                    ? tr('Entwurf in roleALPHA')
+                    ? tr('meeting.draftRolealpha')
                     : o.export?.state === 'uncertain'
-                      ? tr('Export prüfen')
+                      ? tr('meeting.checkExport')
                       : o.export?.state === 'sending'
-                        ? tr('Wird übertragen')
+                        ? tr('meeting.sending')
                         : o.status === 'approved'
-                          ? tr('Bestätigt')
+                          ? tr('meeting.confirmed')
                           : o.status === 'rejected'
-                            ? tr('Verworfen')
-                            : tr('Zur Prüfung')}
+                            ? tr('meeting.rejected')
+                            : tr('meeting.review')}
                 </span>
-                <span className="small muted">{o.source === 'ai' ? tr('KI-Vorschlag') : tr('Manuell erfasst')}</span>
+                <span className="small muted">
+                  {o.source === 'ai' ? tr('meeting.aiSuggestion') : tr('meeting.enteredManually')}
+                </span>
               </div>
               <h3>{o.title}</h3>
               <p className="preserve">{o.description}</p>
               {Object.keys(o.data).length > 0 && (
                 <details>
-                  <summary>{tr('Weitere Entitätsfelder')}</summary>
+                  <summary>{tr('meeting.additionalEntityFields')}</summary>
                   <dl>
                     {Object.entries(o.data).map(([key, value]) => (
                       <React.Fragment key={key}>
@@ -423,17 +416,17 @@ export function MeetingRoom({
               <div className="result-meta">
                 <span>
                   <Users size={14} />
-                  {o.owner || tr('Verantwortung offen')}
+                  {o.owner || tr('meeting.ownerUnassigned')}
                 </span>
                 <span>
                   <Clock3 size={14} />
-                  {o.dueDate || tr('Kein Termin')}
+                  {o.dueDate || tr('meeting.date')}
                 </span>
               </div>
               {o.evidence.length > 0 && (
                 <details>
                   <summary>
-                    {o.evidence.length} {tr('Transkriptbelege')}
+                    {o.evidence.length} {tr('meeting.transcriptEvidence')}
                   </summary>
                   {m.transcript
                     .filter(s => o.evidence.includes(s.id))
@@ -449,8 +442,8 @@ export function MeetingRoom({
               )}
               {o.export?.draftId && (
                 <p className="small muted">
-                  {tr('Entwurf-ID:')}
-                  {o.export.draftId} {tr('· Freigabe in roleALPHA ausstehend.')}
+                  {tr('meeting.draftId')}
+                  {o.export.draftId} {tr('meeting.approvalRolealphaPending')}
                 </p>
               )}
               {editable && o.status === 'approved' && !o.export && integrations.entityTypes.includes(o.type) && (
@@ -469,20 +462,20 @@ export function MeetingRoom({
                     })
                   }
                 >
-                  {tr(outputLabels[o.type])} {tr('in roleALPHA anlegen')}
+                  {tr(outputLabels[o.type])} {tr('meeting.createRolealpha')}
                 </Button>
               )}
               {editable && !o.export && (
                 <div className="row">
                   <Button disabled={busy} onClick={() => setOutcome({ stepId: o.stepId, initial: o })}>
-                    {tr('Bearbeiten')}
+                    {tr('app.edit')}
                   </Button>
                   {o.status !== 'rejected' && (
                     <Button
                       disabled={busy}
                       onClick={() => act({ type: 'outcome.review', id: o.id, status: 'rejected' })}
                     >
-                      {tr('Verwerfen')}
+                      {tr('meeting.reject')}
                     </Button>
                   )}
                   {o.status !== 'approved' && (
@@ -492,7 +485,7 @@ export function MeetingRoom({
                       onClick={() => act({ type: 'outcome.review', id: o.id, status: 'approved' })}
                     >
                       <Check size={16} />
-                      {tr('Wortlaut bestätigen')}
+                      {tr('meeting.confirmWording')}
                     </Button>
                   )}
                 </div>
@@ -507,7 +500,7 @@ export function MeetingRoom({
                       setDraftId('');
                     }}
                   >
-                    {tr('Export mit roleALPHA abgleichen')}
+                    {tr('meeting.reconcileExportRolealpha')}
                   </Button>
                 )}
             </article>
@@ -519,19 +512,17 @@ export function MeetingRoom({
         <div className="transcript-grid">
           <section>
             <div className="section-heading">
-              <h2>{tr('Transkript')}</h2>
+              <h2>{tr('meeting.transcript')}</h2>
               <span className="pill">
-                {m.transcript.length} {tr('Segmente')}
+                {m.transcript.length} {tr('meeting.segments')}
               </span>
             </div>
-            <p className="muted">
-              {tr('Teams-VTT, TXT oder Text mit Zeitmarken. Die Originalaufnahme bleibt bei Microsoft.')}
-            </p>
+            <p className="muted">{tr('meeting.teamsVttTxtTimestamped')}</p>
             {editable && (
               <>
                 <label className="upload">
                   <Upload size={18} />
-                  <span>{tr('Datei auswählen (.vtt / .txt)')}</span>
+                  <span>{tr('meeting.chooseFileVttTxt')}</span>
                   <input
                     type="file"
                     accept=".vtt,.txt,text/plain,text/vtt"
@@ -539,18 +530,18 @@ export function MeetingRoom({
                       const f = e.target.files?.[0];
                       if (f)
                         run(async () => {
-                          if (f.size > 1_000_000) throw new Error(tr('Maximal 1 MB pro Transkript.'));
+                          if (f.size > 1_000_000) throw new AppError(413, 'meeting.maximum1MbPer');
                           setRaw(await f.text());
                         });
                     }}
                   />
                 </label>
                 <textarea
-                  aria-label={tr('Transkripttext')}
+                  aria-label={tr('meeting.transcriptText')}
                   rows={8}
                   value={raw}
                   onChange={e => setRaw(e.target.value)}
-                  placeholder={tr('Transkript hier einfügen …')}
+                  placeholder={tr('meeting.pasteTranscriptHere')}
                 />
                 <div className="row">
                   <Button
@@ -563,7 +554,7 @@ export function MeetingRoom({
                     }
                   >
                     <Upload size={15} />
-                    {tr('Importieren')}
+                    {tr('meeting.import')}
                   </Button>
                   <Button
                     className="primary"
@@ -577,8 +568,8 @@ export function MeetingRoom({
                   >
                     <WandSparkles size={16} />
                     {m.analyzedHash && m.analyzedHash === m.transcriptHash
-                      ? tr('Bereits ausgewertet')
-                      : tr('Ergebnisse analysieren')}
+                      ? tr('meeting.alreadyAnalyzed')
+                      : tr('meeting.analyzeOutcomes')}
                   </Button>
                 </div>
               </>
@@ -600,14 +591,10 @@ export function MeetingRoom({
           <aside className="integration-card">
             <h3>
               <Video size={19} />
-              {tr('Teams-Verknüpfung')}
+              {tr('meeting.teamsLink')}
             </h3>
             <>
-              <p>
-                {tr(
-                  'Transkripte werden auf Knopfdruck über dein Microsoft-Konto geladen. Alternativ eine VTT- oder Textdatei importieren.',
-                )}
-              </p>
+              <p>{tr('meeting.loadTranscriptsDemandThrough')}</p>
               {editable && (
                 <Button
                   disabled={busy || !m.calendar?.joinUrl}
@@ -621,24 +608,24 @@ export function MeetingRoom({
                     )
                   }
                 >
-                  {tr('Transkript jetzt abrufen')}
+                  {tr('meeting.fetchTranscriptNow')}
                 </Button>
               )}
             </>
             <div className="connection-status">
               <span className={`dot ${integrations.ai ? 'on' : ''}`} />
-              {tr('KI')} {integrations.ai ? tr('konfiguriert') : tr('nicht konfiguriert')}
+              {tr('meeting.ai')} {integrations.ai ? tr('meeting.configured') : tr('meeting.configured2')}
             </div>
             <div className="connection-status">
               <span className={`dot ${integrations.graph ? 'on' : ''}`} />
-              {tr('Microsoft Graph')} {integrations.graph ? tr('konfiguriert') : tr('nicht konfiguriert')}
+              {tr('meeting.microsoftGraph')} {integrations.graph ? tr('meeting.configured') : tr('meeting.configured2')}
             </div>
           </aside>
         </div>
       )}
       {tab === 'history' && (
         <section className="history">
-          <h2>{tr('Nachvollziehbarer Verlauf')}</h2>
+          <h2>{tr('meeting.traceableHistory')}</h2>
           {[...m.events].reverse().map(e => (
             <div className="history-row" key={e.id}>
               <span className="history-dot" />
@@ -674,22 +661,19 @@ export function MeetingRoom({
         />
       )}
       {entityPreview && (
-        <Modal title={`${entityPreview.plan.label} ${tr('in roleALPHA anlegen')}`} close={() => setEntityPreview(null)}>
-          <p>
-            {tr(
-              'Der bestätigte Wortlaut wird als neuer Entwurf angelegt. Die bestehende Spannung bleibt in der Meeting-App.',
-            )}
-          </p>
+        <Modal
+          title={`${entityPreview.plan.label} ${tr('meeting.createRolealpha')}`}
+          close={() => setEntityPreview(null)}
+        >
+          <p>{tr('meeting.confirmedWordingBecomesNew')}</p>
           <h3>{m.outcomes.find(o => o.id === entityPreview.outcomeId)?.title}</h3>
           <p className="preserve">{m.outcomes.find(o => o.id === entityPreview.outcomeId)?.description}</p>
           <p>
-            {tr('Verantwortlich:')} {m.outcomes.find(o => o.id === entityPreview.outcomeId)?.owner || tr('Offen')}
+            {tr('meeting.owner')} {m.outcomes.find(o => o.id === entityPreview.outcomeId)?.owner || tr('meeting.open2')}
           </p>
-          <p className="small muted">
-            {tr('Zugehörige Transkriptbelege und der Bestätigungsnachweis werden mit übertragen.')}
-          </p>
+          <p className="small muted">{tr('meeting.relatedTranscriptEvidenceConfirmation')}</p>
           <div className="modal-footer">
-            <Button onClick={() => setEntityPreview(null)}>{tr('Abbrechen')}</Button>
+            <Button onClick={() => setEntityPreview(null)}>{tr('app.cancel')}</Button>
             <Button
               className="primary"
               disabled={busy}
@@ -706,29 +690,25 @@ export function MeetingRoom({
                 })
               }
             >
-              {tr('Geprüften Entwurf anlegen')}
+              {tr('meeting.createReviewedDraft')}
             </Button>
           </div>
         </Modal>
       )}
       {confirmExport && (
-        <Modal title={tr('Bestätigte Ergebnisse übertragen')} close={() => setConfirmExport(false)}>
+        <Modal title={tr('meeting.sendConfirmedOutcomes')} close={() => setConfirmExport(false)}>
           <p>
-            {tr('Diese')} {approved.length} {tr('Ergebnisse werden einschließlich ihrer Transkriptbelege als')}{' '}
-            <strong>{tr('Meeting-Entwurf')}</strong> {tr('nach roleALPHA übertragen.')}
+            {tr('meeting.these')} {approved.length} {tr('meeting.outcomesIncludingTranscriptEvidence')}{' '}
+            <strong>{tr('meeting.meetingDraft')}</strong> {tr('meeting.rolealpha')}
           </p>
           <ul>
             {approved.map(o => (
               <li key={o.id}>{o.title}</li>
             ))}
           </ul>
-          <p>
-            {tr(
-              'Rollen und Policies werden dadurch noch nicht verändert. Der Entwurf wird in roleALPHA weiterbearbeitet und freigegeben.',
-            )}
-          </p>
+          <p>{tr('meeting.doesYetChangeRoles')}</p>
           <div className="modal-footer">
-            <Button onClick={() => setConfirmExport(false)}>{tr('Abbrechen')}</Button>
+            <Button onClick={() => setConfirmExport(false)}>{tr('app.cancel')}</Button>
             <Button
               className="primary"
               disabled={busy}
@@ -740,13 +720,13 @@ export function MeetingRoom({
               }
             >
               <Send size={16} />
-              {tr('Entwurf übertragen')}
+              {tr('meeting.sendDraft')}
             </Button>
           </div>
         </Modal>
       )}
       {reconcile && (
-        <Modal title={tr('Export abgleichen')} close={() => setReconcile(null)}>
+        <Modal title={tr('meeting.reconcileExport')} close={() => setReconcile(null)}>
           <form
             onSubmit={e => {
               e.preventDefault();
@@ -758,23 +738,19 @@ export function MeetingRoom({
               });
             }}
           >
-            <p>
-              {tr(
-                'Prüfe zuerst den Entwurfsbereich in roleALPHA. Nur wenn dort kein Entwurf angelegt wurde, darf die Übertragung erneut freigegeben werden.',
-              )}
-            </p>
-            <Field label={tr('Prüfergebnis')}>
+            <p>{tr('meeting.firstCheckDraftsRolealpha')}</p>
+            <Field label={tr('meeting.checkResult')}>
               <select value={resolution} onChange={e => setResolution(e.target.value)}>
-                <option value="created">{tr('Entwurf existiert')}</option>
-                <option value="not-created">{tr('Kein Entwurf angelegt – erneut erlauben')}</option>
+                <option value="created">{tr('meeting.draftExists')}</option>
+                <option value="not-created">{tr('meeting.draftCreatedAllowRetry')}</option>
               </select>
             </Field>
             {resolution === 'created' && (
-              <Field label={tr('Entwurf-ID')}>
+              <Field label={tr('meeting.draftId2')}>
                 <input required value={draftId} onChange={e => setDraftId(e.target.value)} />
               </Field>
             )}
-            <Field label={tr('Prüfnotiz')}>
+            <Field label={tr('meeting.verificationNote')}>
               <textarea
                 required
                 minLength={10}
@@ -785,21 +761,17 @@ export function MeetingRoom({
             <div className="modal-footer">
               <span />
               <Button className="primary" disabled={busy}>
-                {tr('Abgleich dokumentieren')}
+                {tr('meeting.recordVerification')}
               </Button>
             </div>
           </form>
         </Modal>
       )}
       {transcriptPreview && (
-        <Modal title={tr('Transkript aus Teams importieren')} close={() => setTranscriptPreview(null)}>
+        <Modal title={tr('meeting.importTranscriptTeams')} close={() => setTranscriptPreview(null)}>
           {transcriptPreview.parts.length ? (
             <>
-              <p>
-                {tr(
-                  'Diese Transkriptteile wurden während dieses Termins aufgezeichnet. Bei Serienterminen werden Teile anderer Durchführungen ausgeschlossen.',
-                )}
-              </p>
+              <p>{tr('meeting.theseTranscriptPartsWere')}</p>
               <ul>
                 {transcriptPreview.parts.map(part => (
                   <li key={part.id}>
@@ -811,19 +783,15 @@ export function MeetingRoom({
               </ul>
             </>
           ) : (
-            <p className="notice">
-              {tr(
-                'Für diesen Termin wurde kein Transkript gefunden. Du kannst eine VTT- oder Textdatei manuell importieren.',
-              )}
-            </p>
+            <p className="notice">{tr('meeting.transcriptWasFoundEvent')}</p>
           )}
           {transcriptPreview.excluded > 0 && (
             <p className="small muted">
-              {transcriptPreview.excluded} {tr('Transkriptteile anderer Termine wurden ausgeschlossen.')}
+              {transcriptPreview.excluded} {tr('meeting.transcriptPartsOtherEvents')}
             </p>
           )}
           <div className="modal-footer">
-            <Button onClick={() => setTranscriptPreview(null)}>{tr('Abbrechen')}</Button>
+            <Button onClick={() => setTranscriptPreview(null)}>{tr('app.cancel')}</Button>
             <Button
               className="primary"
               disabled={busy || !transcriptPreview.parts.length}
@@ -834,7 +802,7 @@ export function MeetingRoom({
                 })
               }
             >
-              {tr('Importieren')}
+              {tr('meeting.import')}
             </Button>
           </div>
         </Modal>

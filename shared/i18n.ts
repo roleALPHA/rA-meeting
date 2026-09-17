@@ -1,18 +1,24 @@
-import { catalog } from './locales/catalog.js';
+import { de, type MessageId } from './locales/de.js';
+import { en } from './locales/en.js';
+import { fr } from './locales/fr.js';
+import { es } from './locales/es.js';
+
+export type { MessageId };
 export type Language = 'de' | 'en' | 'fr' | 'es';
+export type MessageParams = Record<string, string | number>;
+const catalogs: Record<Language, Record<MessageId, string>> = { de, en, fr, es };
+
 export function parseLanguage(value?: string): Language {
   const lang = value?.split(/[-,;]/)[0]?.toLowerCase();
   return lang === 'en' || lang === 'fr' || lang === 'es' ? lang : 'de';
 }
-export function translate(key: string, lang: Language): string {
-  if (lang === 'de') return key;
-  if (catalog[key]) return catalog[key][lang];
-  for (const pattern of ['KI-Dienst nicht verfügbar (HTTP {status}).', 'Microsoft Graph: HTTP {status}']) {
-    const [before, after] = pattern.split('{status}');
-    if (key.startsWith(before) && key.endsWith(after)) {
-      const status = key.slice(before.length, after.length ? -after.length : undefined);
-      if (/^\d{3}$/.test(status)) return catalog[pattern][lang].replace('{status}', status);
-    }
-  }
-  return key;
+export function isMessageId(value: unknown): value is MessageId {
+  return typeof value === 'string' && Object.prototype.hasOwnProperty.call(de, value);
+}
+/** Text for a message ID; `{name}` placeholders are replaced from params. */
+export function translate(id: MessageId, lang: Language, params?: MessageParams): string {
+  const text = catalogs[lang][id] ?? de[id];
+  return params
+    ? text.replace(/\{(\w+)\}/g, (match, name: string) => (name in params ? String(params[name]) : match))
+    : text;
 }

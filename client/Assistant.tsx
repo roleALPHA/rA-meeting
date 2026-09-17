@@ -51,28 +51,20 @@ export function Assistant({
         }}
       >
         <WandSparkles size={16} />
-        {tr('Vorschlag & Einwände')}
+        {tr('assistant.proposalObjections')}
       </button>
       {open && (
         <div className="assistant-panel">
           <div className="row">
-            <h4>{tr('KI als Moderationshilfe')}</h4>
-            <button className="button icon" aria-label={tr('Schließen')} onClick={() => setOpen(false)}>
+            <h4>{tr('assistant.aiFacilitationAssistant')}</h4>
+            <button className="button icon" aria-label={tr('assistant.close')} onClick={() => setOpen(false)}>
               <X size={16} />
             </button>
           </div>
-          <p className="small muted">
-            {tr(
-              'Die KI schlägt Formulierungen vor. Gültigkeit von Einwänden, Integration und Zustimmung entscheiden die Menschen.',
-            )}
-          </p>
-          {!enabled && (
-            <p className="notice">
-              {tr('KI ist noch nicht verbunden. Du kannst Vorschläge auch selbst formulieren und speichern.')}
-            </p>
-          )}
+          <p className="small muted">{tr('assistant.aiSuggestsWordingPeople')}</p>
+          {!enabled && <p className="notice">{tr('assistant.aiConnectedYetCan')}</p>}
           <label className="field">
-            <span>{tr('Unterstützung bei')}</span>
+            <span>{tr('assistant.help')}</span>
             <select
               value={mode}
               onChange={e => {
@@ -80,20 +72,20 @@ export function Assistant({
                 setResult(null);
               }}
             >
-              <option value="proposal">{tr('Proposal Forming')}</option>
-              <option value="integration">{tr('Einwandintegration')}</option>
+              <option value="proposal">{tr('assistant.proposalForming')}</option>
+              <option value="integration">{tr('assistant.objectionIntegration')}</option>
             </select>
           </label>
           <label className="field">
-            <span>{tr('Bedarf und Kontext')}</span>
+            <span>{tr('assistant.needContext')}</span>
             <textarea maxLength={12000} rows={3} value={context} onChange={e => edit(setContext, e.target.value)} />
           </label>
           <label className="field">
-            <span>{tr('Vorschlagsentwurf')}</span>
+            <span>{tr('assistant.proposalDraft')}</span>
             <textarea maxLength={12000} rows={5} value={proposal} onChange={e => edit(setProposal, e.target.value)} />
           </label>
           <label className="field">
-            <span>{tr('Einwände (einer pro Absatz)')}</span>
+            <span>{tr('assistant.objectionsOnePerParagraph')}</span>
             <textarea
               maxLength={12000}
               rows={3}
@@ -101,11 +93,7 @@ export function Assistant({
               onChange={e => edit(setObjections, e.target.value)}
             />
           </label>
-          <p className="small muted">
-            {tr(
-              'Gesendet werden nur dieser Agendapunkt, die Schrittbeschreibung und die Eingaben hier. Kein vollständiges Transkript.',
-            )}
-          </p>
+          <p className="small muted">{tr('assistant.onlyAgendaItemStep')}</p>
           <button
             className="button"
             disabled={busy || !enabled || stale || (mode === 'integration' && (!proposal.trim() || !objections.trim()))}
@@ -125,11 +113,11 @@ export function Assistant({
             }
           >
             <WandSparkles size={16} />
-            {tr('Formulierung vorschlagen')}
+            {tr('assistant.suggestWording')}
           </button>
           {result && (
             <div className="result-card">
-              <h4>{tr('KI-Vorschlag · noch nicht übernommen')}</h4>
+              <h4>{tr('assistant.aiSuggestionYetAdopted')}</h4>
               <AiProvenance provider={ai?.provider} sensitivityLabel={ai?.sensitivityLabel} />
               <p className="preserve">{result.proposal}</p>
               <p>{result.rationale}</p>
@@ -141,7 +129,7 @@ export function Assistant({
               ))}
               {result.questions.length > 0 && (
                 <>
-                  <h4>{tr('Offene Fragen')}</h4>
+                  <h4>{tr('assistant.openQuestions')}</h4>
                   <ul>
                     {result.questions.map((q, i) => (
                       <li key={i}>{q}</li>
@@ -157,13 +145,11 @@ export function Assistant({
                   setResult(null);
                 }}
               >
-                {tr('In das Eingabefeld übernehmen')}
+                {tr('assistant.copyIntoInputField')}
               </button>
             </div>
           )}
-          {stale && (
-            <p role="alert">{tr('Das Meeting wurde geändert. Bitte den Assistenten schließen und erneut öffnen.')}</p>
-          )}
+          {stale && <p role="alert">{tr('assistant.meetingHasChangedClose')}</p>}
           <button
             className="button primary"
             disabled={busy || stale || !proposal.trim()}
@@ -182,9 +168,9 @@ export function Assistant({
               })
             }
           >
-            {tr('Geprüften Vorschlagsentwurf speichern')}
+            {tr('assistant.saveReviewedProposalDraft')}
           </button>
-          <p className="small muted">{tr('Speichern dokumentiert einen Entwurf und bestätigt keinen Beschluss.')}</p>
+          <p className="small muted">{tr('assistant.savingRecordsDraftDoes')}</p>
         </div>
       )}
     </section>

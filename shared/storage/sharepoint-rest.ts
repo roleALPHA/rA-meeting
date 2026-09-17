@@ -5,7 +5,7 @@ export type SPRequest = (path: string, init?: RequestInit) => Promise<Response>;
 export const recordListTitle = 'rA Meetings Browser Index';
 export const dataLibraryTitle = 'rA Meetings Browser Data';
 const guid = (s: string) => {
-  assert(/^[\da-f-]{36}$/i.test(s), 'Invalid SharePoint ID');
+  assert(/^[\da-f-]{36}$/i.test(s), 'error.sharepointRest.invalidId');
   return s;
 };
 const quote = (s: string) => s.replaceAll("'", "''");
@@ -29,7 +29,7 @@ type LibraryFile = {
 export type OrphanFile = { id: string; name: string; created: string; size: number };
 const orphanMinAge = 24 * 60 * 60 * 1000;
 const recordSegment = (value: string) => {
-  assert(/^[A-Za-z0-9.-]{1,120}$/.test(value), 'Ungültige Datensatzkennung.');
+  assert(/^[A-Za-z0-9.-]{1,120}$/.test(value), 'error.sharepointRest.invalidRecordIdentifier');
   return value;
 };
 /** Content file name: record kind, record ID and version identify superseded or interrupted writes later. */
@@ -39,12 +39,10 @@ const payloadPattern = /^([A-Za-z0-9.-]+)__([A-Za-z0-9.-]+)__v(\d+)__[0-9a-f-]{3
 export type WorkspaceAccess = { write: boolean; provision: boolean };
 export async function spJson<T>(request: SPRequest, path: string, init?: RequestInit): Promise<T> {
   const r = await request(path, init);
-  if (r.status === 409 || r.status === 412)
-    throw new AppError(409, 'Dieser Eintrag wurde inzwischen geändert. Bitte neu laden.');
-  if (r.status === 404) throw new AppError(404, 'Eintrag nicht gefunden.');
-  if (r.status === 401 || r.status === 403)
-    throw new AppError(403, 'Keine Berechtigung für diesen SharePoint-Arbeitsbereich.');
-  assert(r.ok, `SharePoint: HTTP ${r.status}`, 502);
+  if (r.status === 409 || r.status === 412) throw new AppError(409, 'error.sharepointRest.recordHasChangedPlease');
+  if (r.status === 404) throw new AppError(404, 'error.sharepointRest.recordFound');
+  if (r.status === 401 || r.status === 403) throw new AppError(403, 'error.runtime.permissionSharepointWorkspace');
+  assert(r.ok, 'error.sharepointRest.http', 502, { status: r.status });
   return r.status === 204 ? (undefined as T) : ((await r.json()) as T);
 }
 export async function workspaceAccess(request: SPRequest): Promise<WorkspaceAccess> {
@@ -58,11 +56,7 @@ export async function workspaceAccess(request: SPRequest): Promise<WorkspaceAcce
 const jsonHeaders = { 'Content-Type': 'application/json;odata=nometadata' };
 /** Only a site owner/admin calls this explicit first-run action. All ACLs inherit from the selected workspace. */
 export async function provisionWorkspace(request: SPRequest) {
-  assert(
-    (await workspaceAccess(request)).provision,
-    'Nur die SharePoint-Administration kann den Arbeitsbereich einrichten.',
-    403,
-  );
+  assert((await workspaceAccess(request)).provision, 'error.sharepointRest.onlySharepointAdministrationCan', 403);
   for (const [title, template] of [
     [recordListTitle, 100],
     [dataLibraryTitle, 101],
@@ -115,7 +109,7 @@ export class SharePointRestStore implements Repository {
     private request: SPRequest,
   ) {}
   private tenant(tenant: string) {
-    assert(tenant === this.tenantId, 'Mandant oder Berechtigung ungültig.', 403);
+    assert(tenant === this.tenantId, 'error.sharepointRest.invalidTenantPermissions', 403);
   }
   private get prefix() {
     return `/web/lists(guid'${guid(this.listId)}')`;
@@ -138,7 +132,7 @@ export class SharePointRestStore implements Repository {
       ) &&
         fields.value.some(f => f.InternalName === 'RecordKey' && f.Indexed && f.EnforceUniqueValues) &&
         fields.value.some(f => f.InternalName === 'RecordKind' && f.Indexed),
-      'SharePoint-Arbeitsbereich ist noch nicht eingerichtet.',
+      'error.sharepointRest.sharepointWorkspaceSetUp',
       503,
     );
   }
@@ -148,7 +142,7 @@ export class SharePointRestStore implements Repository {
     const items: T[] = [];
     const seen = new Set<string>();
     while (path) {
-      assert(!seen.has(path), 'Ungültige SharePoint-Folgeseite.', 502);
+      assert(!seen.has(path), 'error.sharepointRest.invalidSharepointContinuationPage', 502);
       seen.add(path);
       const p: { value: T[]; 'odata.nextLink'?: string; '@odata.nextLink'?: string } = await spJson(this.request, path);
       items.push(...p.value);
@@ -160,7 +154,7 @@ export class SharePointRestStore implements Repository {
       assert(
         u.origin === base.origin &&
           decodeURIComponent(u.pathname).toLowerCase() === (prefix + list + '/items').toLowerCase(),
-        'Ungültige SharePoint-Folgeseite.',
+        'error.sharepointRest.invalidSharepointContinuationPage',
         502,
       );
       path = u.pathname.slice(prefix.length) + u.search;
@@ -190,20 +184,16 @@ export class SharePointRestStore implements Repository {
   async get<T>(tenant: string, kind: string, id: string) {
     this.tenant(tenant);
     const row = await this.head(kind, id);
-    assert(row, 'Eintrag nicht gefunden.', 404);
+    assert(row, 'error.sharepointRest.recordFound', 404);
     return this.payload<T>(row);
   }
   private async etag(row: Row) {
     const r = await this.request(`${this.prefix}/items(${row.Id})?$select=Id,RecordVersion`);
-    assert(r.ok, 'SharePoint ist nicht verfügbar. Bitte erneut versuchen.', 502);
+    assert(r.ok, 'error.sharepointRest.sharepointUnavailablePleaseTry', 502);
     const current = (await r.json()) as Row;
-    assert(
-      current.RecordVersion === row.RecordVersion,
-      'Dieser Eintrag wurde inzwischen geändert. Bitte neu laden.',
-      409,
-    );
+    assert(current.RecordVersion === row.RecordVersion, 'error.sharepointRest.recordHasChangedPlease', 409);
     const tag = r.headers.get('ETag') || current['odata.etag'] || current['@odata.etag'];
-    assert(tag, 'SharePoint hat keine Versionskennung geliefert.', 502);
+    assert(tag, 'error.sharepointRest.sharepointReturnedVersionIdentifier', 502);
     return tag;
   }
   async save(tenant: string, kind: string, id: string, version: number, body: unknown, expected?: number) {
@@ -211,12 +201,12 @@ export class SharePointRestStore implements Repository {
     const old = await this.head(kind, id);
     assert(
       expected === undefined ? !old : old && old.RecordVersion === expected,
-      'Dieser Eintrag wurde inzwischen geändert. Bitte neu laden.',
+      'error.sharepointRest.recordHasChangedPlease',
       409,
     );
     const etag = old ? await this.etag(old) : undefined;
     const serialized = JSON.stringify(body);
-    assert(new TextEncoder().encode(serialized).length < 20_000_000, 'Datensatz ist zu groß.', 413);
+    assert(new TextEncoder().encode(serialized).length < 20_000_000, 'error.sharepointRest.recordTooLarge', 413);
     const file = await spJson<{ UniqueId: string }>(
       this.request,
       `/web/lists(guid'${this.libraryId}')/RootFolder/Files/add(url='${payloadName(kind, id, version)}',overwrite=false)`,
@@ -279,7 +269,7 @@ export class SharePointRestStore implements Repository {
   async delete(tenant: string, kind: string, id: string, expected: number) {
     this.tenant(tenant);
     const old = await this.head(kind, id);
-    assert(old && old.RecordVersion === expected, 'Dieser Eintrag wurde inzwischen geändert. Bitte neu laden.', 409);
+    assert(old && old.RecordVersion === expected, 'error.sharepointRest.recordHasChangedPlease', 409);
     const tag = await this.etag(old);
     await spJson(this.request, `${this.prefix}/items(${old.Id})`, {
       method: 'POST',

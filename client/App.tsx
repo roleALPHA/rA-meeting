@@ -24,7 +24,16 @@ import { useApi } from './api-context';
 import { Tensions } from './Tensions';
 import { GovernanceAssistant } from './GovernanceAssistant';
 import { Preferences } from './Preferences';
-import { t as tr, language, usePreferences } from './i18n';
+import { t as tr, errorText, language, usePreferences } from './i18n';
+import type { MessageId } from '../shared/i18n';
+
+type SettingsCard = {
+  title: MessageId;
+  icon: React.ReactNode;
+  ready: boolean;
+  value: MessageId;
+  description: MessageId;
+};
 import { Button, Modal } from './ui';
 import { aiProviderLabels, categoryLabels } from './labels';
 import { statusLabels } from './labels';
@@ -58,7 +67,7 @@ export function App() {
     void (async () => {
       setTeams(await initializeTeams());
       await load();
-    })().catch(e => setError(tr(e.message)));
+    })().catch(e => setError(errorText(e)));
   }, []);
   const run = (task: () => Promise<void>) => {
     if (busyRef.current) return;
@@ -67,7 +76,7 @@ export function App() {
     setError('');
     void task()
       .catch(async e => {
-        setError(tr(e.message));
+        setError(errorText(e));
         try {
           await load();
         } catch {
@@ -94,7 +103,7 @@ export function App() {
         if (alive) update(m);
       })
       .catch(e => {
-        if (alive) setError(tr(e.message));
+        if (alive) setError(errorText(e));
       });
     return () => {
       alive = false;
@@ -133,7 +142,7 @@ export function App() {
           </div>
           <div>
             role<span>ALPHA</span>
-            <small>{tr('MEETINGS')}</small>
+            <small>{tr('app.meetings')}</small>
           </div>
         </div>
         <nav>
@@ -145,7 +154,7 @@ export function App() {
             }}
           >
             <Video size={19} />
-            {tr('Meetings')}
+            {tr('app.meetings2')}
           </button>
           <button
             className={view === 'tensions' ? 'active' : ''}
@@ -155,7 +164,7 @@ export function App() {
             }}
           >
             <ListChecks size={19} />
-            {tr('Spannungen')}
+            {tr('app.tensions')}
           </button>
           <button
             className={view === 'templates' ? 'active' : ''}
@@ -165,7 +174,7 @@ export function App() {
             }}
           >
             <LayoutTemplate size={19} />
-            {tr('Templates')}
+            {tr('app.templates')}
           </button>
           <button
             className={view === 'governance' ? 'active' : ''}
@@ -175,7 +184,7 @@ export function App() {
             }}
           >
             <WandSparkles size={19} />
-            {tr('Governance fragen')}
+            {tr('app.askGovernance')}
           </button>
           <button
             className={view === 'settings' ? 'active' : ''}
@@ -185,21 +194,21 @@ export function App() {
             }}
           >
             <Settings2 size={19} />
-            {tr('Verbindungen')}
+            {tr('app.connections')}
           </button>
         </nav>
         <div className="sidebar-bottom">
-          <div className="quiet-label">{tr('GEMEINSAM WEITERKOMMEN')}</div>
+          <div className="quiet-label">{tr('app.movingForwardTogether')}</div>
           <p>
-            {tr('Klare Abläufe.')}
+            {tr('app.clearProcesses')}
             <br />
-            {tr('Verbindliche Ergebnisse.')}
+            {tr('app.agreedOutcomes')}
           </p>
           <div className="user">
             <div className="avatar">{data?.actor.name.slice(0, 1) || '…'}</div>
             <div>
-              <strong>{data?.actor.name || tr('Anmeldung')}</strong>
-              <small>{tr(data?.actor.workspace === 'write' ? 'Bearbeitung' : 'Lesezugriff')}</small>
+              <strong>{data?.actor.name || tr('app.sign')}</strong>
+              <small>{tr(data?.actor.workspace === 'write' ? 'app.editor' : 'app.readAccess')}</small>
             </div>
           </div>
         </div>
@@ -207,18 +216,18 @@ export function App() {
       <main>
         <header className="topbar">
           <div className="breadcrumb">
-            {tr('Arbeitsbereich')}
+            {tr('app.workspace')}
             <ChevronRight size={14} />
             <span>
               {view === 'tensions'
-                ? tr('Spannungsspeicher')
+                ? tr('app.tensionBacklog')
                 : view === 'templates'
-                  ? tr('Meeting-Templates')
+                  ? tr('app.meetingTemplates')
                   : view === 'settings'
-                    ? tr('Verbindungen')
+                    ? tr('app.connections')
                     : view === 'governance'
-                      ? tr('Governance fragen')
-                      : tr('Meetings')}
+                      ? tr('app.askGovernance')
+                      : tr('app.meetings2')}
             </span>
           </div>
           <div className="topbar-right">
@@ -227,23 +236,17 @@ export function App() {
             {teams && (
               <span className="pill">
                 <Video size={14} />
-                {tr('Microsoft Teams')}
+                {tr('app.microsoftTeams')}
               </span>
             )}
           </div>
         </header>
         <div className="page">
-          {data?.actor.workspace && (
-            <p className="notice">
-              {tr(
-                'Dieser Arbeitsbereich ist für alle berechtigten Teammitglieder sichtbar. SharePoint steuert Lesen und Bearbeiten.',
-              )}
-            </p>
-          )}
+          {data?.actor.workspace && <p className="notice">{tr('app.workspaceVisibleAllAuthorized')}</p>}
           {error && (
             <div role="alert" className="error">
               <span>{error}</span>
-              <Button className="icon" aria-label={tr('Fehlermeldung schließen')} onClick={() => setError('')}>
+              <Button className="icon" aria-label={tr('app.dismissError')} onClick={() => setError('')}>
                 <X size={18} />
               </Button>
             </div>
@@ -251,26 +254,24 @@ export function App() {
           {!data && (
             <div className="empty">
               {!error && <Loader2 className="spin" size={26} />}
-              <h2>{error ? tr('Verbindung erforderlich') : tr('Arbeitsbereich wird geladen')}</h2>
-              {error && (
-                <p>{tr('Bei Entra-Anmeldung die App in Microsoft Teams öffnen und die Konfiguration prüfen.')}</p>
-              )}
+              <h2>{error ? tr('app.connectionRequired') : tr('app.loadingWorkspace')}</h2>
+              {error && <p>{tr('app.entraSignOpenApp')}</p>}
             </div>
           )}
           {data && selected && !meeting && view === 'meetings' && (
             <>
               <button className="back" onClick={back}>
-                {tr('← Alle Meetings')}
+                {tr('app.allMeetings')}
               </button>
               <p>
-                <Loader2 size={16} className="spin" /> {tr('Meeting wird geladen …')}
+                <Loader2 size={16} className="spin" /> {tr('app.loadingMeeting')}
               </p>
             </>
           )}
           {data && meeting && view === 'meetings' && (
             <>
               <button className="back" onClick={back}>
-                {tr('← Alle Meetings')}
+                {tr('app.allMeetings')}
               </button>
               <MeetingRoom
                 key={meeting.id}
@@ -287,9 +288,9 @@ export function App() {
             <>
               <div className="page-heading">
                 <div>
-                  <div className="eyebrow">{tr('RAUM FÜR ZUSAMMENARBEIT')}</div>
-                  <h1>{tr('Unsere Meetings')}</h1>
-                  <p>{tr('Spannungen bearbeiten. Entscheidungen festhalten. Gemeinsam handeln.')}</p>
+                  <div className="eyebrow">{tr('app.spaceCollaboration')}</div>
+                  <h1>{tr('app.ourMeetings')}</h1>
+                  <p>{tr('app.addressTensionsRecordDecisions')}</p>
                 </div>
                 <Button
                   className="primary"
@@ -297,7 +298,7 @@ export function App() {
                   disabled={data.actor.workspace === 'read' || !data.templates.some(t => t.enabled)}
                 >
                   <Plus size={18} />
-                  {tr('Meeting anlegen')}
+                  {tr('app.createMeeting')}
                 </Button>
               </div>
               <div className="stats">
@@ -308,7 +309,7 @@ export function App() {
                       .length.toString()
                       .padStart(2, '0')}
                   </span>
-                  <p>{tr('Laufende Meetings')}</p>
+                  <p>{tr('app.activeMeetings')}</p>
                 </div>
                 <div>
                   <span>
@@ -317,7 +318,7 @@ export function App() {
                       .length.toString()
                       .padStart(2, '0')}
                   </span>
-                  <p>{tr('Geplante Meetings')}</p>
+                  <p>{tr('app.scheduledMeetings')}</p>
                 </div>
                 <div>
                   <span>
@@ -326,13 +327,13 @@ export function App() {
                       .toString()
                       .padStart(2, '0')}
                   </span>
-                  <p>{tr('Ergebnisse zur Prüfung')}</p>
+                  <p>{tr('app.outcomesReview')}</p>
                 </div>
               </div>
               <div className="section-heading">
-                <h2>{tr('Meetingübersicht')}</h2>
+                <h2>{tr('app.meetingOverview')}</h2>
                 <span className="small muted">
-                  {data.meetings.length} {tr('Meetings')}
+                  {data.meetings.length} {tr('app.meetings2')}
                 </span>
               </div>
               {!data.meetings.length && (
@@ -340,11 +341,11 @@ export function App() {
                   <div className="empty-symbol">
                     <Video size={30} />
                   </div>
-                  <h2>{tr('Ein guter Ablauf macht den Unterschied.')}</h2>
+                  <h2>{tr('app.goodProcessMakesDifference')}</h2>
                   <p>
-                    {tr('Starte mit einem Tactical, Governance oder einem eigenen Template.')}
+                    {tr('app.startTacticalGovernanceOwn')}
                     <br />
-                    {tr('Dein Team gibt den Inhalt vor.')}
+                    {tr('app.teamProvidesContent')}
                   </p>
                   <Button
                     className="primary"
@@ -352,10 +353,10 @@ export function App() {
                     disabled={data.actor.workspace === 'read' || !data.templates.some(t => t.enabled)}
                   >
                     <Plus size={17} />
-                    {tr('Erstes Meeting anlegen')}
+                    {tr('app.createFirstMeeting')}
                   </Button>
                   <button className="text-button" onClick={() => setView('templates')}>
-                    {tr('Zuerst Templates entdecken')}
+                    {tr('app.exploreTemplatesFirst')}
                     <ArrowRight size={15} />
                   </button>
                 </div>
@@ -394,14 +395,14 @@ export function App() {
             <>
               <div className="page-heading">
                 <div>
-                  <div className="eyebrow">{tr('STRUKTUR, DIE ZU EUCH PASST')}</div>
-                  <h1>{tr('Meeting-Templates')}</h1>
-                  <p>{tr('Ein bewährter Anfang. Frei anpassbar an eure Zusammenarbeit.')}</p>
+                  <div className="eyebrow">{tr('app.structureFitsTeam')}</div>
+                  <h1>{tr('app.meetingTemplates')}</h1>
+                  <p>{tr('app.provenStartingPointAdapt')}</p>
                 </div>
                 {data.actor.workspace === 'write' && (
                   <Button className="primary" onClick={() => setEditor('new')}>
                     <Plus size={18} />
-                    {tr('Neues Template')}
+                    {tr('app.newTemplate')}
                   </Button>
                 )}
               </div>
@@ -414,7 +415,7 @@ export function App() {
                       </span>
                       <span className="pill">{tr(categoryLabels[t.category])}</span>
                       <span className={`availability ${t.enabled ? 'enabled' : ''}`}>
-                        {t.enabled ? tr('Aktiv') : tr('Inaktiv')}
+                        {t.enabled ? tr('app.active') : tr('app.inactive')}
                       </span>
                     </div>
                     <h2>{t.name}</h2>
@@ -422,11 +423,11 @@ export function App() {
                     <div className="template-metrics">
                       <span>
                         <ListChecks size={15} />
-                        {t.steps.length} {tr('Schritte')}
+                        {t.steps.length} {tr('app.steps')}
                       </span>
                       <span>
                         <Clock3 size={15} />
-                        {t.steps.reduce((n, s) => n + s.minutes, 0)} {tr('Min.')}
+                        {t.steps.reduce((n, s) => n + s.minutes, 0)} {tr('app.min')}
                       </span>
                       <span>v{t.version}</span>
                     </div>
@@ -442,14 +443,14 @@ export function App() {
                       <div className="template-footer">
                         <Button onClick={() => setEditor(t)}>
                           <Settings2 size={15} />
-                          {tr('Bearbeiten')}
+                          {tr('app.edit')}
                         </Button>
                         <Button
                           className="icon"
-                          aria-label={`${t.name} ${tr('duplizieren')} `}
+                          aria-label={`${t.name} ${tr('app.duplicate')} `}
                           onClick={() =>
                             run(async () => {
-                              await request('/templates', { ...t, name: `${t.name} (${tr('Kopie')})` });
+                              await request('/templates', { ...t, name: `${t.name} (${tr('app.copy')})` });
                               await load();
                             })
                           }
@@ -458,7 +459,7 @@ export function App() {
                         </Button>
                         <Button
                           className="icon"
-                          aria-label={`${t.name} ${t.enabled ? tr('deaktivieren') : tr('aktivieren')}`}
+                          aria-label={`${t.name} ${t.enabled ? tr('app.disable') : tr('app.enable')}`}
                           onClick={() =>
                             run(async () => {
                               await request(`/templates/${t.id}`, { ...t, enabled: !t.enabled }, 'PUT');
@@ -470,7 +471,7 @@ export function App() {
                         </Button>
                         <Button
                           className="icon danger"
-                          aria-label={`${t.name} ${tr('löschen')} `}
+                          aria-label={`${t.name} ${tr('app.delete')} `}
                           onClick={() => setRemove(t)}
                         >
                           <Trash2 size={16} />
@@ -487,65 +488,61 @@ export function App() {
             <>
               {api.openSetup && (
                 <button className="button" onClick={api.openSetup}>
-                  {tr('Einrichtungsassistent öffnen')}
+                  {tr('app.openSetupWizard')}
                 </button>
               )}
               <div className="page-heading">
                 <div>
-                  <div className="eyebrow">{tr('DATEN & INTEGRATIONEN')}</div>
-                  <h1>{tr('Verbindungen')}</h1>
-                  <p>
-                    {tr('Anmeldung über Microsoft 365. Optionale Dienste werden durch die Administration freigegeben.')}
-                  </p>
+                  <div className="eyebrow">{tr('app.dataIntegrations')}</div>
+                  <h1>{tr('app.connections')}</h1>
+                  <p>{tr('app.signThroughMicrosoft365')}</p>
                 </div>
               </div>
               <div className="settings-grid">
-                {[
-                  {
-                    title: 'Datenspeicherung',
-                    icon: <FileText size={22} />,
-                    ready: data.integrations.storage === 'sharepoint',
-                    value: tr('SharePoint · Microsoft 365'),
-                    description:
-                      'Templates, Spannungen, Meetings und Ergebnisse liegen im SharePoint des Kunden. Aufnahmen bleiben bei Microsoft.',
-                  },
-                  {
-                    title: 'Microsoft Teams',
-                    icon: <Video size={22} />,
-                    ready: data.integrations.graph,
-                    value: data.integrations.graph ? tr('Graph konfiguriert') : tr('Noch nicht verbunden'),
-                    description:
-                      'Kalendertermine verbinden und Transkripte nach dem Meeting abrufen. Auswertung standardmäßig auf Knopfdruck.',
-                  },
-                  {
-                    title: 'KI-Analyse',
-                    icon: <WandSparkles size={22} />,
-                    ready: data.integrations.ai,
-                    value: data.integrations.aiProvider
-                      ? aiProviderLabels[data.integrations.aiProvider]
-                      : data.integrations.ai
-                        ? tr('Endpunkt konfiguriert')
-                        : tr('Noch nicht verbunden'),
-                    description:
-                      'Ergebnisvorschläge mit Quellen aus dem Transkript. Jede Übernahme bleibt nachvollziehbar.',
-                  },
-                  {
-                    title: 'roleALPHA · optional',
-                    icon: <Send size={22} />,
-                    ready:
-                      data.integrations.mcp ||
-                      data.integrations.entityTypes.length > 0 ||
-                      !!data.integrations.governance,
-                    value:
-                      data.integrations.mcp ||
-                      data.integrations.entityTypes.length > 0 ||
-                      !!data.integrations.governance
-                        ? tr('MCP konfiguriert')
-                        : tr('Nicht eingerichtet · optional'),
-                    description:
-                      'Optional bestätigte Ergebnisse nach roleALPHA übertragen. Spannungsspeicher, Meetings und Ergebnisprüfung funktionieren auch ohne diese Verbindung.',
-                  },
-                ].map(s => (
+                {(
+                  [
+                    {
+                      title: 'app.dataStorage',
+                      icon: <FileText size={22} />,
+                      ready: data.integrations.storage === 'sharepoint',
+                      value: 'app.sharepointMicrosoft365',
+                      description: 'app.templatesTensionsMeetingsOutcomes',
+                    },
+                    {
+                      title: 'app.microsoftTeams',
+                      icon: <Video size={22} />,
+                      ready: data.integrations.graph,
+                      value: data.integrations.graph ? 'app.graphConfigured' : 'app.connectedYet',
+                      description: 'app.linkCalendarEventsFetch',
+                    },
+                    {
+                      title: 'app.aiAnalysis',
+                      icon: <WandSparkles size={22} />,
+                      ready: data.integrations.ai,
+                      value: data.integrations.aiProvider
+                        ? aiProviderLabels[data.integrations.aiProvider]
+                        : data.integrations.ai
+                          ? 'app.endpointConfigured'
+                          : 'app.connectedYet',
+                      description: 'app.outcomeSuggestionsTranscriptSources',
+                    },
+                    {
+                      title: 'app.rolealphaOptional',
+                      icon: <Send size={22} />,
+                      ready:
+                        data.integrations.mcp ||
+                        data.integrations.entityTypes.length > 0 ||
+                        !!data.integrations.governance,
+                      value:
+                        data.integrations.mcp ||
+                        data.integrations.entityTypes.length > 0 ||
+                        !!data.integrations.governance
+                          ? 'app.mcpConfigured'
+                          : 'app.setUpOptional',
+                      description: 'app.optionallySendConfirmedOutcomes',
+                    },
+                  ] satisfies SettingsCard[]
+                ).map(s => (
                   <section className="integration-card" key={s.title}>
                     <div className="connection-icon">{s.icon}</div>
                     <h2>{tr(s.title)}</h2>
@@ -557,11 +554,7 @@ export function App() {
                   </section>
                 ))}
               </div>
-              <p className="notice">
-                {tr(
-                  '„Konfiguriert“ bedeutet, dass die erforderlichen Einstellungen vorhanden sind. Die Verbindung wird bei der jeweiligen Aktion geprüft.',
-                )}
-              </p>
+              <p className="notice">{tr('app.configuredMeansRequiredSettings')}</p>
               {data.actor.workspace === 'write' && (
                 <div className="settings-grid">
                   <StorageMaintenance busy={busy} run={run} />
@@ -601,13 +594,13 @@ export function App() {
         />
       )}
       {remove && (
-        <Modal title={tr('Template löschen?')} close={() => setRemove(null)}>
+        <Modal title={tr('app.deleteTemplate')} close={() => setRemove(null)}>
           <p>
             „{remove.name}
-            {tr('“ wird aus der Vorlagenbibliothek entfernt. Bereits angelegte Meetings behalten ihre Vorlage.')}
+            {tr('app.willRemovedTemplateLibrary')}
           </p>
           <div className="modal-footer">
-            <Button onClick={() => setRemove(null)}>{tr('Abbrechen')}</Button>
+            <Button onClick={() => setRemove(null)}>{tr('app.cancel')}</Button>
             <Button
               className="danger-solid"
               disabled={busy}
@@ -619,7 +612,7 @@ export function App() {
                 })
               }
             >
-              {tr('Template löschen')}
+              {tr('app.deleteTemplate2')}
             </Button>
           </div>
         </Modal>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { WandSparkles } from 'lucide-react';
 import { useApi } from './api-context';
-import { t as tr, language } from './i18n';
+import { t as tr, errorText, language } from './i18n';
 import type { GovernanceReply } from '../shared/governance';
 import { AiProvenance } from './ui';
 export function GovernanceAssistant({ enabled }: { enabled: boolean }) {
@@ -12,18 +12,10 @@ export function GovernanceAssistant({ enabled }: { enabled: boolean }) {
   const [error, setError] = useState('');
   return (
     <section className="assistant-panel">
-      <h2>{tr('Governance fragen')}</h2>
-      <p>
-        {tr('Fragen zu Rollen, Zuständigkeiten und Regeln anhand der bestehenden Governance in roleALPHA beantworten.')}
-      </p>
-      <p className="small muted">
-        {tr(
-          'Deine Frage wird an roleALPHA gesendet. Die gefundenen Inhalte gehen mit der Frage an den freigegebenen KI-Dienst. Meeting und Transkript werden nicht automatisch mitgesendet. Antworten werden nicht gespeichert.',
-        )}
-      </p>
-      {!enabled && (
-        <p className="notice">{tr('Für Governance-Fragen müssen KI und roleALPHA-Lesezugriff eingerichtet sein.')}</p>
-      )}
+      <h2>{tr('app.askGovernance')}</h2>
+      <p>{tr('governance.answerQuestionsAboutRoles')}</p>
+      <p className="small muted">{tr('governance.questionSentRolealphaRetrieved')}</p>
+      {!enabled && <p className="notice">{tr('governance.governanceQuestionsRequireAi')}</p>}
       <form
         onSubmit={async e => {
           e.preventDefault();
@@ -34,16 +26,14 @@ export function GovernanceAssistant({ enabled }: { enabled: boolean }) {
           try {
             setReply(await request<GovernanceReply>('/governance/ask', { question, language: language() }));
           } catch (error) {
-            setError(
-              tr(error instanceof Error ? error.message : 'Governance konnte nicht aus roleALPHA gelesen werden.'),
-            );
+            setError(errorText(error));
           } finally {
             setBusy(false);
           }
         }}
       >
         <label className="field">
-          <span>{tr('Deine Governance-Frage')}</span>
+          <span>{tr('governance.governanceQuestion')}</span>
           <textarea
             rows={4}
             minLength={3}
@@ -51,7 +41,7 @@ export function GovernanceAssistant({ enabled }: { enabled: boolean }) {
             required
             disabled={busy}
             value={question}
-            placeholder={tr('Welche Rolle ist für diese Entscheidung zuständig?')}
+            placeholder={tr('governance.whichRoleResponsibleDecision')}
             onChange={e => {
               setQuestion(e.target.value);
               setReply(null);
@@ -61,26 +51,16 @@ export function GovernanceAssistant({ enabled }: { enabled: boolean }) {
         </label>
         <button className="button primary" disabled={!enabled || busy || question.trim().length < 3}>
           <WandSparkles size={16} />
-          {tr(busy ? 'Governance wird geprüft …' : 'Governance prüfen')}
+          {tr(busy ? 'governance.checkingGovernance' : 'governance.checkGovernance')}
         </button>
       </form>
       {error && <p role="alert">{error}</p>}
       {reply && (
         <div aria-live="polite">
-          <h3>{tr('Antwort mit Quellen')}</h3>
+          <h3>{tr('governance.answerSources')}</h3>
           <AiProvenance provider={reply.aiProvider} sensitivityLabel={reply.sensitivityLabel} />
-          <p className="notice">
-            {tr(
-              'Die Antwort berücksichtigt nur die abgerufenen Quellen. Sie ersetzt keinen Governance-Beschluss. Prüfe die Originaltexte und mögliche weitere Regeln.',
-            )}
-          </p>
-          {!reply.statements.length && (
-            <p>
-              {tr(
-                'Keine ausreichend belegte Antwort gefunden. Präzisiere die Frage oder prüfe die Governance direkt in roleALPHA.',
-              )}
-            </p>
-          )}
+          <p className="notice">{tr('governance.answerConsidersOnlyRetrieved')}</p>
+          {!reply.statements.length && <p>{tr('governance.sufficientlySupportedAnswerFound')}</p>}
           {reply.statements.map((s, i) => (
             <div className="result-card" key={i}>
               <p className="preserve">{s.text}</p>
@@ -96,7 +76,7 @@ export function GovernanceAssistant({ enabled }: { enabled: boolean }) {
           ))}
           {reply.limitations.length > 0 && (
             <>
-              <h4>{tr('Offene Fragen')}</h4>
+              <h4>{tr('assistant.openQuestions')}</h4>
               <ul>
                 {reply.limitations.map((s, i) => (
                   <li key={i}>{s}</li>
@@ -104,7 +84,7 @@ export function GovernanceAssistant({ enabled }: { enabled: boolean }) {
               </ul>
             </>
           )}
-          <h4>{tr('Abgerufene Governance-Quellen')}</h4>
+          <h4>{tr('governance.retrievedGovernanceSources')}</h4>
           <p className="small muted">{new Date(reply.retrievedAt).toLocaleString(language())}</p>
           {reply.sources.map(source => (
             <details key={source.id}>

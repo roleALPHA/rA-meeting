@@ -1,6 +1,6 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
-import { assert } from '../../shared/model';
+import { assert, AppError } from '../../shared/model';
 import {
   governanceQuestion,
   governanceSources,
@@ -15,11 +15,7 @@ import { completeTask } from './ai/provider';
 export async function askGovernance(host: BrowserHost, raw: unknown): Promise<GovernanceReply> {
   const input = governanceQuestion.parse(raw);
   const target = host.settings.roleAlpha;
-  assert(
-    target?.governance && host.settings.ai,
-    'Für Governance-Fragen müssen KI und roleALPHA-Lesezugriff eingerichtet sein.',
-    503,
-  );
+  assert(target?.governance && host.settings.ai, 'governance.governanceQuestionsRequireAi', 503);
   const client = new Client({ name: 'ra-meetings-governance', version: '1.0.0' });
   let sources: GovernanceReply['sources'];
   try {
@@ -34,7 +30,7 @@ export async function askGovernance(host: BrowserHost, raw: unknown): Promise<Go
       const response = await client.listTools(cursor ? { cursor } : {});
       tool = response.tools.find(t => t.name === target.governance!.searchTool);
       if (tool || !response.nextCursor) break;
-      assert(!seen.has(response.nextCursor), 'Governance-Lesezugriff ist nicht kompatibel.', 502);
+      assert(!seen.has(response.nextCursor), 'error.governance.governanceReadAccessCompatible', 502);
       seen.add(response.nextCursor);
       cursor = response.nextCursor;
     }
@@ -48,13 +44,13 @@ export async function askGovernance(host: BrowserHost, raw: unknown): Promise<Go
         properties?.query?.type === 'string' &&
         ['integer', 'number'].includes(properties?.limit?.type || '') &&
         (tool.inputSchema.required || []).every(k => k in args),
-      'Governance-Lesezugriff ist nicht kompatibel.',
+      'error.governance.governanceReadAccessCompatible',
       502,
     );
     const result = await client.callTool({ name: target.governance.searchTool, arguments: args }, undefined, {
       timeout: 30_000,
     });
-    assert(!result.isError, 'Governance konnte nicht aus roleALPHA gelesen werden.', 502);
+    assert(!result.isError, 'governance.couldReadGovernanceRolealpha', 502);
     // Bound returned context before parsing or sending any content to the AI service.
     const text = Array.isArray(result.content) ? result.content.find(c => c.type === 'text') : undefined;
     const serialized = result.structuredContent
@@ -62,15 +58,15 @@ export async function askGovernance(host: BrowserHost, raw: unknown): Promise<Go
       : text && 'text' in text
         ? String(text.text)
         : '';
-    assert(serialized.length <= 180_000, 'Governance-Lesezugriff ist nicht kompatibel.', 502);
+    assert(serialized.length <= 180_000, 'error.governance.governanceReadAccessCompatible', 502);
     try {
       sources = governanceSources.parse(JSON.parse(serialized)).sources;
     } catch {
-      throw new Error('Governance-Lesezugriff ist nicht kompatibel.');
+      throw new AppError(502, 'error.governance.governanceReadAccessCompatible');
     }
     assert(
       new Set(sources.map(s => s.id)).size === sources.length,
-      'Governance-Lesezugriff ist nicht kompatibel.',
+      'error.governance.governanceReadAccessCompatible',
       502,
     );
   } finally {
@@ -81,22 +77,18 @@ export async function askGovernance(host: BrowserHost, raw: unknown): Promise<Go
   if (!sources.length) return { statements: [], limitations: [], sources, retrievedAt };
   const completion = await completeTask(host, governanceTask(input, sources));
   // Copilot may add tenant content beyond the retrieved governance; such an answer is not source-bound.
-  assert(
-    !completion.groundingReferences.length,
-    'Microsoft 365 Copilot hat Inhalte außerhalb der roleALPHA-Quellen herangezogen. Die Antwort wurde verworfen.',
-    502,
-  );
+  assert(!completion.groundingReferences.length, 'error.governance.microsoft365CopilotUsed', 502);
   const rawAnswer = completion.output;
   let answer;
   try {
     answer = governanceAnswer.parse(rawAnswer);
   } catch {
-    throw new Error('Die Governance-Antwort enthält keine gültigen Quellen.');
+    throw new AppError(502, 'error.governance.governanceAnswerContainsInvalid');
   }
   const ids = new Set(sources.map(s => s.id));
   assert(
     answer.statements.every(s => s.sourceIds.every(id => ids.has(id))),
-    'Die Governance-Antwort enthält keine gültigen Quellen.',
+    'error.governance.governanceAnswerContainsInvalid',
     502,
   );
   return {

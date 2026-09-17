@@ -1,3 +1,4 @@
+import type { MessageId } from '../shared/i18n';
 import { aiProviderLabels } from './labels';
 import React, { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
@@ -31,7 +32,7 @@ export function Modal({
     <dialog ref={ref} className={wide ? 'wide' : ''} onCancel={close}>
       <div className="modal-head">
         <h2>{title}</h2>
-        <Button className="icon" aria-label={tr('Schließen')} onClick={close}>
+        <Button className="icon" aria-label={tr('assistant.close')} onClick={close}>
           <X size={20} />
         </Button>
       </div>
@@ -39,10 +40,11 @@ export function Modal({
     </dialog>
   );
 }
+/** Form field; label is already translated by the caller. */
 export function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="field">
-      <span>{tr(label)}</span>
+      <span>{label}</span>
       {children}
     </label>
   );
@@ -58,13 +60,12 @@ export function AiProvenance({
     <>
       {provider && (
         <p className="small muted">
-          {tr('Erstellt mit')} {tr(aiProviderLabels[provider])}
+          {tr('common.created')} {tr(aiProviderLabels[provider])}
         </p>
       )}
       {sensitivityLabel && (
         <p className="notice">
-          {tr('Die KI-Antwort trägt eine Vertraulichkeitsbezeichnung:')} {sensitivityLabel}.{' '}
-          {tr('Prüfe vor dem Übernehmen, ob dieser Inhalt in diesem Arbeitsbereich gespeichert werden darf.')}
+          {tr('common.aiResponseCarriesSensitivity')} {sensitivityLabel}. {tr('common.beforeAcceptingCheckWhether')}
         </p>
       )}
     </>

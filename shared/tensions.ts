@@ -10,11 +10,11 @@ const input = z.object({
   status: z.enum(['open', 'resolved']).default('open'),
 });
 export async function saveTension(store: Store, actor: Actor, raw: unknown, id?: string, version?: number) {
-  assert(actor.workspace === 'write', 'Keine Berechtigung für diesen SharePoint-Arbeitsbereich.', 403);
+  assert(actor.workspace === 'write', 'error.runtime.permissionSharepointWorkspace', 403);
   const data = input.parse(raw);
   const old = id ? await store.get<Tension>(actor.tenantId, 'tension', id) : null;
   if (old) {
-    assert(version === old.version, 'Spannung wurde inzwischen geändert.', 409);
+    assert(version === old.version, 'error.tensions.backlogItemHasChanged', 409);
   }
   const time = new Date().toISOString();
   const tension: Tension = {
@@ -37,16 +37,16 @@ export async function attachTension(
   revision: number,
 ) {
   const tension = await store.get<Tension>(actor.tenantId, 'tension', id);
-  assert(actor.workspace === 'write', 'Keine Berechtigung für diesen SharePoint-Arbeitsbereich.', 403);
-  assert(tension.status === 'open', 'Diese Spannung ist bereits gelöst.');
+  assert(actor.workspace === 'write', 'error.runtime.permissionSharepointWorkspace', 403);
+  assert(tension.status === 'open', 'error.tensions.backlogItemAlreadyResolved');
   const meeting = await getMeeting(store, actor, meetingId);
-  assert(meeting.revision === revision, 'Meeting wurde inzwischen geändert.', 409);
-  assert(meeting.status !== 'completed', 'Meeting ist abgeschlossen.');
+  assert(meeting.revision === revision, 'error.tensions.meetingHasChanged', 409);
+  assert(meeting.status !== 'completed', 'error.tensions.meetingCompleted');
   assert(
     meeting.template.steps.some(s => s.id === stepId && s.kind === 'agenda'),
-    'Kein Agenda-Schritt.',
+    'error.domain.agendaStep',
   );
-  assert(!meeting.agenda.some(a => a.tensionId === id), 'Diese Spannung ist bereits im Meeting.');
+  assert(!meeting.agenda.some(a => a.tensionId === id), 'error.tensions.backlogItemAlreadyMeeting');
   meeting.agenda.push({
     id: randomUUID(),
     tensionId: id,

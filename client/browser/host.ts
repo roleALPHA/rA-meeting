@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { outputTypes } from '../../shared/model';
+import { AppError, outputTypes } from '../../shared/model';
 const https = z
   .string()
   .url()
@@ -141,6 +141,6 @@ export async function graph(host: BrowserHost, path: string, init: RequestInit =
     credentials: 'omit',
     signal: AbortSignal.timeout(30_000),
   });
-  if (!r.ok) throw new Error(`Microsoft Graph: HTTP ${r.status}`);
+  if (!r.ok) throw new AppError(502, 'error.graph.http', { status: r.status });
   return r;
 }

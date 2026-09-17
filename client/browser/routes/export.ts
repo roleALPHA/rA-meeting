@@ -11,18 +11,14 @@ const send =
     const ids = entity
       ? [z.string().uuid().parse(body.outcomeId)]
       : z.array(z.string().uuid()).min(1).max(100).parse(body.ids);
-    assert(new Set(ids).size === ids.length, 'Doppelte Ergebnis-IDs.');
+    assert(new Set(ids).size === ids.length, 'error.export.duplicateOutcomeIds');
     const outputs = m.outcomes.filter(o => ids.includes(o.id));
-    assert(outputs.length === ids.length, 'Ergebnis fehlt.');
+    assert(outputs.length === ids.length, 'error.export.outcomeMissing');
     const plan = entity ? entityPlan(host, m, outputs[0]) : meetingPlan(host, m, outputs);
     if (entity)
-      assert(
-        JSON.stringify(body.plan) === JSON.stringify(plan),
-        'Exportvorschau hat sich geändert. Erneut prüfen.',
-        409,
-      );
+      assert(JSON.stringify(body.plan) === JSON.stringify(plan), 'error.integrations.exportPreviewHasChanged', 409);
     const target = host.settings.roleAlpha;
-    assert(target, 'roleALPHA ist nicht verbunden.', 503);
+    assert(target, 'error.integrations.rolealphaConnected', 503);
     const connection = await prepareExport(host, plan, target);
     try {
       outputs.forEach(o => {
@@ -50,7 +46,7 @@ const send =
           });
         event(current, actor, 'export.uncertain', 'Exportantwort unklar; automatische Wiederholung gesperrt.');
         await save(current);
-        throw new AppError(502, 'Export nicht eindeutig bestätigt. Prüfe den Entwurfsbereich in roleALPHA.');
+        throw new AppError(502, 'error.export.exportClearlyConfirmedCheck');
       }
     } finally {
       await connection.close().catch(() => {});
@@ -60,7 +56,7 @@ const send =
 export const exportActions: Record<string, MeetingAction> = {
   'entity-preview': async ({ host }, { body }, m) => {
     const output = m.outcomes.find(o => o.id === body.outcomeId);
-    assert(output, 'Ergebnis fehlt.');
+    assert(output, 'error.export.outcomeMissing');
     return entityPlan(host, m, output);
   },
   export: send(false),
@@ -77,7 +73,7 @@ export const exportActions: Record<string, MeetingAction> = {
             o.export?.state === 'uncertain' ||
             (o.export?.state === 'sending' && Date.now() - Date.parse(o.export.startedAt || '') > 300_000),
         ),
-      'Nur unklare Exporte können abgeglichen werden.',
+      'error.export.onlyUncertainExportsCan',
     );
     outputs.forEach(o => {
       o.export =

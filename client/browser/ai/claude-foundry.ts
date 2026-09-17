@@ -36,13 +36,11 @@ export async function claudeFoundryComplete(host: BrowserHost, ai: Settings, tas
       : await client.messages.stream(params).finalMessage();
   } catch (error) {
     if (error instanceof APIError && error.status)
-      throw new AppError(502, `KI-Dienst nicht verfügbar (HTTP ${error.status}).`);
+      throw new AppError(502, 'error.ai.serviceUnavailableHttp', { status: error.status });
     throw error;
   }
-  if (message.stop_reason === 'refusal')
-    throw new AppError(502, 'Claude hat die Anfrage abgelehnt. Es wurde nichts übernommen.');
-  if (message.stop_reason === 'max_tokens')
-    throw new AppError(502, 'Die KI-Antwort war zu lang und ist unvollständig. Es wurde nichts übernommen.');
+  if (message.stop_reason === 'refusal') throw new AppError(502, 'error.claudeFoundry.claudeDeclinedRequestNothing');
+  if (message.stop_reason === 'max_tokens') throw new AppError(502, 'error.claudeFoundry.aiResponseWasToo');
   let text = '';
   for (const block of message.content as { type: string; text?: string }[])
     if (block.type === 'text') text += block.text ?? '';

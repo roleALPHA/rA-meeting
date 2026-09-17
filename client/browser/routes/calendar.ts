@@ -16,7 +16,7 @@ export const calendarRoutes: Route[] = [
     path: /^\/calendar$/,
     handle: ({ actor, read }, { url }) => {
       const organizerId = url.searchParams.get('organizerId');
-      assert(!organizerId || organizerId === actor.id, 'Kein Zugriff auf diesen Kalender.', 403);
+      assert(!organizerId || organizerId === actor.id, 'error.calendar.accessCalendar', 403);
       return calendarEntries(actor.id, read);
     },
   },
@@ -33,7 +33,7 @@ async function claim({ store, actor }: RouteContext, meetingId: string, iCalUId:
   } catch (error) {
     if (!(error instanceof AppError && error.status === 409)) throw error;
     const existing = await store.get<CalendarClaim>(actor.tenantId, 'calendar-claim', id);
-    assert(existing.meetingId === meetingId, 'Dieser Termin ist bereits mit einem Meeting verbunden.', 409);
+    assert(existing.meetingId === meetingId, 'error.calendar.eventAlreadyLinkedMeeting', 409);
   }
 }
 
@@ -49,21 +49,17 @@ async function exists(ctx: RouteContext, kind: string, id: string) {
 
 const link: MeetingAction = async (ctx, { body }, m) => {
   const { store, actor, read, save } = ctx;
-  assert(m.status !== 'completed', 'Abgeschlossene Meetings behalten ihre Terminzuordnung.');
+  assert(m.status !== 'completed', 'error.calendar.completedMeetingsRetainTheir');
   if (m.calendar && calendarLinker(m.calendar) !== actor.id) {
     // Another editor refreshes the link from the copy of the event in their own calendar.
-    assert(
-      m.calendar.iCalUId,
-      'Dieser Termin kann erst abgeglichen werden, wenn die Person, die ihn verknüpft hat, die App erneut geöffnet hat.',
-      409,
-    );
+    assert(m.calendar.iCalUId, 'error.calendar.eventCanRefreshedOnce', 409);
     const own = await findCalendarEntry(
       actor.id,
       m.calendar.iCalUId,
       m.calendar.originalStart ?? m.calendar.start,
       read,
     );
-    assert(own, 'Dieser Termin ist nicht in deinem Kalender. Bitte die Person fragen, die ihn verknüpft hat.', 404);
+    assert(own, 'error.calendar.eventCalendarAskPerson', 404);
     const { eventId: _ownEventId, linkedBy: _ownLinkedBy, ...details } = own;
     m.calendar = { ...m.calendar, ...details, linkedBy: calendarLinker(m.calendar)! };
     m.scheduledAt = own.start;
@@ -71,10 +67,10 @@ const link: MeetingAction = async (ctx, { body }, m) => {
     return save(m);
   }
   const eventId = z.string().min(1).max(2000).parse(body.eventId);
-  assert(!m.calendar || m.calendar.eventId === eventId, 'Bestehende Terminzuordnung kann nicht umgebogen werden.', 409);
+  assert(!m.calendar || m.calendar.eventId === eventId, 'error.calendar.existingEventLinkCannot', 409);
   const linked = await calendarEntry(actor.id, eventId, read);
-  assert(!linked.cancelled || m.calendar, 'Ein abgesagter Termin kann nicht neu verbunden werden.');
-  assert(linked.iCalUId, 'Der Kalender hat keine eindeutige Termin-ID geliefert.', 502);
+  assert(!linked.cancelled || m.calendar, 'error.calendar.cancelledEventCannotNewly');
+  assert(linked.iCalUId, 'error.calendar.calendarDidReturnUnique', 502);
   if (!(await exists(ctx, claimsComplete.kind, claimsComplete.id))) {
     // Links from earlier versions have no claim yet; keep checking them directly until backfilled.
     const others = await store.list<Meeting>(actor.tenantId, 'meeting');
@@ -86,7 +82,7 @@ const link: MeetingAction = async (ctx, { body }, m) => {
           (o.calendar.iCalUId === linked.iCalUId ||
             (calendarLinker(o.calendar) === actor.id && o.calendar.eventId === eventId)),
       ),
-      'Dieser Termin ist bereits mit einem Meeting verbunden.',
+      'error.calendar.eventAlreadyLinkedMeeting',
       409,
     );
   }

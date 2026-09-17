@@ -17,12 +17,8 @@ export function StorageMaintenance({ busy, run }: { busy: boolean; run: (task: (
       <div className="connection-icon">
         <Trash2 size={22} />
       </div>
-      <h2>{tr('Speicher bereinigen')}</h2>
-      <p>
-        {tr(
-          'Findet Inhaltsdateien aus abgebrochenen oder überholten Speichervorgängen, auf die kein Eintrag mehr verweist. Frühere Versionen bleiben erhalten. Nur für Websitebesitzer.',
-        )}
-      </p>
+      <h2>{tr('maintenance.cleanUpStorage')}</h2>
+      <p>{tr('maintenance.findsContentFilesInterrupted')}</p>
       <Button
         disabled={busy}
         onClick={() =>
@@ -33,18 +29,18 @@ export function StorageMaintenance({ busy, run }: { busy: boolean; run: (task: (
           })
         }
       >
-        {tr('Verwaiste Dateien suchen')}
+        {tr('maintenance.findOrphanedFiles')}
       </Button>
       {orphans && (
         <p className="connection-status">
-          {orphans.length} {tr('Dateien')} · {(size / 1024).toFixed(1)} KB
+          {orphans.length} {tr('maintenance.files')} · {(size / 1024).toFixed(1)} KB
         </p>
       )}
       {orphans && orphans.length > 0 && (
         <>
           <label className="check">
             <input type="checkbox" checked={confirm} onChange={e => setConfirm(e.target.checked)} />
-            {tr('Ich möchte diese Dateien in den SharePoint-Papierkorb verschieben.')}
+            {tr('maintenance.iWantMoveThese')}
           </label>
           <Button
             className="danger"
@@ -60,13 +56,13 @@ export function StorageMaintenance({ busy, run }: { busy: boolean; run: (task: (
               })
             }
           >
-            {tr('In den Papierkorb verschieben')}
+            {tr('maintenance.moveRecycleBin')}
           </Button>
         </>
       )}
       {recycled !== null && (
         <p className="notice">
-          {recycled} {tr('Dateien in den Papierkorb verschoben. Sie lassen sich dort wiederherstellen.')}
+          {recycled} {tr('maintenance.filesMovedRecycleBin')}
         </p>
       )}
     </section>

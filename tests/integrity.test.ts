@@ -25,14 +25,14 @@ test('consistency check accepts app-made changes and reports manually edited mee
   edited.outcomes[0].type = 'okr';
   edited.currentStep = 99;
   const messages = checkMeeting(edited).map(i => i.message);
-  assert.ok(messages.some(x => /aktuelle Schritt/.test(x)));
-  assert.ok(messages.some(x => /nicht erlaubt/.test(x)));
-  assert.ok(messages.some(x => /Transkriptstellen/.test(x)));
-  assert.ok(messages.some(x => /Eintrag im Verlauf/.test(x)));
+  assert.ok(messages.some(x => x === 'integrity.currentStepDoesMatch'));
+  assert.ok(messages.some(x => x === 'integrity.outcomeHasTypeAllowed'));
+  assert.ok(messages.some(x => x === 'integrity.outcomeRefersTranscriptPassages'));
+  assert.ok(messages.some(x => x === 'integrity.transferHasEntryHistory'));
 
   const unapproved = structuredClone(m);
   unapproved.outcomes[0].approvedBy = undefined;
-  assert.ok(checkMeeting(unapproved).some(i => /Bestätigungsangaben/.test(i.message)));
+  assert.ok(checkMeeting(unapproved).some(i => i.message === 'integrity.approvedOutcomeHasApproval'));
 
   const withoutSegments = structuredClone(m);
   withoutSegments.transcript = [];
