@@ -5,7 +5,9 @@ import {
   outputTypes,
   stepKinds,
   stepLabels,
+  terminologyOf,
   type Template,
+  type Terminology,
   type TemplateInput,
   type Step,
 } from '../shared/model';
@@ -41,6 +43,7 @@ export function TemplateEditor({
           name: '',
           description: '',
           category: 'custom',
+          terminology: 'tensions',
           enabled: true,
           steps: [newStep('check-in'), newStep('agenda'), newStep('check-out')],
         },
@@ -87,6 +90,15 @@ export function TemplateEditor({
                   {tr(label)}
                 </option>
               ))}
+            </select>
+          </Field>
+          <Field label={tr('templates.terminology')}>
+            <select
+              value={terminologyOf(draft)}
+              onChange={e => setDraft({ ...draft, terminology: e.target.value as Terminology })}
+            >
+              <option value="tensions">{tr('templates.terminologyTensions')}</option>
+              <option value="agenda">{tr('templates.terminologyAgenda')}</option>
             </select>
           </Field>
         </div>

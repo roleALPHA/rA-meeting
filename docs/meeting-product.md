@@ -6,14 +6,14 @@ The production app is an SPFx extension for SharePoint and Teams. Logic runs in 
 
 A workspace is shared. SharePoint permissions govern reading and collaborative editing, including access to transcripts and historical content. Use separately permissioned sites for confidential circles. All editors can facilitate meetings and update agendas and templates. Initial setup requires appropriate SharePoint administration or site-owner permissions.
 
-The interface supports German, English, French, and Spanish. Dates, times, and manual AI requests follow the chosen language. User input, stored templates, and historical original text are not automatically translated. Starter-template language is selected during setup. Language and terminology are personal browser preferences; meeting content is not stored in localStorage.
+The interface supports German, English, French, and Spanish. Dates, times, and manual AI requests follow the chosen language. User input, stored templates, and historical original text are not automatically translated. Starter-template language is selected during setup. Language is a personal browser preference; meeting content is not stored in localStorage.
 
-Users can display the backlog as “Tensions” or “Agenda.” Titles, prompts, and actions adapt while record IDs and relationships remain unchanged.
+Each template sets whether its meetings process “Tensions” or “Agenda items” (`terminology`, default `tensions`, also for templates and meeting snapshots stored before the setting existed). Titles, prompts, and actions for a meeting follow its template; the overview across meetings is called “Topics”. Record IDs and relationships are the same for both.
 
 ## Standard workflow without Power Automate
 
 1. Link an existing Outlook/Teams event to an rA meeting.
-2. Authorized editors contribute tensions before or during the event.
+2. Authorized editors submit tensions or agenda items to the meeting before or during the event.
 3. Work through the agenda and record outcomes.
 4. Explicitly import or retrieve a transcript and start analysis.
 5. Review proposed outcomes, including sources, wording, type, and responsibility.
@@ -26,9 +26,15 @@ Power Automate is a possible future optional extension for reminders and backgro
 
 roleALPHA Governance has no tension backlog. The meeting app maintains it as `tension` records in the organization's SharePoint index, with JSON content in its document library.
 
-Each tension has a title, description, circle/team, creator, version, and status. Visibility follows workspace permissions. Tensions exist independently of meetings. An agenda item can reference one through `tensionId`, and multiple meetings can address the same tension. Outcomes can be traced through their agenda item to the tension. Completing an agenda item or exporting an outcome does not automatically resolve the tension. An authorized editor explicitly confirms completion.
+The flow follows Holaspirit's meetings: items are submitted to a specific meeting, are visible in advance, and the meeting works through them.
 
-Editors can contribute before and during meetings. Sharing and access management take place in SharePoint, not through manually entered participant IDs.
+- **Submit.** A tension has a title, description, the meeting (`meetingId`) and agenda step (`stepId`) it is submitted to, the circle copied from that meeting, creator, version, status, and optionally an attached roleALPHA draft. Only meetings that are not completed and have an agenda step accept submissions. Visibility follows workspace permissions; there are no private tensions, because SharePoint permissions are the only enforced boundary.
+- **Before the meeting.** The meeting view lists the submitted items.
+- **Start.** Starting the meeting puts every open item submitted to it onto the agenda, in submission order. Items submitted while it runs are listed as newly submitted and join the agenda when the facilitator takes them over. The facilitator orders the agenda; items can also be added ad hoc in the meeting.
+- **Process.** An agenda item references its tension through `tensionId`. Finishing the discussion resolves the tension. Outcomes can be traced through their agenda item to the tension.
+- **Not processed.** When a meeting completes, unfinished items stay open and are shown as not processed. An editor moves them to another open meeting; one that is on the open agenda of a running meeting cannot be moved. Tensions stored before submission required a meeting keep working and can be assigned to one.
+
+Sharing and access management take place in SharePoint, not through manually entered participant IDs.
 
 ## Calendar
 

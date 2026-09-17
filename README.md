@@ -10,7 +10,7 @@ The app is installed in your organization's Microsoft 365 environment. It requir
 
 ### Collect topics and prepare meetings
 
-Capture tensions and topics independently of individual meetings, then add them to a meeting agenda. Users who prefer different terminology can display “Agenda” instead of “Tensions” without changing stored content.
+Anyone who can edit the workspace submits tensions or agenda items to an upcoming meeting. They are visible before the meeting, join its agenda when it starts, and are ordered and processed one at a time. Items the meeting does not get to stay open and can be moved to another meeting. Each meeting template decides whether its items are called “Tensions” or “Agenda items”. With a roleALPHA connection, a submitter can attach one of their own roleALPHA drafts, which opens directly from the item.
 
 Link meetings to your own calendar events and open them as Teams tabs. Site owners can choose whether linked Teams meetings allow transcription or are recorded and transcribed automatically. Authorized participants can contribute before the discussion begins. Access follows the SharePoint workspace's permissions.
 
@@ -43,7 +43,7 @@ An optional roleALPHA connection can create drafts from approved outcomes, such 
 
 ## Languages
 
-The interface supports **German, English, French, and Spanish**. Users choose their language and “Tensions” or “Agenda” terminology. Changing language does not automatically translate user-created content. Repository documentation is maintained in English.
+The interface supports **German, English, French, and Spanish**. Users choose their language; the “Tensions” or “Agenda items” wording comes from each meeting's template. Changing language does not automatically translate user-created content. Repository documentation is maintained in English.
 
 ## Operation and data
 
@@ -56,7 +56,7 @@ The app is delivered as a **SharePoint Framework (SPFx)** package. Microsoft 365
 | Calendar and transcript retrieval | Direct Microsoft Graph requests with the signed-in user's permissions |
 | Optional AI | Direct requests to the configured AI service: Microsoft 365 Copilot (default), Claude via Microsoft Foundry, or an OpenAI-compatible endpoint |
 | Optional governance connection | Direct MCP requests to the configured roleALPHA endpoint |
-| Language and terminology | Personal browser preferences |
+| Language | Personal browser preference |
 
 No central roleALPHA proxy, additional application runtime, or Power Automate flow is required. No automatic processing runs after the app closes. Users explicitly start analysis and transfers.
 

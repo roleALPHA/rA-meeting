@@ -164,7 +164,7 @@ export function App() {
             }}
           >
             <ListChecks size={19} />
-            {tr('app.tensions')}
+            {tr('app.topics')}
           </button>
           <button
             className={view === 'templates' ? 'active' : ''}
@@ -220,7 +220,7 @@ export function App() {
             <ChevronRight size={14} />
             <span>
               {view === 'tensions'
-                ? tr('app.tensionBacklog')
+                ? tr('app.topics')
                 : view === 'templates'
                   ? tr('app.meetingTemplates')
                   : view === 'settings'
@@ -278,6 +278,8 @@ export function App() {
                 meeting={meeting}
                 actor={data.actor}
                 integrations={data.integrations}
+                tensions={data.tensions}
+                refresh={load}
                 update={update}
                 busy={busy}
                 run={run}
@@ -290,7 +292,7 @@ export function App() {
                 <div>
                   <div className="eyebrow">{tr('app.spaceCollaboration')}</div>
                   <h1>{tr('app.ourMeetings')}</h1>
-                  <p>{tr('app.addressTensionsRecordDecisions')}</p>
+                  <p>{tr('app.addressTopicsRecordDecisions')}</p>
                 </div>
                 <Button
                   className="primary"

@@ -56,7 +56,7 @@ test('messages translate with parameters; errors keep a German message for diagn
     translate('error.ai.serviceUnavailableHttp', 'es', { status: 429 }),
     'Servicio de IA no disponible (HTTP 429).',
   );
-  assert.equal(translate('app.tensions@agenda', 'en'), 'Agenda');
+  assert.equal(translate('tensions.kind@agenda', 'en'), 'Agenda item');
   assert.equal(isMessageId('Customer-created title'), false);
   assert.equal(parseLanguage('es-ES,es;q=0.9'), 'es');
   const error = new AppError(502, 'error.ai.serviceUnavailableHttp', { status: 503 });

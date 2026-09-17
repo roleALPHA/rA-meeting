@@ -27,6 +27,7 @@ export const workspaceRoutes: Route[] = [
         integrations: {
           storage: 'sharepoint',
           governance: !!host.settings.ai && !!host.settings.roleAlpha?.governance,
+          drafts: !!host.settings.roleAlpha?.drafts,
           ai: !!host.settings.ai,
           aiProvider: host.settings.ai?.provider ?? null,
           mcp: !!host.settings.roleAlpha?.meeting,

@@ -21,7 +21,7 @@ The package builder configures nonsecret endpoints in `spfx/customer.config.json
     "permissionResource": "WORK-IQ-APPLICATION-DISPLAY-NAME"
   },
   "roleAlpha": {
-    "url": "https://rolealpha.organization.example/mcp",
+    "url": "https://rolealpha.organization.example/api/mcp",
     "resource": "api://ORGANIZATION-ROLEALPHA-APPLICATION-ID",
     "permissionResource": "roleALPHA Governance",
     "scope": "access_as_user",
@@ -183,6 +183,32 @@ Source IDs must be unique. The adapter accepts at most twelve sources with up to
 AI receives only the question and retrieved sources. Its answer contains statements with source IDs and limitations. Unknown source IDs are rejected; empty search results trigger no AI call. Validating source IDs cannot establish whether a statement correctly follows from its source. The interface therefore shows original text and explains the limited search scope. This feature does not change governance or write meeting records. SharePoint readers may ask questions; roleALPHA enforces its own permissions independently.
 
 Acceptance testing must cover the real search contract, user and tenant isolation, unanswerable questions, source comparison, delegated sign-in, and browser CORS. Questions and answers stay in the open interface; no new SharePoint storage or vector database is created. Configure AI and roleALPHA service logging separately according to organizational requirements.
+
+## Attaching roleALPHA drafts: read contract
+
+Set the optional `roleAlpha.drafts` property to `{ "searchTool": "search_my_drafts", "appUrl": "https://rolealpha.organization.example" }`. The tool name is an example and must start with `search_`; `appUrl` is the roleALPHA web application. Without this configuration, editors cannot attach drafts to tensions. Compatibility with a production roleALPHA tool has not yet been verified.
+
+The tool runs at the same roleALPHA MCP endpoint with the signed-in user's delegated token. Its `tools/list` declaration must expose `readOnlyHint: true`, `destructiveHint: false`, and parameters `query` (string) and `limit` (number or integer). If it declares `tenant_uuid` (string), the configured tenant is passed; a tool that takes the tenant from the token may omit it. Additional required parameters are unsupported. The app never passes a user ID: **roleALPHA must return only the signed-in user's own drafts** and enforce tenant and permission checks itself.
+
+The call supplies the search text (possibly empty) and `limit: 20`. Return `structuredContent` or JSON in an MCP text block:
+
+```json
+{
+  "drafts": [
+    {
+      "draftId": "0b6f…",
+      "title": "Finance role change",
+      "entityType": "role",
+      "status": "draft",
+      "url": "https://rolealpha.organization.example/drafts?draft=0b6f…"
+    }
+  ]
+}
+```
+
+At most 20 drafts; unknown fields are rejected. A result of exactly `{ "error": "…" }` is reported as a failed search, as is an MCP result with `isError`. Every `url` must be HTTPS on the origin of `appUrl`, otherwise the whole result is rejected; the same check applies when a tension is saved. The URL must open the draft directly for a signed-in user. The tension stores only `draftId`, `title`, `entityType`, and `url`; draft content stays in roleALPHA, and the link opens in a new tab without passing tokens.
+
+Acceptance testing must cover: only own drafts are returned, tenant isolation, the deeplink opening the draft, delegated sign-in, and browser CORS from the SharePoint origins.
 
 ## Onboarding wizard
 

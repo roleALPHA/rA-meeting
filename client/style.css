@@ -1049,6 +1049,24 @@ select {
 .agenda-card .row {
   justify-content: space-between;
 }
+.agenda-order {
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
+}
+.agenda-order .button.icon {
+  width: 32px;
+  min-height: 32px;
+  padding: 6px;
+}
+.submitted {
+  margin-bottom: 24px;
+}
+.submitted ul {
+  margin: 0 0 8px;
+  padding-left: 18px;
+  line-height: 1.8;
+}
 .agenda-card.resolved {
   background: var(--muted);
   color: var(--muted-foreground);
@@ -1357,7 +1375,7 @@ dialog::backdrop {
 }
 .editor-meta {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 2fr 1fr 1fr;
   gap: 20px;
 }
 .editor-grid {

@@ -86,7 +86,7 @@ A **web part** is a component placed on a SharePoint page.
 2. Choose the option to use an existing SharePoint site. Enter the address from step 2 and select the site-check action. The app checks reachability and permissions before creating content.
 3. If you need a new workspace instead, choose the option to create a SharePoint site. Enter a name and a short address name containing letters, numbers, and hyphens. Review the displayed address and create the site. If creation remains in progress, check its status again shortly. This creates a standalone team site, not a Microsoft Team. Your signed-in account becomes the owner. Organizational policies still apply. Ask your SharePoint administrator to investigate if creation fails.
 4. On the access/settings review screen, open the site-permissions link in a new tab. Review people and groups. Make any required changes in SharePoint, then return to the wizard. The wizard does not change access rights itself.
-5. At the top of the app, choose the language for new starter templates and, if preferred, **Agenda** instead of **Tensions**. Existing templates are not translated or overwritten. Display preferences are personal to your browser.
+5. At the top of the app, choose the language for new starter templates. Existing templates are not translated or overwritten. The language is a personal browser preference. Whether a meeting processes **Tensions** or **Agenda items** is set per template under **Templates**.
 6. Keep the landing-page option selected if you want the wizard to prepare a dedicated app page. It does not replace the site's home page or overwrite an unrelated existing page with the same filename. You can disable this option for a Teams-only workspace.
 7. Confirm that you have reviewed the authorized audience, then start workspace setup.
 8. Wait for the workspace-ready confirmation. The app creates storage and starter templates, then performs a write/read test. If an error occurs, previously created components remain. Go back, resolve the cause, and run setup again. Do not begin troubleshooting by deleting the created lists.
@@ -201,7 +201,8 @@ Complete these checks before sharing the app with the full group:
 - [ ] A read-only user can view content but cannot edit it.
 - [ ] A user without site access cannot access meeting data.
 - [ ] An editor can change templates.
-- [ ] German, English, French, Spanish, and Tensions/Agenda terminology work.
+- [ ] German, English, French, and Spanish work; a template set to Agenda items shows that wording in its meetings.
+- [ ] A tension submitted to a meeting is visible before it starts and joins the agenda when it starts.
 - [ ] Every enabled integration has actually been tested: Teams tab, calendar, transcript retrieval, AI, and roleALPHA transfer.
 - [ ] Responsibility for permissions, retention, and recovery is documented.
 
