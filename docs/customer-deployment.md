@@ -128,6 +128,12 @@ Skip this step if you initially want to create meetings manually and import tran
 
 These approvals apply to the shared SharePoint authentication component, not exclusively to this web part. See [Microsoft's API approval guidance](https://learn.microsoft.com/en-us/sharepoint/dev/spfx/use-aadhttpclient).
 
+**Tenant-wide effect:** SharePoint grants approved permissions to the shared *SharePoint Online Client Extensibility Web Application Principal*. Every SharePoint Framework solution in the tenant can then request tokens with these permissions for the signed-in user, including `OnlineMeetingTranscript.Read.All` and any approved AI or roleALPHA scopes. Before approving:
+
+- Restrict who can add solutions to the app catalog and review which solutions are deployed.
+- Approve only the permissions of features you use.
+- Review approved API access regularly and remove entries that are no longer needed.
+
 ## 8. Optional: make the apps available in Teams
 
 1. Return to **Manage apps** in the SharePoint app catalog.

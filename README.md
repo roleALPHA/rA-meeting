@@ -73,6 +73,8 @@ The app creates two storage areas:
 - `rA Meetings Browser Index`: record and version index.
 - `rA Meetings Browser Data`: document library containing stored content.
 
+SharePoint permissions are the only enforced boundary: editors can change stored content directly, bypassing the app's rules. The meeting view flags inconsistent data, but this is not tamper protection. Approved API permissions apply to all SharePoint Framework solutions in the tenant. See the [technical deployment guide](docs/technical-deployment.md#security-model-and-trust-boundary).
+
 Concurrent updates are checked for conflicts. Earlier versions of content files are kept; site owners can move files left by interrupted saves to the recycle bin under **Connections**. Retention, deletion, and recovery must cover both storage areas.
 
 ## Installation

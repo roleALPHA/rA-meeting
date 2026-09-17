@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ArrowRight,
   Check,
@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { outputLabels, type Bootstrap, type Meeting, type Outcome } from '../shared/model';
 import { useApi } from './api-context';
+import { checkMeeting } from '../shared/integrity';
 import { GovernanceAssistant } from './GovernanceAssistant';
 import { Assistant } from './Assistant';
 import { t as tr, language } from './i18n';
@@ -75,6 +76,7 @@ export function MeetingRoom({
   const post = (path: string, body: Record<string, unknown> = {}) =>
     request<Meeting>(`/meetings/${m.id}/${path}`, { ...body, revision: m.revision });
   const approved = m.outcomes.filter(o => o.status === 'approved' && !o.export);
+  const issues = useMemo(() => checkMeeting(m), [m]);
   return (
     <>
       <div className="meeting-heading">
@@ -90,6 +92,21 @@ export function MeetingRoom({
           {tr(statusLabels[m.status])}
         </span>
       </div>
+      {issues.length > 0 && (
+        <div className="notice" role="status">
+          <strong>{tr('Hinweis zur Datenkonsistenz')}</strong>
+          <ul>
+            {[...new Set(issues.map(i => i.message))].map(message => (
+              <li key={message}>{tr(message)}</li>
+            ))}
+          </ul>
+          <p className="small">
+            {tr(
+              'Diese Prüfung erkennt Abweichungen von den Regeln der App, zum Beispiel nach direkter Bearbeitung in SharePoint. Sie ist kein Manipulationsschutz.',
+            )}
+          </p>
+        </div>
+      )}
       <CalendarLink
         meeting={m}
         editable={editable}

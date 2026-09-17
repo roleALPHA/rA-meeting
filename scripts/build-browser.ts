@@ -85,3 +85,5 @@ await writeFile(
 await mkdir('work', { recursive: true });
 await writeFile('work/browser-bundle-inputs.json', JSON.stringify(Object.keys(result.metafile!.inputs), null, 2));
 console.log('Browser-only bundle built. No server, SQL, client secret or /api fallback dependency.');
+console.log('Requested API permissions (after approval available to all SPFx solutions in the tenant):');
+for (const permission of unique) console.log(`  - ${permission.resource}: ${permission.scope}`);

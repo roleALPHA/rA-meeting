@@ -43,6 +43,17 @@ Services must allow CORS from the actual SharePoint origins. For MCP, allow `Aut
 
 **MCP write contract:** Streamable HTTP, using `create_meeting` or an explicitly mapped `create_*` tool with `tenant_uuid`, `name`, `custom_id`, and `data`. The app checks advertised tools and the shared schema before writing. The expected confirmation is `{"draft_created":true,"draftId":"…","entityUuid":"…","status":"draft"}`. An uncertain response locks the outcome; writes are not retried automatically. Closing a tab during export can leave a `sending` status. After five minutes, the interface permits documented manual reconciliation.
 
+## Security model and trust boundary
+
+SharePoint permissions are the only enforced access boundary. The app runs entirely in the browser with the signed-in user's permissions; there is no server component that could enforce rules independently.
+
+- Readers of the workspace site can read all stored content, including transcripts and historical versions.
+- Editors can change stored content directly through SharePoint, bypassing the app. Rules the app applies (allowed outcome types per step, approval before transfer, immutable transferred outcomes, evidence references) guide users but are not security controls.
+- The meeting view runs a consistency check and shows a notice when stored data deviates from these rules, for example after direct editing. This check can detect inconsistencies; it cannot prevent or reliably detect deliberate manipulation.
+- Enforcing such rules against editors would require a server-side component, which is deliberately not part of this product. Use separately permissioned sites and SharePoint auditing where this matters.
+
+Approved API permissions are granted to the shared SharePoint Online Client Extensibility Web Application Principal and are therefore available to every SharePoint Framework solution in the tenant (see the [administrator guide](customer-deployment.md)). The build prints the permissions a package requests.
+
 ## AI providers
 
 `ai.provider` selects one AI service. All providers receive the same tasks (transcript analysis, proposal forming, objection integration, governance answers), and every answer passes the same validation: unknown steps, outcome types, transcript segments, or governance source IDs are rejected, and nothing is approved automatically. The interface shows which provider produced a suggestion.

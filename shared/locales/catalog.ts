@@ -2915,4 +2915,50 @@ export const catalog: Record<string, { en: string; fr: string; es: string }> = {
     fr: 'La sélection de transcription a changé. Rechargez l’aperçu.',
     es: 'La selección de la transcripción ha cambiado. Vuelve a cargar la vista previa.',
   },
+  'Hinweis zur Datenkonsistenz': {
+    en: 'Data consistency notice',
+    fr: 'Avis de cohérence des données',
+    es: 'Aviso de coherencia de datos',
+  },
+  'Diese Prüfung erkennt Abweichungen von den Regeln der App, zum Beispiel nach direkter Bearbeitung in SharePoint. Sie ist kein Manipulationsschutz.':
+    {
+      en: 'This check detects deviations from the app’s rules, for example after direct editing in SharePoint. It is not tamper protection.',
+      fr: 'Cette vérification détecte les écarts par rapport aux règles de l’application, par exemple après une modification directe dans SharePoint. Ce n’est pas une protection contre la manipulation.',
+      es: 'Esta comprobación detecta desviaciones de las reglas de la aplicación, por ejemplo tras una edición directa en SharePoint. No es una protección contra manipulaciones.',
+    },
+  'Der aktuelle Schritt passt nicht zum Template.': {
+    en: 'The current step does not match the template.',
+    fr: 'L’étape actuelle ne correspond pas au modèle.',
+    es: 'El paso actual no coincide con la plantilla.',
+  },
+  'Ein Ergebnis hat einen Typ, der in seinem Schritt nicht erlaubt ist.': {
+    en: 'An outcome has a type that is not allowed in its step.',
+    fr: 'Un résultat a un type non autorisé dans son étape.',
+    es: 'Un resultado tiene un tipo que no está permitido en su paso.',
+  },
+  'Ein Ergebnis verweist auf einen Agendapunkt eines anderen Schritts.': {
+    en: 'An outcome refers to an agenda item of another step.',
+    fr: 'Un résultat fait référence à un point d’ordre du jour d’une autre étape.',
+    es: 'Un resultado hace referencia a un punto del orden del día de otro paso.',
+  },
+  'Ein Ergebnis verweist auf Transkriptstellen, die es nicht gibt.': {
+    en: 'An outcome refers to transcript passages that do not exist.',
+    fr: 'Un résultat fait référence à des passages de transcription inexistants.',
+    es: 'Un resultado hace referencia a pasajes de la transcripción que no existen.',
+  },
+  'Ein bestätigtes Ergebnis hat keine Bestätigungsangaben.': {
+    en: 'An approved outcome has no approval details.',
+    fr: 'Un résultat approuvé n’a pas d’informations d’approbation.',
+    es: 'Un resultado aprobado no tiene datos de aprobación.',
+  },
+  'Ein übertragenes Ergebnis ist nicht bestätigt.': {
+    en: 'A transferred outcome is not approved.',
+    fr: 'Un résultat transféré n’est pas approuvé.',
+    es: 'Un resultado transferido no está aprobado.',
+  },
+  'Für eine Übertragung fehlt der Eintrag im Verlauf.': {
+    en: 'A transfer has no entry in the history.',
+    fr: 'Un transfert n’a pas d’entrée dans l’historique.',
+    es: 'Una transferencia no tiene entrada en el historial.',
+  },
 };
