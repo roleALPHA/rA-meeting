@@ -584,4 +584,24 @@ export const es: Record<MessageId, string> = {
   'error.sharepointRest.invalidId': 'Identificador de SharePoint no válido.',
   'error.sharepointRest.http': 'SharePoint: HTTP {status}',
   'labels.okr': 'OKR',
+  'settings.teamsRecording.title': 'Grabación y transcripción de Teams',
+  'settings.teamsRecording.description':
+    'Define qué opción de reunión de Teams aplica rA Meetings al vincular o actualizar un evento. Solo el organizador puede establecerla; en reuniones periódicas se aplica a toda la serie. Que surta efecto depende de las licencias y las directivas de Teams.',
+  'settings.teamsRecording.off': 'No cambiar',
+  'settings.teamsRecording.allowTranscription': 'Permitir la transcripción (iniciar en la reunión)',
+  'settings.teamsRecording.recordAndTranscribe': 'Grabar y transcribir automáticamente',
+  'settings.teamsRecording.recordNotice':
+    'Las grabaciones contienen imagen y sonido y se guardan en OneDrive o SharePoint. Informa a los participantes y aclara previamente la protección de datos y la participación de los representantes de los trabajadores.',
+  'settings.teamsRecording.ownersOnly': 'Solo los propietarios del sitio pueden cambiar esta configuración.',
+  'settings.save': 'Guardar',
+  'error.settings.ownersOnly':
+    'Solo los propietarios del sitio pueden cambiar la configuración del espacio de trabajo.',
+  'calendar.teamsRecording.appliedAllow': 'Teams: la transcripción está permitida para esta reunión.',
+  'calendar.teamsRecording.appliedRecord': 'Teams: esta reunión se graba y transcribe automáticamente.',
+  'calendar.teamsRecording.notOrganizer':
+    'La opción de Teams no se estableció porque solo el organizador puede cambiarla. El organizador puede actualizar el evento aquí.',
+  'calendar.teamsRecording.notFound':
+    'La opción de Teams no se estableció porque no se encontró ninguna reunión de Teams.',
+  'calendar.teamsRecording.failed':
+    'No se pudo establecer la opción de Teams. Revisa los permisos, las licencias y las directivas de Teams.',
 };

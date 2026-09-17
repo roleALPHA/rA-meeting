@@ -12,7 +12,7 @@ The app is installed in your organization's Microsoft 365 environment. It requir
 
 Capture tensions and topics independently of individual meetings, then add them to a meeting agenda. Users who prefer different terminology can display “Agenda” instead of “Tensions” without changing stored content.
 
-Link meetings to your own calendar events and open them as Teams tabs. Authorized participants can contribute before the discussion begins. Access follows the SharePoint workspace's permissions.
+Link meetings to your own calendar events and open them as Teams tabs. Site owners can choose whether linked Teams meetings allow transcription or are recorded and transcribed automatically. Authorized participants can contribute before the discussion begins. Access follows the SharePoint workspace's permissions.
 
 ### Configure your meeting process
 

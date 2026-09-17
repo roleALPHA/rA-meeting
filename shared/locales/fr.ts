@@ -596,4 +596,23 @@ export const fr: Record<MessageId, string> = {
   'error.sharepointRest.invalidId': 'Identifiant SharePoint non valide.',
   'error.sharepointRest.http': 'SharePoint : HTTP {status}',
   'labels.okr': 'OKR',
+  'settings.teamsRecording.title': 'Enregistrement et transcription Teams',
+  'settings.teamsRecording.description':
+    'Définit l’option de réunion Teams appliquée par rA Meetings lors de l’association ou de l’actualisation d’un événement. Seul l’organisateur peut la définir ; pour les réunions récurrentes, elle s’applique à toute la série. Son effet dépend des licences et des stratégies Teams.',
+  'settings.teamsRecording.off': 'Ne pas modifier',
+  'settings.teamsRecording.allowTranscription': 'Autoriser la transcription (à démarrer pendant la réunion)',
+  'settings.teamsRecording.recordAndTranscribe': 'Enregistrer et transcrire automatiquement',
+  'settings.teamsRecording.recordNotice':
+    'Les enregistrements contiennent l’image et le son et sont stockés dans OneDrive ou SharePoint. Informez les participants et clarifiez au préalable la protection des données et la consultation des représentants du personnel.',
+  'settings.teamsRecording.ownersOnly': 'Seuls les propriétaires du site peuvent modifier ce paramètre.',
+  'settings.save': 'Enregistrer',
+  'error.settings.ownersOnly':
+    'Seuls les propriétaires du site peuvent modifier les paramètres de l’espace de travail.',
+  'calendar.teamsRecording.appliedAllow': 'Teams : la transcription est autorisée pour cette réunion.',
+  'calendar.teamsRecording.appliedRecord': 'Teams : cette réunion est enregistrée et transcrite automatiquement.',
+  'calendar.teamsRecording.notOrganizer':
+    'L’option Teams n’a pas été définie, car seul l’organisateur peut la modifier. L’organisateur peut actualiser l’événement ici.',
+  'calendar.teamsRecording.notFound': 'L’option Teams n’a pas été définie, car aucune réunion Teams n’a été trouvée.',
+  'calendar.teamsRecording.failed':
+    'L’option Teams n’a pas pu être définie. Vérifiez les autorisations, les licences et les stratégies Teams.',
 };

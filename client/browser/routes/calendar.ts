@@ -4,6 +4,7 @@ import { event } from '../../../shared/domain';
 import { calendarEntries, calendarEntry, findCalendarEntry } from '../../../shared/calendar';
 import { sha256Hex } from '../../../shared/hash';
 import type { MeetingAction, Route, RouteContext } from './types';
+import { applyTeamsRecording } from './teams';
 
 /** Marks the workspace once no calendar link without iCalUId remains. */
 const claimsComplete = { kind: 'initialized', id: 'migration-calendar-claims' };
@@ -64,6 +65,7 @@ const link: MeetingAction = async (ctx, { body }, m) => {
     m.calendar = { ...m.calendar, ...details, linkedBy: calendarLinker(m.calendar)! };
     m.scheduledAt = own.start;
     event(m, actor, 'calendar.refreshed', own.title);
+    await applyTeamsRecording(ctx, m);
     return save(m);
   }
   const eventId = z.string().min(1).max(2000).parse(body.eventId);
@@ -90,6 +92,7 @@ const link: MeetingAction = async (ctx, { body }, m) => {
   m.calendar = linked;
   m.scheduledAt = linked.start;
   event(m, actor, 'calendar.linked', linked.title);
+  await applyTeamsRecording(ctx, m);
   return save(m);
 };
 

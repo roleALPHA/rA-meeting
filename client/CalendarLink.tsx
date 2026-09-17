@@ -62,6 +62,21 @@ export function CalendarLink({
           </button>
         )}
       </div>
+      {m.calendar?.teamsRecording && (
+        <p className={`small ${m.calendar.teamsRecording.result === 'applied' ? 'muted' : 'notice'}`}>
+          {tr(
+            m.calendar.teamsRecording.result === 'applied'
+              ? m.calendar.teamsRecording.mode === 'record-and-transcribe'
+                ? 'calendar.teamsRecording.appliedRecord'
+                : 'calendar.teamsRecording.appliedAllow'
+              : m.calendar.teamsRecording.result === 'not-organizer'
+                ? 'calendar.teamsRecording.notOrganizer'
+                : m.calendar.teamsRecording.result === 'not-found'
+                  ? 'calendar.teamsRecording.notFound'
+                  : 'calendar.teamsRecording.failed',
+          )}
+        </p>
+      )}
       {show && (
         <div className="result-card">
           <h3>{tr('calendar.selectExistingEvent')}</h3>

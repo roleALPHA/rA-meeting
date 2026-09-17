@@ -7,6 +7,7 @@ import { assistanceInput } from '../../../shared/assistance';
 import { parseLanguage } from '../../../shared/i18n';
 import { analyzeBrowser, assistBrowser } from '../integrations';
 import type { MeetingAction, Route, RouteContext } from './types';
+import { findOnlineMeeting } from './teams';
 
 export const meetingRoutes: Route[] = [
   {
@@ -37,12 +38,9 @@ async function transcriptParts(ctx: RouteContext, m: Meeting) {
         : null;
   const { start, end, joinUrl } = current ?? m.calendar;
   assert(joinUrl, 'error.meetings.meetingLinkedTeams');
-  const filter = encodeURIComponent(`JoinWebUrl eq '${joinUrl.replaceAll("'", "''")}'`);
-  const meetings = (await (await read(`/me/onlineMeetings?$filter=${filter}`)).json()) as {
-    value: { id: string }[];
-  };
-  assert(meetings.value.length === 1, 'error.meetings.meetingLinkedTeams');
-  const prefix = `/me/onlineMeetings/${encodeURIComponent(meetings.value[0].id)}/transcripts`;
+  const online = await findOnlineMeeting(ctx, joinUrl);
+  assert(online, 'error.meetings.meetingLinkedTeams');
+  const prefix = `/me/onlineMeetings/${encodeURIComponent(online.id)}/transcripts`;
   let path: string | undefined = prefix;
   const parts: TranscriptPart[] = [];
   const pages = new Set<string>();

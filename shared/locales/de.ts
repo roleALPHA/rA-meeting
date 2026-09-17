@@ -595,6 +595,25 @@ export const de = {
   'error.sharepointRest.invalidId': 'Ungültige SharePoint-Kennung.',
   'error.sharepointRest.http': 'SharePoint: HTTP {status}',
   'labels.okr': 'OKR',
+  'settings.teamsRecording.title': 'Teams-Aufzeichnung und Transkription',
+  'settings.teamsRecording.description':
+    'Legt fest, welche Teams-Besprechungsoption rA Meetings beim Verknüpfen oder Abgleichen eines Termins setzt. Nur die organisierende Person kann die Option setzen; bei Serienterminen gilt sie für die ganze Serie. Ob sie wirkt, hängt von Lizenz und Teams-Richtlinien ab.',
+  'settings.teamsRecording.off': 'Nicht ändern',
+  'settings.teamsRecording.allowTranscription': 'Transkription erlauben (im Meeting starten)',
+  'settings.teamsRecording.recordAndTranscribe': 'Automatisch aufzeichnen und transkribieren',
+  'settings.teamsRecording.recordNotice':
+    'Aufzeichnungen enthalten Bild und Ton und werden in OneDrive bzw. SharePoint gespeichert. Informiere die Teilnehmenden und kläre Datenschutz und Mitbestimmung vorab.',
+  'settings.teamsRecording.ownersOnly': 'Nur Websitebesitzer können diese Einstellung ändern.',
+  'settings.save': 'Speichern',
+  'error.settings.ownersOnly': 'Nur Websitebesitzer können die Einstellungen des Arbeitsbereichs ändern.',
+  'calendar.teamsRecording.appliedAllow': 'Teams: Transkription ist für diese Besprechung erlaubt.',
+  'calendar.teamsRecording.appliedRecord': 'Teams: Diese Besprechung wird automatisch aufgezeichnet und transkribiert.',
+  'calendar.teamsRecording.notOrganizer':
+    'Die Teams-Option wurde nicht gesetzt, weil nur die organisierende Person sie ändern kann. Sie kann den Termin hier abgleichen.',
+  'calendar.teamsRecording.notFound':
+    'Die Teams-Option wurde nicht gesetzt, weil keine Teams-Besprechung gefunden wurde.',
+  'calendar.teamsRecording.failed':
+    'Die Teams-Option konnte nicht gesetzt werden. Prüfe Berechtigung, Lizenz und Teams-Richtlinien.',
 } as const;
 
 export type MessageId = keyof typeof de;

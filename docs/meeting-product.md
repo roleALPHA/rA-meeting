@@ -38,11 +38,17 @@ Outlook is the source of truth for event time and joining links. rA Meetings mai
 - Linking an individual event or a specific recurring-event occurrence.
 - Manually refreshing the link, displaying cancellation, and opening Teams/Outlook links.
 
-It does not send invitations, change events, or synchronize calendars automatically. Calendar linking does not install a Teams tab. Add that tab separately and configure its meeting selection. Joining a call does not itself create or open an rA meeting. Entries can be prepared before the event. Future automatic Teams-context detection or attendee import would require separate authorization design.
+It does not send invitations, change event details, or synchronize calendars automatically. Calendar linking does not install a Teams tab. Add that tab separately and configure its meeting selection. Joining a call does not itself create or open an rA meeting. Entries can be prepared before the event. Future automatic Teams-context detection or attendee import would require separate authorization design.
 
 Each link stores the event's `iCalUId`, which is identical for all attendees and unique per occurrence. A claim record keyed by it prevents two meetings from linking the same event, even when different attendees link it from their own calendars. Other editors can refresh a link from the copy of the event in their own calendar.
 
 Recurring occurrences share one online meeting. Transcript retrieval therefore reads the event's current times and selects transcript parts that started between 30 minutes before the start and 30 minutes after the end. The user sees the selected parts with their times and confirms the import; parts of other occurrences are excluded. If no part matches, import the VTT or TXT file manually. Attribution relies on transcript timestamps and should be checked during acceptance testing.
+
+### Teams recording and transcription
+
+Site owners choose a workspace setting under **Connections**: *do not change* (default), *allow transcription*, or *record and transcribe automatically*. When an event is linked or refreshed, the app sets the Teams meeting options `allowTranscription` and `recordAutomatically` accordingly. Microsoft Graph has no option that starts only the transcription automatically; automatic recording stores video and audio, and whether transcription starts with it depends on the tenant's Teams policies.
+
+Only the organizer can change meeting options, so the option is applied only when the organizer links or refreshes the event. Recurring series share one online meeting, so the option applies to the whole series. If the option cannot be set (not the organizer, no Teams meeting, missing approval, licensing or policy), the link is still saved and the meeting shows the reason. The app never changes the option when the setting is *do not change*, and it does not revert options when the setting is changed later. Inform participants and clarify data protection and co-determination requirements before enabling automatic recording.
 
 ## Outcomes and MCP
 

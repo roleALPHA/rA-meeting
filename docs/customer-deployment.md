@@ -117,7 +117,7 @@ Skip this step if you initially want to create meetings manually and import tran
 | Requested permission | Purpose |
 | --- | --- |
 | `Calendars.Read` | Display and link the user's own calendar events |
-| `OnlineMeetings.Read` | Locate the linked Teams meeting |
+| `OnlineMeetings.ReadWrite` | Locate the linked Teams meeting and, if enabled under **Connections → Teams recording and transcription**, set its transcription and recording option |
 | `OnlineMeetingTranscript.Read.All` | Read available transcripts accessible to the user |
 
 4. Approve required requests individually. Already approved entries do not require approval again.

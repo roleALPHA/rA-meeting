@@ -41,6 +41,7 @@ import { TemplateEditor } from './TemplateEditor';
 import { CreateMeeting } from './CreateMeeting';
 import { MeetingRoom } from './MeetingRoom';
 import { StorageMaintenance } from './StorageMaintenance';
+import { TeamsRecordingSettings } from './TeamsRecordingSettings';
 
 export function App() {
   const api = useApi();
@@ -555,11 +556,17 @@ export function App() {
                 ))}
               </div>
               <p className="notice">{tr('app.configuredMeansRequiredSettings')}</p>
-              {data.actor.workspace === 'write' && (
-                <div className="settings-grid">
-                  <StorageMaintenance busy={busy} run={run} />
-                </div>
-              )}
+              <div className="settings-grid">
+                <TeamsRecordingSettings
+                  key={data.settings.version}
+                  settings={data.settings}
+                  canManage={data.canManageWorkspace}
+                  busy={busy}
+                  run={run}
+                  reload={load}
+                />
+                {data.actor.workspace === 'write' && <StorageMaintenance busy={busy} run={run} />}
+              </div>
             </>
           )}
         </div>

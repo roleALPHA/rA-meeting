@@ -127,6 +127,29 @@ export type CalendarEntry = {
   joinUrl: string | null;
   webUrl: string | null;
   syncedAt: string;
+  /** Result of applying the workspace's Teams recording setting when the event was last linked or refreshed. */
+  teamsRecording?: TeamsRecordingResult;
+};
+export const teamsRecordingModes = ['off', 'allow-transcription', 'record-and-transcribe'] as const;
+export type TeamsRecordingMode = (typeof teamsRecordingModes)[number];
+export type TeamsRecordingResult = {
+  mode: Exclude<TeamsRecordingMode, 'off'>;
+  result: 'applied' | 'not-organizer' | 'not-found' | 'failed';
+  at: string;
+  by: string;
+};
+/** Workspace-wide settings, changed by site owners. */
+export type WorkspaceSettings = {
+  version: number;
+  teamsRecording: TeamsRecordingMode;
+  updatedAt: string | null;
+  updatedBy: string | null;
+};
+export const defaultWorkspaceSettings: WorkspaceSettings = {
+  version: 0,
+  teamsRecording: 'off',
+  updatedAt: null,
+  updatedBy: null,
 };
 export const calendarLinker = (entry: CalendarEntry) => entry.linkedBy ?? entry.organizerId;
 export type Meeting = {
@@ -173,6 +196,9 @@ export type Bootstrap = {
   actor: Actor;
   templates: Template[];
   meetings: MeetingSummary[];
+  settings: WorkspaceSettings;
+  /** Site owners may change workspace settings and run storage maintenance. */
+  canManageWorkspace: boolean;
   integrations: {
     governance?: boolean;
     entityTypes: OutputType[];

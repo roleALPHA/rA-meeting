@@ -55,7 +55,7 @@ await writeFile('spfx/src/generated/entry.ts', 'export {};\n');
 const targets = [settings.ai, settings.roleAlpha].filter(Boolean);
 const permissions = [
   { resource: 'Microsoft Graph', scope: 'Calendars.Read' },
-  { resource: 'Microsoft Graph', scope: 'OnlineMeetings.Read' },
+  { resource: 'Microsoft Graph', scope: 'OnlineMeetings.ReadWrite' },
   { resource: 'Microsoft Graph', scope: 'OnlineMeetingTranscript.Read.All' },
   ...targets.map(t => ({ resource: t!.permissionResource, scope: t!.scope })),
 ];

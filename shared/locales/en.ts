@@ -575,4 +575,22 @@ export const en: Record<MessageId, string> = {
   'error.sharepointRest.invalidId': 'Invalid SharePoint identifier.',
   'error.sharepointRest.http': 'SharePoint: HTTP {status}',
   'labels.okr': 'OKR',
+  'settings.teamsRecording.title': 'Teams recording and transcription',
+  'settings.teamsRecording.description':
+    'Sets which Teams meeting option rA Meetings applies when an event is linked or refreshed. Only the organizer can set the option; for recurring meetings it applies to the whole series. Whether it takes effect depends on licensing and Teams policies.',
+  'settings.teamsRecording.off': 'Do not change',
+  'settings.teamsRecording.allowTranscription': 'Allow transcription (start in the meeting)',
+  'settings.teamsRecording.recordAndTranscribe': 'Record and transcribe automatically',
+  'settings.teamsRecording.recordNotice':
+    'Recordings contain video and audio and are stored in OneDrive or SharePoint. Inform participants and clarify data protection and co-determination requirements in advance.',
+  'settings.teamsRecording.ownersOnly': 'Only site owners can change this setting.',
+  'settings.save': 'Save',
+  'error.settings.ownersOnly': 'Only site owners can change workspace settings.',
+  'calendar.teamsRecording.appliedAllow': 'Teams: transcription is allowed for this meeting.',
+  'calendar.teamsRecording.appliedRecord': 'Teams: this meeting is recorded and transcribed automatically.',
+  'calendar.teamsRecording.notOrganizer':
+    'The Teams option was not set because only the organizer can change it. The organizer can refresh the event here.',
+  'calendar.teamsRecording.notFound': 'The Teams option was not set because no Teams meeting was found.',
+  'calendar.teamsRecording.failed':
+    'The Teams option could not be set. Check permissions, licensing and Teams policies.',
 };

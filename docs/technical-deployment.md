@@ -129,6 +129,7 @@ The adapters are tested against simulated responses only. Before enabling a prov
 - [ ] Copilot: Work IQ is enabled, a test conversation works with web grounding disabled, and a long transcript stays within the request limits.
 - [ ] Claude: the deployment name, structured output, and the RBAC assignment work for an ordinary user.
 - [ ] Each enabled function works with test data: transcript analysis, proposal forming, and a governance question.
+- [ ] Teams recording setting: as organizer, link an Outlook-created Teams event and check in the Teams meeting options that transcription and, if selected, automatic recording are set; check that transcription starts as expected under your policies.
 
 If a service cannot be called directly from the browser, it is not supported. Do not add a proxy; the app must run without infrastructure outside the Microsoft 365 tenant apart from the configured AI service and roleALPHA.
 

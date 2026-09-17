@@ -2,6 +2,8 @@ import { outputTypes, type Bootstrap, type Meeting, type Template, type Tension 
 import { summarize } from '../../../shared/meeting-store';
 import { askGovernance } from '../governance';
 import { backfillCalendarClaims } from './calendar';
+import { loadSettings } from './settings';
+import { workspaceAccess } from '../../../shared/storage/sharepoint-rest';
 import type { Route } from './types';
 
 export const workspaceRoutes: Route[] = [
@@ -20,6 +22,8 @@ export const workspaceRoutes: Route[] = [
         templates: await store.list<Template>(actor.tenantId, 'template'),
         meetings,
         tensions: await store.list<Tension>(actor.tenantId, 'tension'),
+        settings: await loadSettings(ctx),
+        canManageWorkspace: (await workspaceAccess(host.sharepoint)).provision,
         integrations: {
           storage: 'sharepoint',
           governance: !!host.settings.ai && !!host.settings.roleAlpha?.governance,
