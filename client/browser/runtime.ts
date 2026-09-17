@@ -10,6 +10,7 @@ import { templateRoutes } from './routes/templates';
 import { tensionRoutes } from './routes/tensions';
 import { meetingActions, meetingRoutes } from './routes/meetings';
 import { exportActions } from './routes/export';
+import { maintenanceRoutes } from './routes/maintenance';
 
 export type AppApi = {
   openSetup?: () => void;
@@ -48,6 +49,7 @@ const routes: Route[] = [
   ...tensionRoutes,
   ...meetingRoutes,
   ...meetingItemRoutes,
+  ...maintenanceRoutes,
 ];
 
 export async function createBrowserApi(host: BrowserHost): Promise<AppApi> {

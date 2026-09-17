@@ -2823,4 +2823,70 @@ export const catalog: Record<string, { en: string; fr: string; es: string }> = {
     fr: 'Chargement de la réunion …',
     es: 'Cargando la reunión …',
   },
+  'Speicher bereinigen': {
+    en: 'Clean up storage',
+    fr: 'Nettoyer le stockage',
+    es: 'Limpiar el almacenamiento',
+  },
+  'Findet Inhaltsdateien aus abgebrochenen oder überholten Speichervorgängen, auf die kein Eintrag mehr verweist. Frühere Versionen bleiben erhalten. Nur für Websitebesitzer.':
+    {
+      en: 'Finds content files from interrupted or superseded saves that no entry references. Earlier versions are kept. Site owners only.',
+      fr: 'Trouve les fichiers de contenu issus d’enregistrements interrompus ou remplacés, auxquels aucune entrée ne fait référence. Les versions antérieures sont conservées. Réservé aux propriétaires du site.',
+      es: 'Encuentra archivos de contenido de guardados interrumpidos o sustituidos a los que ninguna entrada hace referencia. Las versiones anteriores se conservan. Solo para propietarios del sitio.',
+    },
+  'Verwaiste Dateien suchen': {
+    en: 'Find orphaned files',
+    fr: 'Rechercher les fichiers orphelins',
+    es: 'Buscar archivos huérfanos',
+  },
+  Dateien: {
+    en: 'files',
+    fr: 'fichiers',
+    es: 'archivos',
+  },
+  'Ich möchte diese Dateien in den SharePoint-Papierkorb verschieben.': {
+    en: 'I want to move these files to the SharePoint recycle bin.',
+    fr: 'Je souhaite déplacer ces fichiers vers la corbeille SharePoint.',
+    es: 'Quiero mover estos archivos a la papelera de reciclaje de SharePoint.',
+  },
+  'In den Papierkorb verschieben': {
+    en: 'Move to recycle bin',
+    fr: 'Déplacer vers la corbeille',
+    es: 'Mover a la papelera de reciclaje',
+  },
+  'Dateien in den Papierkorb verschoben. Sie lassen sich dort wiederherstellen.': {
+    en: 'files moved to the recycle bin. They can be restored there.',
+    fr: 'fichiers déplacés vers la corbeille. Ils peuvent y être restaurés.',
+    es: 'archivos movidos a la papelera de reciclaje. Se pueden restaurar allí.',
+  },
+  'Nur Websitebesitzer können den Speicher bereinigen.': {
+    en: 'Only site owners can clean up storage.',
+    fr: 'Seuls les propriétaires du site peuvent nettoyer le stockage.',
+    es: 'Solo los propietarios del sitio pueden limpiar el almacenamiento.',
+  },
+  'Die Speicherbereinigung ist für diesen Speicher nicht verfügbar.': {
+    en: 'Storage cleanup is not available for this storage.',
+    fr: 'Le nettoyage n’est pas disponible pour ce stockage.',
+    es: 'La limpieza no está disponible para este almacenamiento.',
+  },
+  'Dieser Termin kann erst abgeglichen werden, wenn die Person, die ihn verknüpft hat, die App erneut geöffnet hat.': {
+    en: 'This event can be refreshed once the person who linked it has opened the app again.',
+    fr: 'Cet événement pourra être actualisé lorsque la personne qui l’a associé aura rouvert l’application.',
+    es: 'Este evento se podrá actualizar cuando la persona que lo vinculó vuelva a abrir la aplicación.',
+  },
+  'Dieser Termin ist nicht in deinem Kalender. Bitte die Person fragen, die ihn verknüpft hat.': {
+    en: 'This event is not in your calendar. Ask the person who linked it.',
+    fr: 'Cet événement n’est pas dans votre calendrier. Demandez à la personne qui l’a associé.',
+    es: 'Este evento no está en tu calendario. Pregunta a la persona que lo vinculó.',
+  },
+  'Der Kalender hat keine eindeutige Termin-ID geliefert.': {
+    en: 'The calendar did not return a unique event ID.',
+    fr: 'Le calendrier n’a pas renvoyé d’identifiant d’événement unique.',
+    es: 'El calendario no devolvió un identificador de evento único.',
+  },
+  'Ungültige Datensatzkennung.': {
+    en: 'Invalid record identifier.',
+    fr: 'Identifiant d’enregistrement non valide.',
+    es: 'Identificador de registro no válido.',
+  },
 };

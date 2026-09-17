@@ -73,7 +73,7 @@ The app creates two storage areas:
 - `rA Meetings Browser Index`: record and version index.
 - `rA Meetings Browser Data`: document library containing stored content.
 
-Concurrent updates are checked for conflicts. Old content files are not currently cleaned up automatically. Retention, deletion, and recovery must cover both storage areas.
+Concurrent updates are checked for conflicts. Earlier versions of content files are kept; site owners can move files left by interrupted saves to the recycle bin under **Connections**. Retention, deletion, and recovery must cover both storage areas.
 
 ## Installation
 

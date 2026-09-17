@@ -26,11 +26,12 @@ import { GovernanceAssistant } from './GovernanceAssistant';
 import { Preferences } from './Preferences';
 import { t as tr, language, usePreferences } from './i18n';
 import { Button, Modal } from './ui';
-import { categoryLabels } from './labels';
+import { aiProviderLabels, categoryLabels } from './labels';
 import { statusLabels } from './labels';
 import { TemplateEditor } from './TemplateEditor';
 import { CreateMeeting } from './CreateMeeting';
 import { MeetingRoom } from './MeetingRoom';
+import { StorageMaintenance } from './StorageMaintenance';
 
 export function App() {
   const api = useApi();
@@ -520,7 +521,11 @@ export function App() {
                     title: 'KI-Analyse',
                     icon: <WandSparkles size={22} />,
                     ready: data.integrations.ai,
-                    value: data.integrations.ai ? tr('Endpunkt konfiguriert') : tr('Noch nicht verbunden'),
+                    value: data.integrations.aiProvider
+                      ? aiProviderLabels[data.integrations.aiProvider]
+                      : data.integrations.ai
+                        ? tr('Endpunkt konfiguriert')
+                        : tr('Noch nicht verbunden'),
                     description:
                       'Ergebnisvorschläge mit Quellen aus dem Transkript. Jede Übernahme bleibt nachvollziehbar.',
                   },
@@ -557,6 +562,11 @@ export function App() {
                   '„Konfiguriert“ bedeutet, dass die erforderlichen Einstellungen vorhanden sind. Die Verbindung wird bei der jeweiligen Aktion geprüft.',
                 )}
               </p>
+              {data.actor.workspace === 'write' && (
+                <div className="settings-grid">
+                  <StorageMaintenance busy={busy} run={run} />
+                </div>
+              )}
             </>
           )}
         </div>

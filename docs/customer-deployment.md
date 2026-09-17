@@ -219,7 +219,11 @@ Complete these checks before sharing the app with the full group:
 
 The app processes data while it is in use. Calendar retrieval, transcript imports, AI calls, and transfers are explicitly started. There is no automatic background processing after the tab closes. Power Automate is neither required nor installed.
 
-Set retention and recovery rules for **both** storage areas from step 6. Historical and unreferenced content files are not automatically cleaned up. Deleting a record in the interface therefore does not permanently erase every historical copy. Test restoration of the index and library together.
+Set retention and recovery rules for **both** storage areas from step 6. Historical content files are kept and are not cleaned up automatically. Deleting a record in the interface therefore does not permanently erase every historical copy. Test restoration of the index and library together.
+
+A save that fails after uploading its content file moves that file to the SharePoint recycle bin. Files left by interrupted saves (for example a closed tab or lost connection) can be removed by a site owner under **Connections → Clean up storage**. Only files that no entry references, that belong to an existing entry, and that are older than 24 hours are offered; earlier versions, files of deleted entries, and files from app versions before this feature are never included. Files are moved to the recycle bin and can be restored there.
+
+Meeting transcripts are stored as separate entries. Meetings saved by earlier versions keep their transcript inline until they are next saved.
 
 Data from an older prototype is not automatically migrated. Plan any transfer with the responsible people, accounting for shared read access in the new workspace.
 
