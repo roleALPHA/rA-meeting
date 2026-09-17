@@ -1,0 +1,8 @@
+package-lock.json
+spfx/package-lock.json
+spfx/src/generated/
+spfx/lib/
+spfx/temp/
+dist/
+work/
+node_modules/

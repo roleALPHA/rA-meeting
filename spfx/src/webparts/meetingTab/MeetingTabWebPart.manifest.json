@@ -6,10 +6,7 @@
   "version": "*",
   "manifestVersion": 2,
   "requiresCustomScript": false,
-  "supportedHosts": [
-    "SharePointWebPart",
-    "TeamsMeetingApp"
-  ],
+  "supportedHosts": ["SharePointWebPart", "TeamsMeetingApp"],
   "supportsFullBleed": true,
   "preconfiguredEntries": [
     {

@@ -9,7 +9,9 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 4310 --strictPort",
     "build": "npm run check && npm run spfx:build",
-    "check": "tsc --noEmit",
+    "check": "tsc --noEmit && npm run format:check",
+    "format": "prettier --write client shared scripts tests spfx/src vite.config.ts",
+    "format:check": "prettier --check client shared scripts tests spfx/src vite.config.ts",
     "test": "node --import tsx --test tests/*.test.ts",
     "spfx:build": "node --import tsx scripts/build-browser.ts && node scripts/package-spfx.mjs",
     "spfx:install": "npm ci --prefix spfx --cache .npm-cache --no-audit --no-fund"
@@ -28,6 +30,7 @@
     "@types/react-dom": "17.0.26",
     "@vitejs/plugin-react": "^5.2.0",
     "esbuild": "^0.28.1",
+    "prettier": "3.9.7",
     "tsx": "^4.23.1",
     "typescript": "^5.6.3",
     "vite": "^7.3.5"
