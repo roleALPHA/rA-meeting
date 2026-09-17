@@ -21,7 +21,7 @@ The package builder configures nonsecret endpoints in `spfx/customer.config.json
     "permissionResource": "WORK-IQ-APPLICATION-DISPLAY-NAME"
   },
   "roleAlpha": {
-    "url": "https://rolealpha.organization.example/mcp",
+    "url": "https://rolealpha.organization.example/api/mcp",
     "resource": "api://ORGANIZATION-ROLEALPHA-APPLICATION-ID",
     "permissionResource": "roleALPHA Governance",
     "scope": "access_as_user",
@@ -206,7 +206,7 @@ The call supplies the search text (possibly empty) and `limit: 20`. Return `stru
 }
 ```
 
-At most 20 drafts; unknown fields are rejected. Every `url` must be HTTPS on the origin of `appUrl`, otherwise the whole result is rejected; the same check applies when a tension is saved. The URL must open the draft directly for a signed-in user. The tension stores only `draftId`, `title`, `entityType`, and `url`; draft content stays in roleALPHA, and the link opens in a new tab without passing tokens.
+At most 20 drafts; unknown fields are rejected. A result of exactly `{ "error": "…" }` is reported as a failed search, as is an MCP result with `isError`. Every `url` must be HTTPS on the origin of `appUrl`, otherwise the whole result is rejected; the same check applies when a tension is saved. The URL must open the draft directly for a signed-in user. The tension stores only `draftId`, `title`, `entityType`, and `url`; draft content stays in roleALPHA, and the link opens in a new tab without passing tokens.
 
 Acceptance testing must cover: only own drafts are returned, tenant isolation, the deeplink opening the draft, delegated sign-in, and browser CORS from the SharePoint origins.
 

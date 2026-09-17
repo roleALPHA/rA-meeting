@@ -196,6 +196,7 @@ test('own drafts are searched with the approved read-only tool and attached as l
   let transport: WebStandardStreamableHTTPServerTransport;
   let readOnly = true;
   let withTenant = false;
+  let failure: string | null = null;
   let results: unknown[] = [
     {
       draftId: 'd-1',
@@ -219,7 +220,9 @@ test('own drafts are searched with the approved read-only tool and attached as l
       },
       async (args: Record<string, unknown>) => {
         calls.push(args);
-        return { content: [], structuredContent: { drafts: results } };
+        // roleALPHA answers with JSON in a text block, including its errors.
+        const payload = failure ? { error: failure } : { drafts: results };
+        return { content: [{ type: 'text' as const, text: JSON.stringify(payload) }] };
       },
     );
     transport = new WebStandardStreamableHTTPServerTransport({
@@ -291,6 +294,9 @@ test('own drafts are searched with the approved read-only tool and attached as l
     /roleALPHA-Anwendung/,
   );
 
+  failure = 'Keine Berechtigung';
+  await assert.rejects(api.request('/drafts/search', { query: 'x' }), /nicht aus roleALPHA gelesen/);
+  failure = null;
   results = [{ ...(results[0] as object), url: 'https://evil.example/phish' }];
   await assert.rejects(api.request('/drafts/search', { query: 'x' }), /roleALPHA-Anwendung/);
   results = [{ draftId: 'd', title: 't', entityType: 'role', url: 'https://app.rolealpha.example/d', extra: 1 }];

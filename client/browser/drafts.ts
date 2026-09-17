@@ -77,12 +77,21 @@ export async function searchDrafts(host: BrowserHost, raw: unknown): Promise<Dra
         ? String(text.text)
         : '';
     assert(serialized.length <= 100_000, 'error.tensions.draftSearchIncompatible', 502);
-    let parsed;
+    let json: unknown;
     try {
-      parsed = draftResults.parse(JSON.parse(serialized)).drafts;
+      json = JSON.parse(serialized);
     } catch {
       throw new AppError(502, 'error.tensions.draftSearchIncompatible');
     }
+    // roleALPHA reports tool failures as {"error": "..."} in the result rather than with isError.
+    assert(
+      !(json && typeof json === 'object' && 'error' in json && Object.keys(json).length === 1),
+      'error.tensions.draftSearchFailed',
+      502,
+    );
+    const checked = draftResults.safeParse(json);
+    assert(checked.success, 'error.tensions.draftSearchIncompatible', 502);
+    const parsed = checked.data.drafts;
     // A result pointing anywhere but the configured roleALPHA application is rejected as a whole.
     return parsed.map(d => ({ ...checkDraftLink(d, drafts.appUrl), ...(d.status ? { status: d.status } : {}) }));
   } finally {
