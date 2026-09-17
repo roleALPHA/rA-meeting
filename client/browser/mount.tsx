@@ -8,7 +8,9 @@ import { Onboarding } from '../Onboarding';
 import { AppError } from '../../shared/model';
 import { errorText, t, usePreferences } from '../i18n';
 import { Preferences } from '../Preferences';
+import brandCss from '../brand.css?inline';
 import css from '../style.css?inline';
+import { installFonts, type Theme } from './brand';
 function Start({ host: initialHost }: { host: BrowserHost }) {
   usePreferences();
   const [host, setHost] = useState(initialHost);
@@ -77,19 +79,25 @@ function Start({ host: initialHost }: { host: BrowserHost }) {
     </section>
   );
 }
-/** Private React root and stylesheet; no document-wide CSS, no localhost or vendor API fallback. */
-export function mount(element: HTMLElement, host: BrowserHost): () => void {
+export type MountHandle = (() => void) & { setTheme: (theme: Theme) => void };
+/**
+ * Private React root and stylesheet; no document-wide CSS apart from the brand @font-face rules (see brand.ts),
+ * no localhost or vendor API fallback.
+ */
+export function mount(element: HTMLElement, host: BrowserHost): MountHandle {
+  installFonts(host.fonts);
+  const setTheme = (theme: Theme) => element.setAttribute('data-theme', theme);
+  setTheme(host.theme ?? 'light');
   const shadow = element.shadowRoot || element.attachShadow({ mode: 'open' });
   shadow.replaceChildren();
   const style = document.createElement('style');
-  style.textContent =
-    css.replace(':root', ':host') +
-    '\n:host{display:block;min-width:0}.app{min-height:720px}.sidebar{position:sticky;inset:auto;top:0;align-self:flex-start;flex-shrink:0;height:720px}.app main{margin-left:0;min-width:0;flex:1}.setup{padding:28px}.setup .button{margin:8px 8px 8px 0}@media(max-width:760px){.sidebar{height:auto;position:static}.app{display:block}}';
+  style.textContent = brandCss + '\n' + css;
   const root = document.createElement('div');
   shadow.append(style, root);
   ReactDOM.render(<Start host={host} />, root);
-  return () => {
+  const dispose = () => {
     ReactDOM.unmountComponentAtNode(root);
     shadow.replaceChildren();
   };
+  return Object.assign(dispose, { setTheme });
 }

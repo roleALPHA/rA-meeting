@@ -1,7 +1,6 @@
 import type { MessageId } from './de.js';
 
 export const fr: Record<MessageId, string> = {
-  'app.meetings': 'RÉUNIONS',
   'app.meetings2': 'Réunions',
   'app.tensions': 'Tensions',
   'app.templates': 'Modèles',

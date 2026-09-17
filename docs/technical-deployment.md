@@ -144,11 +144,19 @@ npm run build
 
 Root tools use Node.js 24. SPFx 1.23.2 builds with the separate project-local Node.js 22 installation. These are development tools, not a server runtime required for installation. React is pinned to SPFx-supported version 17.0.1. Increase the version in `spfx/package.json` before distributing an update; the build derives package and solution versions from it.
 
-Output: `dist/rolealpha-meetings.sppkg`. `includeClientSideAssets` packages the code for app catalog hosting. A build check excludes server modules and test/demo code from the browser package.
+Output: `dist/rolealpha-meetings.sppkg`. `includeClientSideAssets` packages the code, fonts and icons for app catalog hosting. A build check excludes server modules and test/demo code from the browser package.
 
 `npm run dev` starts a static browser demonstration with simulated SharePoint. It displays a preview notice and keeps changes in memory only until reload.
 
 The project uses the [rA Meetings Internal Collaboration License 1.0](../LICENSE.md), effective 16 September 2026. The package script also copies the license to `dist/LICENSE.md`; include it with the installation package. Preserve applicable third-party notices when distributing artifacts.
+
+## Visual design and themes
+
+The interface follows roleALPHA's corporate design as defined in rA-app: the five brand colours Ink, Paper, Bottle, Amber and Rust, IBM Plex Sans and Mono with Instrument Serif for page titles, and the roleALPHA icon. `client/brand.css` holds the brand values and nothing else; `client/style.css` derives every colour, surface and border from them. `tests/brand.test.ts` and an ESLint rule reject raw colour values elsewhere.
+
+- **Fonts ship in the package.** The eight `.woff2` files (about 170 KB) are emitted as separate files into ClientSideAssets and served from the tenant; no font service is contacted. Browsers ignore `@font-face` inside the web part's shadow root, so the app registers these rules once on the page in a `style[data-ra-fonts]` element. It contains `@font-face` rules only, with `rA`-prefixed family names that do not collide with the page's own fonts. All other styles stay inside the shadow root.
+- **Themes.** In Teams the app follows the client theme — default, dark and high contrast — and switches when the user changes it. On SharePoint pages it stays light. Windows high-contrast mode (forced colours) is respected in every host.
+- **Icons.** The web parts carry the roleALPHA icon in the SharePoint toolbox, and `spfx/teams/` provides the colour and outline icons Microsoft uses when the package is made available in Teams.
 
 ## Governance questions: roleALPHA read contract
 

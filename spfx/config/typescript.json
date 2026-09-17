@@ -3,7 +3,8 @@
   "staticAssetsToCopy": {
     "fileExtensions": [
       ".png",
-      ".svg"
+      ".svg",
+      ".woff2"
     ],
     "includeGlobs": []
   }

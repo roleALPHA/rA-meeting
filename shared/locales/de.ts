@@ -1,6 +1,5 @@
 /** German source texts. Keys are stable message IDs; `@agenda` variants apply with the "Agenda" terminology. */
 export const de = {
-  'app.meetings': 'MEETINGS',
   'app.meetings2': 'Meetings',
   'app.tensions': 'Spannungen',
   'app.templates': 'Templates',

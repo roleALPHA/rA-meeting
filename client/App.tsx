@@ -42,6 +42,7 @@ import { CreateMeeting } from './CreateMeeting';
 import { MeetingRoom } from './MeetingRoom';
 import { StorageMaintenance } from './StorageMaintenance';
 import { TeamsRecordingSettings } from './TeamsRecordingSettings';
+import { BrandMark } from './BrandMark';
 
 export function App() {
   const api = useApi();
@@ -138,12 +139,10 @@ export function App() {
     <div className="app">
       <aside className="sidebar">
         <div className="brand">
-          <div className="brand-mark">
-            r<span>A</span>
-          </div>
+          <BrandMark className="brand-mark" label="roleALPHA" />
           <div>
-            role<span>ALPHA</span>
-            <small>{tr('app.meetings')}</small>
+            <strong>roleALPHA</strong>
+            <small>{tr('app.meetings2')}</small>
           </div>
         </div>
         <nav>
