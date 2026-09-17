@@ -1,4 +1,4 @@
-import { sha256 } from '@noble/hashes/sha2.js';
+import { sha256Hex } from './hash.js';
 const randomUUID = () => crypto.randomUUID();
 import { z } from 'zod';
 import { assert, outcomeInput, templateInput, type Actor, type Meeting, type Segment, type Template } from './model.js';
@@ -89,9 +89,7 @@ export function addOutcome(m: Meeting, actor: Actor, raw: unknown, source: 'manu
 }
 export function setTranscript(m: Meeting, actor: Actor, segments: Segment[]) {
   assert(segments.length > 0, 'Das Transkript enthält keinen Text.');
-  const hash = Array.from(sha256(new TextEncoder().encode(JSON.stringify(segments))), n =>
-    n.toString(16).padStart(2, '0'),
-  ).join('');
+  const hash = sha256Hex(JSON.stringify(segments));
   if (m.transcriptHash === hash) return false;
   assert(
     !m.outcomes.some(o => o.source === 'ai' && (o.status === 'approved' || o.export)),

@@ -19,6 +19,23 @@ type Row = {
   'odata.etag'?: string;
   '@odata.etag'?: string;
 };
+type LibraryFile = {
+  Id: number;
+  UniqueId: string;
+  FileLeafRef: string;
+  Created: string;
+  File?: { Length?: number | string };
+};
+export type OrphanFile = { id: string; name: string; created: string; size: number };
+const orphanMinAge = 24 * 60 * 60 * 1000;
+const recordSegment = (value: string) => {
+  assert(/^[A-Za-z0-9.-]{1,120}$/.test(value), 'Ungültige Datensatzkennung.');
+  return value;
+};
+/** Content file name: record kind, record ID and version identify superseded or interrupted writes later. */
+export const payloadName = (kind: string, id: string, version: number) =>
+  `${recordSegment(kind)}__${recordSegment(id)}__v${version}__${crypto.randomUUID()}.json`;
+const payloadPattern = /^([A-Za-z0-9.-]+)__([A-Za-z0-9.-]+)__v(\d+)__[0-9a-f-]{36}\.json$/i;
 export type WorkspaceAccess = { write: boolean; provision: boolean };
 export async function spJson<T>(request: SPRequest, path: string, init?: RequestInit): Promise<T> {
   const r = await request(path, init);
@@ -125,19 +142,16 @@ export class SharePointRestStore implements Repository {
       503,
     );
   }
-  private async rows(filter: string) {
-    let path: string | undefined =
-      `${this.prefix}/items?$select=Id,RecordKey,RecordKind,RecordId,RecordVersion,PayloadId&$filter=${encodeURIComponent(filter)}&$top=200`;
-    const rows: Row[] = [];
+  /** Reads all pages of a list query; continuation links must stay on the same list. */
+  private async pages<T>(list: string, query: string): Promise<T[]> {
+    let path: string | undefined = `${list}/items?${query}`;
+    const items: T[] = [];
     const seen = new Set<string>();
     while (path) {
       assert(!seen.has(path), 'Ungültige SharePoint-Folgeseite.', 502);
       seen.add(path);
-      const p: { value: Row[]; 'odata.nextLink'?: string; '@odata.nextLink'?: string } = await spJson(
-        this.request,
-        path,
-      );
-      rows.push(...p.value);
+      const p: { value: T[]; 'odata.nextLink'?: string; '@odata.nextLink'?: string } = await spJson(this.request, path);
+      items.push(...p.value);
       const next = p['odata.nextLink'] || p['@odata.nextLink'];
       if (!next) break;
       const u = new URL(next, this.webUrl);
@@ -145,13 +159,19 @@ export class SharePointRestStore implements Repository {
       const prefix = base.pathname.replace(/\/$/, '') + '/_api';
       assert(
         u.origin === base.origin &&
-          decodeURIComponent(u.pathname).toLowerCase() === (prefix + this.prefix + '/items').toLowerCase(),
+          decodeURIComponent(u.pathname).toLowerCase() === (prefix + list + '/items').toLowerCase(),
         'Ungültige SharePoint-Folgeseite.',
         502,
       );
       path = u.pathname.slice(prefix.length) + u.search;
     }
-    return rows;
+    return items;
+  }
+  private rows(filter?: string) {
+    return this.pages<Row>(
+      this.prefix,
+      `$select=Id,RecordKey,RecordKind,RecordId,RecordVersion,PayloadId${filter ? `&$filter=${encodeURIComponent(filter)}&$top=200` : '&$top=5000'}`,
+    );
   }
   private async head(kind: string, id: string) {
     return (await this.rows(`RecordKey eq '${quote(kind + ':' + id)}'`))[0];
@@ -199,7 +219,7 @@ export class SharePointRestStore implements Repository {
     assert(new TextEncoder().encode(serialized).length < 20_000_000, 'Datensatz ist zu groß.', 413);
     const file = await spJson<{ UniqueId: string }>(
       this.request,
-      `/web/lists(guid'${this.libraryId}')/RootFolder/Files/add(url='${crypto.randomUUID()}.json',overwrite=false)`,
+      `/web/lists(guid'${this.libraryId}')/RootFolder/Files/add(url='${payloadName(kind, id, version)}',overwrite=false)`,
       { method: 'POST', headers: { 'Content-Type': 'application/octet-stream' }, body: serialized },
     );
     const fields = {
@@ -210,11 +230,51 @@ export class SharePointRestStore implements Repository {
       RecordVersion: version,
       PayloadId: guid(file.UniqueId),
     };
-    await spJson(this.request, old ? `${this.prefix}/items(${old.Id})` : this.prefix + '/items', {
-      method: 'POST',
-      headers: { ...jsonHeaders, ...(old ? { 'X-HTTP-Method': 'MERGE', 'IF-MATCH': etag! } : {}) },
-      body: JSON.stringify(fields),
-    });
+    try {
+      await spJson(this.request, old ? `${this.prefix}/items(${old.Id})` : this.prefix + '/items', {
+        method: 'POST',
+        headers: { ...jsonHeaders, ...(old ? { 'X-HTTP-Method': 'MERGE', 'IF-MATCH': etag! } : {}) },
+        body: JSON.stringify(fields),
+      });
+    } catch (error) {
+      // The index still references the previous payload; move the unused upload to the recycle bin.
+      await this.recycle(file.UniqueId).catch(() => {});
+      throw error;
+    }
+  }
+  private async recycle(uniqueId: string) {
+    await spJson(this.request, `/web/GetFileById('${guid(uniqueId)}')/recycle`, { method: 'POST' });
+  }
+  /**
+   * Content files that no index entry references and that belong to an interrupted or superseded
+   * write: the record exists and its current version is not newer than the file. Historical
+   * snapshots, files of deleted records, files named by earlier versions and files younger than
+   * 24 hours are never included.
+   */
+  async findOrphans(tenant: string, now = Date.now()): Promise<OrphanFile[]> {
+    this.tenant(tenant);
+    const rows = await this.rows();
+    const referenced = new Set(rows.map(r => String(r.PayloadId).toLowerCase()));
+    const versions = new Map(rows.map(r => [r.RecordKey, r.RecordVersion]));
+    const files = await this.pages<LibraryFile>(
+      `/web/lists(guid'${guid(this.libraryId)}')`,
+      '$select=Id,UniqueId,FileLeafRef,Created,File/Length&$expand=File&$top=5000',
+    );
+    return files
+      .filter(f => {
+        const name = payloadPattern.exec(f.FileLeafRef);
+        if (!name || referenced.has(String(f.UniqueId).toLowerCase())) return false;
+        const current = versions.get(`${name[1]}:${name[2]}`);
+        return current !== undefined && current <= Number(name[3]) && now - Date.parse(f.Created) > orphanMinAge;
+      })
+      .map(f => ({ id: guid(f.UniqueId), name: f.FileLeafRef, created: f.Created, size: Number(f.File?.Length ?? 0) }));
+  }
+  /** Moves the given files to the recycle bin if they are still orphaned; returns the number moved. */
+  async recycleOrphans(tenant: string, ids: string[], now = Date.now()) {
+    const wanted = new Set(ids.map(id => id.toLowerCase()));
+    const orphans = (await this.findOrphans(tenant, now)).filter(o => wanted.has(o.id.toLowerCase()));
+    for (const orphan of orphans) await this.recycle(orphan.id);
+    return orphans.length;
   }
   async delete(tenant: string, kind: string, id: string, expected: number) {
     this.tenant(tenant);

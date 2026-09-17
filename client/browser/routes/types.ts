@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { assert, type Actor, type Meeting } from '../../../shared/model';
-import { getMeeting, saveMeeting } from '../../../shared/domain';
+import { loadMeeting, storeMeeting } from '../../../shared/meeting-store';
 import type { Repository } from '../../../shared/storage/repository';
 import { type BrowserHost, graph } from '../host';
 
@@ -35,8 +35,8 @@ export function createContext(host: BrowserHost, store: Repository, actor: Actor
     store,
     actor,
     read: (path, init) => graph(host, path, init),
-    get: (id, write = false) => getMeeting(store, actor, id, write),
-    save: m => saveMeeting(store, actor, m, m.revision),
+    get: (id, write = false) => loadMeeting(store, actor, id, write),
+    save: m => storeMeeting(store, actor, m),
   };
 }
 

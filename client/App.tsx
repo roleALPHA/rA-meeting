@@ -18,7 +18,8 @@ import {
   Send,
   Circle,
 } from 'lucide-react';
-import { type Bootstrap, type Template, type Meeting } from '../shared/model';
+import { type Bootstrap, type Template, type Meeting, type MeetingSummary } from '../shared/model';
+import { summarize } from '../shared/meeting-store';
 import { useApi } from './api-context';
 import { Tensions } from './Tensions';
 import { GovernanceAssistant } from './GovernanceAssistant';
@@ -77,8 +78,27 @@ export function App() {
         setBusy(false);
       });
   };
-  const update = (m: Meeting) =>
-    setData(d => (d ? { ...d, meetings: d.meetings.map(old => (old.id === m.id ? m : old)) } : d));
+  // The overview holds summaries; the open meeting is loaded with its transcript.
+  const [meeting, setMeeting] = useState<Meeting | null>(null);
+  const update = (m: Meeting) => {
+    setData(d => (d ? { ...d, meetings: d.meetings.map(old => (old.id === m.id ? summarize(m) : old)) } : d));
+    setMeeting(current => (current && current.id !== m.id ? current : m));
+  };
+  useEffect(() => {
+    setMeeting(null);
+    if (!selected) return;
+    let alive = true;
+    void request<Meeting>(`/meetings/${selected}`)
+      .then(m => {
+        if (alive) update(m);
+      })
+      .catch(e => {
+        if (alive) setError(tr(e.message));
+      });
+    return () => {
+      alive = false;
+    };
+  }, [selected]);
   // Refresh the shared SharePoint meeting while this view is open.
   useEffect(() => {
     if (!selected) return;
@@ -90,14 +110,13 @@ export function App() {
     }, 10_000);
     return () => clearInterval(timer);
   }, [selected]);
-  const meeting = data?.meetings.find(m => m.id === selected);
   const back = () => {
     setSelected(null);
     const u = new URL(location.href);
     u.searchParams.delete('raMeeting');
     history.replaceState(null, '', u);
   };
-  const open = (m: Meeting) => {
+  const open = (m: MeetingSummary) => {
     setSelected(m.id);
     setView('meetings');
     const u = new URL(location.href);
@@ -237,6 +256,16 @@ export function App() {
               )}
             </div>
           )}
+          {data && selected && !meeting && view === 'meetings' && (
+            <>
+              <button className="back" onClick={back}>
+                {tr('← Alle Meetings')}
+              </button>
+              <p>
+                <Loader2 size={16} className="spin" /> {tr('Meeting wird geladen …')}
+              </p>
+            </>
+          )}
           {data && meeting && view === 'meetings' && (
             <>
               <button className="back" onClick={back}>
@@ -253,7 +282,7 @@ export function App() {
               />
             </>
           )}
-          {data && !meeting && view === 'meetings' && (
+          {data && !selected && view === 'meetings' && (
             <>
               <div className="page-heading">
                 <div>
@@ -556,7 +585,7 @@ export function App() {
               const m = await request<Meeting>('/meetings', body);
               await load();
               setCreate(false);
-              open(m);
+              open(summarize(m));
             })
           }
         />

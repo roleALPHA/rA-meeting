@@ -28,7 +28,6 @@ export function CalendarLink({
       update(
         await request<Meeting>(`/meetings/${m.id}/calendar-link`, {
           revision: m.revision,
-          organizerId: entry.organizerId,
           eventId: entry.eventId,
         }),
       );

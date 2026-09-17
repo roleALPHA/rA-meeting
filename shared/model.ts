@@ -107,8 +107,16 @@ export type AgendaItem = {
 };
 export type MeetingEvent = { id: string; at: string; actor: string; type: string; detail: string };
 export type CalendarEntry = {
+  /** Event ID in the calendar of the person who linked it (immutable ID, valid only in that mailbox). */
   eventId: string;
-  organizerId: string;
+  /** Entra object ID of the person who linked the event. */
+  linkedBy: string;
+  /** @deprecated Stored by earlier versions instead of linkedBy. */
+  organizerId?: string;
+  /** Identical for all attendees and unique per occurrence; null for links made before it was stored. */
+  iCalUId: string | null;
+  /** Original start of a recurring occurrence, or the start of a single event. */
+  originalStart: string | null;
   title: string;
   start: string;
   end: string;
@@ -119,6 +127,7 @@ export type CalendarEntry = {
   webUrl: string | null;
   syncedAt: string;
 };
+export const calendarLinker = (entry: CalendarEntry) => entry.linkedBy ?? entry.organizerId;
 export type Meeting = {
   calendar?: CalendarEntry;
   id: string;
@@ -140,9 +149,13 @@ export type Meeting = {
   outcomes: Outcome[];
   transcript: Segment[];
   transcriptHash?: string;
+  /** Number of transcript segments; the segments themselves are stored in a separate transcript record. */
+  transcriptSegments?: number;
   analyzedHash?: string;
   events: MeetingEvent[];
 };
+/** Meeting without transcript segments, as listed in the workspace overview. */
+export type MeetingSummary = Omit<Meeting, 'transcript'> & { transcriptSegments: number };
 export type Tension = {
   id: string;
   version: number;
@@ -158,7 +171,7 @@ export type Bootstrap = {
   tensions: Tension[];
   actor: Actor;
   templates: Template[];
-  meetings: Meeting[];
+  meetings: MeetingSummary[];
   integrations: {
     governance?: boolean;
     entityTypes: OutputType[];

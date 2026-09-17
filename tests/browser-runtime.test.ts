@@ -102,7 +102,8 @@ test('SharePoint REST snapshots and ETags reject concurrent writes and foreign t
   );
   await store.delete(tenant, 'meeting', 'one', 2);
   await assert.rejects(store.get(tenant, 'meeting', 'one'), /nicht gefunden/);
-  assert.equal(sp.files.size, 3, 'old and unreferenced snapshots stay under customer retention');
+  assert.equal(sp.files.size, 2, 'old snapshots stay under customer retention');
+  assert.equal(sp.recycled.length, 1, 'the rejected concurrent upload goes to the recycle bin');
 });
 test('browser integration configuration rejects secrets; delegated tokens go only to the exact approved endpoint', async t => {
   const { host, tokens } = fixture();

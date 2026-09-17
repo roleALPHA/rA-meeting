@@ -2818,4 +2818,9 @@ export const catalog: Record<string, { en: string; fr: string; es: string }> = {
     fr: 'La réponse de l’IA était trop longue et est incomplète. Rien n’a été appliqué.',
     es: 'La respuesta de la IA era demasiado larga y está incompleta. No se aplicó nada.',
   },
+  'Meeting wird geladen …': {
+    en: 'Loading meeting …',
+    fr: 'Chargement de la réunion …',
+    es: 'Cargando la reunión …',
+  },
 };
