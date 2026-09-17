@@ -16,4 +16,5 @@ SPFx app for SharePoint and Teams. All logic runs in the browser; data lives in 
 
 - Node.js 24 for the root toolchain; SPFx packaging uses the project-local Node.js 22 (`npm run spfx:install`).
 - `npm run check` (TypeScript), `npm test` (node test runner with a simulated SharePoint), `npm run dev` (local preview at http://127.0.0.1:4310), `npm run build` (produces `dist/rolealpha-meetings.sppkg`).
+- After adding or upgrading a runtime dependency, run the full `npm run build`. The SPFx toolchain compiles the generated browser bundle again with its own TypeScript settings, which can fail even when `npm test` and `npm run check` pass. `spfx/tsconfig.json` targets ES2017 for this reason.
 - Repository documentation is maintained in English.
