@@ -61,7 +61,7 @@ export const templateInput = z
   });
 export type TemplateInput = z.infer<typeof templateInput>;
 export type Template = TemplateInput & { id: string; version: number; createdAt: string; updatedAt: string };
-export type Actor = { id: string; name: string; tenantId: string; admin: boolean; workspace: 'read' | 'write' };
+export type Actor = { id: string; name: string; tenantId: string; workspace: 'read' | 'write' };
 export type Segment = { id: string; start: string; end: string; speaker: string; text: string };
 export const outcomeInput = z.object({
   stepId: z.string().uuid(),

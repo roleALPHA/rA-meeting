@@ -7,7 +7,7 @@ export class TestStore extends SharePointRestStore {
     super(tenantId, 'https://customer.sharepoint.com/sites/circle', fakeSharePoint().request);
   }
 }
-export const actor: Actor = { id: user, name: 'Owner', tenantId: tenant, admin: true, workspace: 'write' };
+export const actor: Actor = { id: user, name: 'Owner', tenantId: tenant, workspace: 'write' };
 export function testHost(): BrowserHost {
   return {
     tenantId: tenant,

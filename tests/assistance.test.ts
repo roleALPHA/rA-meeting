@@ -5,7 +5,7 @@ import { createMeeting, command, getMeeting } from '../shared/domain.js';
 import { assistanceMessages } from '../shared/assistance-messages.js';
 import { assistanceInput, assistanceResult } from '../shared/assistance.js';
 import type { Actor, Template } from '../shared/model.js';
-const actor: Actor = { id: 'owner', name: 'Owner', tenantId: 'tenant', admin: true, workspace: 'write' };
+const actor: Actor = { id: 'owner', name: 'Owner', tenantId: 'tenant', workspace: 'write' };
 test('proposal forming uses scoped context; generation never changes meeting or validates objections', async () => {
   const store = new TestStore(actor.tenantId);
   await store.initialize();
@@ -31,10 +31,7 @@ test('proposal forming uses scoped context; generation never changes meeting or 
   assert.equal(m.agenda[0].phase, 0);
   assert.equal(m.agenda[0].status, 'open');
   assert.equal(m.outcomes.length, 0);
-  await assert.rejects(
-    getMeeting(store, { ...actor, id: 'reader', admin: false, workspace: 'read' }, m.id, true),
-    /Berechtigung/,
-  );
+  await assert.rejects(getMeeting(store, { ...actor, id: 'reader', workspace: 'read' }, m.id, true), /Berechtigung/);
   m.status = 'completed';
   assert.throws(
     () => command(m, actor, { type: 'agenda.proposal', id: m.agenda[0].id, proposal: 'Late' }),

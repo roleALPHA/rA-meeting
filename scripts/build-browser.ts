@@ -3,6 +3,9 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { customerSettingsSchema } from '../client/browser/host.js';
 const pkg = JSON.parse(await readFile('spfx/package.json', 'utf8')) as { version: string };
 if (!/^\d+\.\d+\.\d+$/.test(pkg.version)) throw new Error('SPFx version must have three numeric parts');
+const root = JSON.parse(await readFile('package.json', 'utf8')) as { version: string };
+if (root.version !== pkg.version)
+  throw new Error(`Version mismatch: package.json ${root.version} and spfx/package.json ${pkg.version} must be equal`);
 const settings = customerSettingsSchema.parse(JSON.parse(await readFile('spfx/customer.config.json', 'utf8')));
 await mkdir('spfx/src/generated', { recursive: true });
 await writeFile(
@@ -40,7 +43,6 @@ const unsafe = Object.keys(result.metafile!.inputs).filter(
     p.startsWith('server/') ||
     p.startsWith('tests/') ||
     p === 'client/preview.tsx' ||
-    p === 'client/api.ts' ||
     /node_modules\/(express|pg|jose)\//.test(p),
 );
 if (unsafe.length) throw new Error('Server dependency in browser package: ' + unsafe.join(', '));

@@ -16,7 +16,7 @@ import { meetingPlan } from '../client/browser/integrations.js';
 const exportPayload = (m: import('../shared/model.js').Meeting, o: import('../shared/model.js').Outcome[]) =>
   meetingPlan(testHost(), m, o).arguments as { data: { outcomes: import('../shared/model.js').Outcome[] } };
 import type { Actor, Template } from '../shared/model.js';
-const actor: Actor = { id: 'owner', name: 'Owner', tenantId: 'tenant-a', admin: true, workspace: 'write' };
+const actor: Actor = { id: 'owner', name: 'Owner', tenantId: 'tenant-a', workspace: 'write' };
 async function fixture() {
   const store = new TestStore(actor.tenantId);
   await store.initialize();
@@ -58,7 +58,7 @@ test('optimistic concurrency prevents overwriting meeting and template changes',
 test('workspace readers cannot edit and tenant isolation is enforced', async () => {
   const { store, meeting, template } = await fixture();
   await assert.rejects(getMeeting(store, { ...actor, tenantId: 'other' }, meeting.id), /Mandant/);
-  const reader: Actor = { ...actor, id: 'reader', admin: false, workspace: 'read' };
+  const reader: Actor = { ...actor, id: 'reader', workspace: 'read' };
   assert.equal((await getMeeting(store, reader, meeting.id)).id, meeting.id);
   await assert.rejects(getMeeting(store, reader, meeting.id, true), /Berechtigung/);
   await assert.rejects(saveTemplate(store, reader, template), /Berechtigung/);

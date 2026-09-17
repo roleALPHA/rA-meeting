@@ -1,20 +1,16 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import ts from 'typescript';
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { catalog } from '../shared/locales/catalog.js';
 import { translate, parseLanguage } from '../shared/i18n.js';
 import { seedTemplates } from '../shared/templates.js';
 test('all explicit UI translation keys have English, French and Spanish text', () => {
-  for (const file of [
-    'App',
-    'Tensions',
-    'CalendarLink',
-    'Assistant',
-    'Preferences',
-    'GovernanceAssistant',
-    'Onboarding',
-  ]) {
+  const files = readdirSync('client')
+    .filter(f => f.endsWith('.tsx'))
+    .map(f => f.replace(/\.tsx$/, ''));
+  assert.ok(files.includes('App') && files.includes('MeetingRoom'));
+  for (const file of files) {
     const ast = ts.createSourceFile(
       file,
       readFileSync(`client/${file}.tsx`, 'utf8'),

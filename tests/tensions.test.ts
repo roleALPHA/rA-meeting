@@ -8,7 +8,7 @@ test('tensions live independently; resolving an agenda does not resolve the tens
   const store = new TestStore('tenant');
   await store.initialize();
   await store.seed('tenant');
-  const actor = { id: 'owner', name: 'Owner', tenantId: 'tenant', admin: true, workspace: 'write' as const };
+  const actor = { id: 'owner', name: 'Owner', tenantId: 'tenant', workspace: 'write' as const };
   const template = (await store.list<Template>('tenant', 'template')).find(t => t.category === 'tactical')!;
   const tension = await saveTension(store, actor, {
     title: 'Unklare Verantwortung',
@@ -32,7 +32,7 @@ test('tensions live independently; resolving an agenda does not resolve the tens
   });
   await attachTension(store, actor, tension.id, second.id, step.id, second.revision);
   await assert.rejects(
-    saveTension(store, { ...actor, id: 'stranger', admin: false, workspace: 'read' }, tension, tension.id, 1),
+    saveTension(store, { ...actor, id: 'stranger', workspace: 'read' }, tension, tension.id, 1),
     /Berechtigung/,
   );
   const resolved = await saveTension(store, actor, { ...tension, status: 'resolved' }, tension.id, 1);
@@ -48,8 +48,8 @@ test('workspace readers cannot contribute tensions or attach them to meetings', 
   const store = new TestStore('tenant');
   await store.initialize();
   await store.seed('tenant');
-  const owner = { id: 'owner', name: 'Owner', tenantId: 'tenant', admin: true, workspace: 'write' as const };
-  const reader = { ...owner, id: 'reader', admin: false, workspace: 'read' as const };
+  const owner = { id: 'owner', name: 'Owner', tenantId: 'tenant', workspace: 'write' as const };
+  const reader = { ...owner, id: 'reader', workspace: 'read' as const };
   const template = (await store.list<Template>('tenant', 'template'))[0];
   const meeting = await createMeeting(store, owner, { templateId: template.id, title: 'Meeting', circle: 'Team' });
   const tension = await saveTension(store, owner, { title: 'Topic', circle: 'Team' });
