@@ -47,7 +47,7 @@ The interface supports **German, English, French, and Spanish**. Users choose th
 
 ## Operation and data
 
-The app is delivered as a **SharePoint Framework (SPFx)** package. Microsoft 365 serves the application files, and the app executes in the browser within Teams or SharePoint.
+The app is delivered as a **SharePoint Framework (SPFx)** package. Microsoft 365 serves the application files, including fonts and icons, and the app executes in the browser within Teams or SharePoint. In Teams it follows the light, dark and high-contrast themes.
 
 | Component | Processing and storage |
 | --- | --- |
