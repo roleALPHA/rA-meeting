@@ -1,4 +1,3 @@
-import type { MessageId } from '../shared/i18n';
 import { aiProviderLabels } from './labels';
 import React, { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';

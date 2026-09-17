@@ -13,9 +13,9 @@ import {
 import { parseTranscript } from '../shared/transcript.js';
 import { validateAnalysis } from '../shared/analysis.js';
 import { meetingPlan } from '../client/browser/integrations.js';
-const exportPayload = (m: import('../shared/model.js').Meeting, o: import('../shared/model.js').Outcome[]) =>
-  meetingPlan(testHost(), m, o).arguments as { data: { outcomes: import('../shared/model.js').Outcome[] } };
-import type { Actor, Template } from '../shared/model.js';
+import type { Actor, Meeting, Outcome, Template } from '../shared/model.js';
+const exportPayload = (m: Meeting, o: Outcome[]) =>
+  meetingPlan(testHost(), m, o).arguments as { data: { outcomes: Outcome[] } };
 const actor: Actor = { id: 'owner', name: 'Owner', tenantId: 'tenant-a', workspace: 'write' };
 async function fixture() {
   const store = new TestStore(actor.tenantId);
@@ -64,7 +64,7 @@ test('workspace readers cannot edit and tenant isolation is enforced', async () 
   await assert.rejects(saveTemplate(store, reader, template), /Berechtigung/);
 });
 test('step output allowlists and active phase boundaries cannot be bypassed', async () => {
-  const { store, meeting } = await fixture();
+  const { meeting } = await fixture();
   const agenda = meeting.template.steps.find(s => s.kind === 'agenda')!;
   assert.throws(
     () => addOutcome(meeting, actor, { stepId: meeting.template.steps[0].id, title: 'No', type: 'task' }),
@@ -80,7 +80,7 @@ test('step output allowlists and active phase boundaries cannot be bypassed', as
   assert.throws(() => command(meeting, actor, { type: 'skip' }), /nicht optional/);
 });
 test('VTT import preserves speaker and source timestamps; repeated import is idempotent', async () => {
-  const { store, meeting } = await fixture();
+  const { meeting } = await fixture();
   const segments = parseTranscript(
     'WEBVTT\n\n1\n00:00:01.000 --> 00:00:03.500\n<v Anna>Ich übernehme den Entwurf.</v>\n\n2\n00:00:04.000 --> 00:00:06.000\n<v Ben>Danke &amp; bis morgen.</v>',
   );
@@ -92,7 +92,7 @@ test('VTT import preserves speaker and source timestamps; repeated import is ide
   assert.equal(parseTranscript('[01:00 - 01:05] Alex: Hallo')[0].start, '01:00');
 });
 test('AI results need real references and cannot invent target UUIDs or allowed outputs', async () => {
-  const { store, meeting } = await fixture();
+  const { meeting } = await fixture();
   const step = meeting.template.steps.find(s => s.kind === 'agenda')!;
   setTranscript(meeting, actor, parseTranscript('Anna übernimmt den Entwurf.'));
   const outcome = {
@@ -110,7 +110,7 @@ test('AI results need real references and cannot invent target UUIDs or allowed 
   assert.throws(() => setTranscript(meeting, actor, parseTranscript('Anderer Inhalt')), /Bestätigte/);
 });
 test('editing invalidates approval and exported results cannot be edited', async () => {
-  const { store, meeting } = await fixture();
+  const { meeting } = await fixture();
   const step = meeting.template.steps.find(s => s.kind === 'agenda')!;
   addOutcome(meeting, actor, { stepId: step.id, type: 'task', title: 'Original' });
   const outcome = meeting.outcomes[0];

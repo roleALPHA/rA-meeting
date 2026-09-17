@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ArrowRight,
   CheckCircle2,
@@ -67,9 +67,9 @@ export function App() {
   useEffect(() => {
     void (async () => {
       setTeams(await initializeTeams());
-      await load();
+      setData(await request<Bootstrap>('/bootstrap'));
     })().catch(e => setError(errorText(e)));
-  }, []);
+  }, [initializeTeams, request]);
   const run = (task: () => Promise<void>) => {
     if (busyRef.current) return;
     busyRef.current = true;
@@ -91,10 +91,10 @@ export function App() {
   };
   // The overview holds summaries; the open meeting is loaded with its transcript.
   const [meeting, setMeeting] = useState<Meeting | null>(null);
-  const update = (m: Meeting) => {
+  const update = useCallback((m: Meeting) => {
     setData(d => (d ? { ...d, meetings: d.meetings.map(old => (old.id === m.id ? summarize(m) : old)) } : d));
     setMeeting(current => (current && current.id !== m.id ? current : m));
-  };
+  }, []);
   useEffect(() => {
     setMeeting(null);
     if (!selected) return;
@@ -109,7 +109,7 @@ export function App() {
     return () => {
       alive = false;
     };
-  }, [selected]);
+  }, [request, selected, update]);
   // Refresh the shared SharePoint meeting while this view is open.
   useEffect(() => {
     if (!selected) return;
@@ -120,7 +120,7 @@ export function App() {
           .catch(() => {});
     }, 10_000);
     return () => clearInterval(timer);
-  }, [selected]);
+  }, [request, selected, update]);
   const back = () => {
     setSelected(null);
     const u = new URL(location.href);

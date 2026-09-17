@@ -63,8 +63,11 @@ export function MeetingRoom({
   const [clock, setClock] = useState(Date.now());
   const step = m.template.steps[m.currentStep];
   const editable = actor.workspace === 'write';
+  // Reset the draft only when another meeting or step opens. Following m.notes would overwrite what the user is
+  // typing whenever the 10-second refresh brings in the shared meeting.
   useEffect(() => {
     setNote(m.notes[step.id] || '');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [m.id, step.id]);
   useEffect(() => {
     const timer = setInterval(() => setClock(Date.now()), 1000);

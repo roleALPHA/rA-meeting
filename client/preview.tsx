@@ -6,7 +6,7 @@ const root = document.getElementById('root')!;
 const notice = document.createElement('p');
 notice.textContent =
   'Lokale Browser-Demo · SharePoint wird simuliert · keine Kundendienste verbunden · Änderungen gelten bis zum Neuladen.';
-notice.style.cssText = 'font:14px system-ui;background:#fff3c4;padding:12px;margin:0';
+notice.style.cssText = 'font:14px system-ui;background:Mark;color:MarkText;padding:12px;margin:0';
 root.before(notice);
 document.body.style.margin = '0';
 const sp = fakeSharePoint();

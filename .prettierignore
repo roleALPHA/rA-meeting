@@ -6,3 +6,5 @@ spfx/temp/
 dist/
 work/
 node_modules/
+coverage/
+THIRD-PARTY-LICENSES.md
