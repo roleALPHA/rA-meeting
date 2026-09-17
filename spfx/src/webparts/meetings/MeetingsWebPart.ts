@@ -5,14 +5,15 @@ import {
   PropertyPaneTextField,
   PropertyPaneDropdown,
 } from '@microsoft/sp-property-pane';
-import { mount, settings } from '../../generated/app';
+import { mount, settings, teamsTheme } from '../../generated/app';
+import { fonts } from '../../generated/fonts';
 interface Properties {
   workspaceUrl?: string;
   meetingId?: string;
 }
 export default class MeetingsWebPart extends BaseClientSideWebPart<Properties> {
   private meetings: { id: string; title: string }[] = [];
-  private disposeApp?: () => void;
+  private disposeApp?: ReturnType<typeof mount>;
   public render(): void {
     this.disposeApp?.();
     const current = new URL(this.context.pageContext.web.absoluteUrl);
@@ -82,6 +83,7 @@ export default class MeetingsWebPart extends BaseClientSideWebPart<Properties> {
       webUrl,
       isTeams: !!this.context.sdks.microsoftTeams,
       initialMeeting: this.properties.meetingId,
+      fonts,
       settings,
       onMeetingsChanged: (meetings: { id: string; title: string }[]): void => {
         this.meetings = meetings;
@@ -94,6 +96,20 @@ export default class MeetingsWebPart extends BaseClientSideWebPart<Properties> {
       sharepointAt,
       sharepoint: (path: string, init?: RequestInit): Promise<Response> => sharepointAt(webUrl, path, init),
     });
+    this.followTeamsTheme();
+  }
+  /** In Teams the app follows the client theme (default, dark, high contrast); SharePoint pages stay light. */
+  private followTeamsTheme(): void {
+    const teams = this.context.sdks.microsoftTeams?.teamsJs;
+    if (!teams) return;
+    const app = this.disposeApp;
+    teams.app
+      .getContext()
+      .then(context => app?.setTheme(teamsTheme(context.app.theme)))
+      .catch(() => {
+        /* Keep the light theme when Teams does not answer. */
+      });
+    teams.app.registerOnThemeChangeHandler(theme => this.disposeApp?.setTheme(teamsTheme(theme)));
   }
   protected onDispose(): void {
     this.disposeApp?.();
