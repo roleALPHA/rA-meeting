@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { assert, type Meeting } from '../../../shared/model';
+import { assert, calendarLinker, type Meeting } from '../../../shared/model';
+import { calendarEntry, findCalendarEntry } from '../../../shared/calendar';
 import { addOutcome, command, createMeeting, event, setTranscript } from '../../../shared/domain';
 import { parseTranscript } from '../../../shared/transcript';
 import { assistanceInput } from '../../../shared/assistance';
@@ -15,26 +16,40 @@ export const meetingRoutes: Route[] = [
   },
 ];
 
-/** Retrieves the Teams transcript of a linked, non-recurring meeting with the user's delegated permissions. */
-async function teamsTranscript({ read }: RouteContext, m: Meeting) {
-  assert(
-    !m.calendar?.occurrence,
-    'Bei Serienterminen das Transkript dieser Durchführung manuell importieren; automatische Zuordnung wird noch nicht unterstützt.',
-  );
+type TranscriptPart = { id: string; createdDateTime: string; endDateTime?: string | null };
+/** Transcript parts count for an event when they start between 30 minutes before and after its scheduled time. */
+const windowMargin = 30 * 60 * 1000;
+
+/**
+ * Lists the Teams transcript parts of the linked online meeting and selects those recorded during
+ * this event. Recurring series share one online meeting, so the time window attributes parts to the
+ * linked occurrence. Times come from a fresh calendar read.
+ */
+async function transcriptParts(ctx: RouteContext, m: Meeting) {
+  const { read, actor } = ctx;
   assert(m.calendar?.joinUrl, 'Meeting ist nicht mit Teams verknüpft.');
-  const filter = encodeURIComponent(`JoinWebUrl eq '${m.calendar.joinUrl.replaceAll("'", "''")}'`);
+  const linker = calendarLinker(m.calendar);
+  const current =
+    linker === actor.id
+      ? await calendarEntry(actor.id, m.calendar.eventId, read)
+      : m.calendar.iCalUId
+        ? await findCalendarEntry(actor.id, m.calendar.iCalUId, m.calendar.originalStart ?? m.calendar.start, read)
+        : null;
+  const { start, end, joinUrl } = current ?? m.calendar;
+  assert(joinUrl, 'Meeting ist nicht mit Teams verknüpft.');
+  const filter = encodeURIComponent(`JoinWebUrl eq '${joinUrl.replaceAll("'", "''")}'`);
   const meetings = (await (await read(`/me/onlineMeetings?$filter=${filter}`)).json()) as {
     value: { id: string }[];
   };
   assert(meetings.value.length === 1, 'Meeting ist nicht mit Teams verknüpft.');
   const prefix = `/me/onlineMeetings/${encodeURIComponent(meetings.value[0].id)}/transcripts`;
   let path: string | undefined = prefix;
-  const parts: { id: string; createdDateTime: string }[] = [];
+  const parts: TranscriptPart[] = [];
   const pages = new Set<string>();
   while (path) {
     assert(!pages.has(path) && pages.size < 20, 'Ungültige Graph-Folgeseite.');
     pages.add(path);
-    const result: { value: typeof parts; '@odata.nextLink'?: string } = await (await read(path)).json();
+    const result: { value: TranscriptPart[]; '@odata.nextLink'?: string } = await (await read(path)).json();
     parts.push(...result.value);
     assert(parts.length <= 100, 'Zu viele Transkriptteile.');
     if (!result['@odata.nextLink']) break;
@@ -45,13 +60,20 @@ async function teamsTranscript({ read }: RouteContext, m: Meeting) {
     );
     path = u.pathname.slice(5) + u.search;
   }
-  assert(parts.length, 'Noch kein Transkript verfügbar.');
-  let raw = '';
-  for (const part of parts.sort((a, b) => a.createdDateTime.localeCompare(b.createdDateTime))) {
-    raw += '\n\n' + (await (await read(`${prefix}/${encodeURIComponent(part.id)}/content?$format=text/vtt`)).text());
-    assert(raw.length <= 1_000_000, 'Transkript ist zu groß (max. 1 MB).', 413);
-  }
-  return parseTranscript(raw);
+  const from = Date.parse(start) - windowMargin;
+  const to = Date.parse(end) + windowMargin;
+  const matching = parts
+    .filter(p => {
+      const created = Date.parse(p.createdDateTime);
+      return created >= from && created <= to;
+    })
+    .sort((a, b) => a.createdDateTime.localeCompare(b.createdDateTime));
+  return {
+    prefix,
+    matching,
+    excluded: parts.length - matching.length,
+    window: { start: new Date(from).toISOString(), end: new Date(to).toISOString() },
+  };
 }
 
 export const meetingActions: Record<string, MeetingAction> = {
@@ -88,8 +110,32 @@ export const meetingActions: Record<string, MeetingAction> = {
       );
     return save(m);
   },
-  'graph-fetch': async (ctx, _req, m) => {
-    const segments = await teamsTranscript(ctx, m);
-    return setTranscript(m, ctx.actor, segments) ? ctx.save(m) : m;
+  /** Shows which Teams transcript parts belong to this event before anything is imported. */
+  'graph-preview': async (ctx, _req, m) => {
+    const { matching, excluded, window } = await transcriptParts(ctx, m);
+    return {
+      revision: m.revision,
+      parts: matching.map(p => ({ id: p.id, createdDateTime: p.createdDateTime, endDateTime: p.endDateTime ?? null })),
+      excluded,
+      window,
+    };
+  },
+  /** Imports the confirmed parts; each must still fall into the event's time window. */
+  'graph-fetch': async (ctx, { body }, m) => {
+    const partIds = z.array(z.string().min(1).max(500)).min(1).max(100).parse(body.partIds);
+    const { prefix, matching } = await transcriptParts(ctx, m);
+    const selected = matching.filter(p => partIds.includes(p.id));
+    assert(
+      selected.length === new Set(partIds).size,
+      'Die Transkriptauswahl hat sich geändert. Bitte die Vorschau erneut laden.',
+      409,
+    );
+    let raw = '';
+    for (const part of selected) {
+      raw +=
+        '\n\n' + (await (await ctx.read(`${prefix}/${encodeURIComponent(part.id)}/content?$format=text/vtt`)).text());
+      assert(raw.length <= 1_000_000, 'Transkript ist zu groß (max. 1 MB).', 413);
+    }
+    return setTranscript(m, ctx.actor, parseTranscript(raw)) ? ctx.save(m) : m;
   },
 };

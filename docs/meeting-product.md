@@ -40,7 +40,9 @@ Outlook is the source of truth for event time and joining links. rA Meetings mai
 
 It does not send invitations, change events, or synchronize calendars automatically. Calendar linking does not install a Teams tab. Add that tab separately and configure its meeting selection. Joining a call does not itself create or open an rA meeting. Entries can be prepared before the event. Future automatic Teams-context detection or attendee import would require separate authorization design.
 
-Recurring occurrences may share an online meeting ID. Until transcripts can be reliably attributed to individual occurrences, linked recurring events require manual transcript import.
+Each link stores the event's `iCalUId`, which is identical for all attendees and unique per occurrence. A claim record keyed by it prevents two meetings from linking the same event, even when different attendees link it from their own calendars. Other editors can refresh a link from the copy of the event in their own calendar.
+
+Recurring occurrences share one online meeting. Transcript retrieval therefore reads the event's current times and selects transcript parts that started between 30 minutes before the start and 30 minutes after the end. The user sees the selected parts with their times and confirms the import; parts of other occurrences are excluded. If no part matches, import the VTT or TXT file manually. Attribution relies on transcript timestamps and should be checked during acceptance testing.
 
 ## Outcomes and MCP
 

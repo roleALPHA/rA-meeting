@@ -124,7 +124,7 @@ Skip this step if you initially want to create meetings manually and import tran
 5. Reopen the app with an ordinary test account. Link an rA meeting to one of that account's nonrecurring Teams events.
 6. After a test meeting with an actual transcript, try retrieving it under the transcript/analysis tab. Teams licensing, meeting policy, and user access must permit transcription and retrieval.
 
-**Check:** Calendar events appear and an accessible transcript can be retrieved. “Configured” alone does not confirm access. For recurring events, manually import the specific occurrence's VTT or TXT transcript.
+**Check:** Calendar events appear and an accessible transcript can be retrieved. “Configured” alone does not confirm access. For recurring events, check that the import preview lists only the parts recorded during the linked occurrence; otherwise import that occurrence's VTT or TXT file manually.
 
 These approvals apply to the shared SharePoint authentication component, not exclusively to this web part. See [Microsoft's API approval guidance](https://learn.microsoft.com/en-us/sharepoint/dev/spfx/use-aadhttpclient).
 

@@ -50,6 +50,10 @@ export function MeetingRoom({
     plan: { label: string; destination: string; tool: string; arguments: unknown };
   } | null>(null);
   const [confirmExport, setConfirmExport] = useState(false);
+  const [transcriptPreview, setTranscriptPreview] = useState<{
+    parts: { id: string; createdDateTime: string; endDateTime: string | null }[];
+    excluded: number;
+  } | null>(null);
   const [reconcile, setReconcile] = useState<Outcome | null>(null);
   const [resolution, setResolution] = useState('created');
   const [draftId, setDraftId] = useState('');
@@ -590,7 +594,15 @@ export function MeetingRoom({
               {editable && (
                 <Button
                   disabled={busy || !m.calendar?.joinUrl}
-                  onClick={() => run(async () => update(await post('graph-fetch')))}
+                  onClick={() =>
+                    run(async () =>
+                      setTranscriptPreview(
+                        await request<NonNullable<typeof transcriptPreview>>(`/meetings/${m.id}/graph-preview`, {
+                          revision: m.revision,
+                        }),
+                      ),
+                    )
+                  }
                 >
                   {tr('Transkript jetzt abrufen')}
                 </Button>
@@ -760,6 +772,54 @@ export function MeetingRoom({
               </Button>
             </div>
           </form>
+        </Modal>
+      )}
+      {transcriptPreview && (
+        <Modal title={tr('Transkript aus Teams importieren')} close={() => setTranscriptPreview(null)}>
+          {transcriptPreview.parts.length ? (
+            <>
+              <p>
+                {tr(
+                  'Diese Transkriptteile wurden während dieses Termins aufgezeichnet. Bei Serienterminen werden Teile anderer Durchführungen ausgeschlossen.',
+                )}
+              </p>
+              <ul>
+                {transcriptPreview.parts.map(part => (
+                  <li key={part.id}>
+                    {new Date(part.createdDateTime).toLocaleString(language())}
+                    {part.endDateTime &&
+                      ` – ${new Date(part.endDateTime).toLocaleTimeString(language(), { hour: '2-digit', minute: '2-digit' })}`}
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            <p className="notice">
+              {tr(
+                'Für diesen Termin wurde kein Transkript gefunden. Du kannst eine VTT- oder Textdatei manuell importieren.',
+              )}
+            </p>
+          )}
+          {transcriptPreview.excluded > 0 && (
+            <p className="small muted">
+              {transcriptPreview.excluded} {tr('Transkriptteile anderer Termine wurden ausgeschlossen.')}
+            </p>
+          )}
+          <div className="modal-footer">
+            <Button onClick={() => setTranscriptPreview(null)}>{tr('Abbrechen')}</Button>
+            <Button
+              className="primary"
+              disabled={busy || !transcriptPreview.parts.length}
+              onClick={() =>
+                run(async () => {
+                  update(await post('graph-fetch', { partIds: transcriptPreview.parts.map(p => p.id) }));
+                  setTranscriptPreview(null);
+                })
+              }
+            >
+              {tr('Importieren')}
+            </Button>
+          </div>
         </Modal>
       )}
     </>

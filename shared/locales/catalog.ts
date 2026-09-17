@@ -2889,4 +2889,30 @@ export const catalog: Record<string, { en: string; fr: string; es: string }> = {
     fr: 'Identifiant d’enregistrement non valide.',
     es: 'Identificador de registro no válido.',
   },
+  'Transkript aus Teams importieren': {
+    en: 'Import transcript from Teams',
+    fr: 'Importer la transcription depuis Teams',
+    es: 'Importar la transcripción desde Teams',
+  },
+  'Diese Transkriptteile wurden während dieses Termins aufgezeichnet. Bei Serienterminen werden Teile anderer Durchführungen ausgeschlossen.':
+    {
+      en: 'These transcript parts were recorded during this event. For recurring meetings, parts from other occurrences are excluded.',
+      fr: 'Ces parties de transcription ont été enregistrées pendant cet événement. Pour les réunions récurrentes, les parties d’autres occurrences sont exclues.',
+      es: 'Estas partes de la transcripción se grabaron durante este evento. En las reuniones periódicas se excluyen las partes de otras repeticiones.',
+    },
+  'Für diesen Termin wurde kein Transkript gefunden. Du kannst eine VTT- oder Textdatei manuell importieren.': {
+    en: 'No transcript was found for this event. You can import a VTT or text file manually.',
+    fr: 'Aucune transcription n’a été trouvée pour cet événement. Vous pouvez importer manuellement un fichier VTT ou texte.',
+    es: 'No se encontró ninguna transcripción para este evento. Puedes importar manualmente un archivo VTT o de texto.',
+  },
+  'Transkriptteile anderer Termine wurden ausgeschlossen.': {
+    en: 'transcript parts from other events were excluded.',
+    fr: 'parties de transcription d’autres événements ont été exclues.',
+    es: 'partes de transcripción de otros eventos se excluyeron.',
+  },
+  'Die Transkriptauswahl hat sich geändert. Bitte die Vorschau erneut laden.': {
+    en: 'The transcript selection has changed. Please load the preview again.',
+    fr: 'La sélection de transcription a changé. Rechargez l’aperçu.',
+    es: 'La selección de la transcripción ha cambiado. Vuelve a cargar la vista previa.',
+  },
 };

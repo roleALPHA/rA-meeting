@@ -90,7 +90,7 @@ Follow the **[step-by-step administrator guide](docs/customer-deployment.md)** f
 
 The project includes a buildable SPFx package and automated tests covering storage, permissions, meeting workflows, translations, and integration contracts.
 
-Deployment in a real Microsoft 365 environment and compatibility with actual roleALPHA read/write interfaces still require acceptance testing. Local simulations do not replace that verification. Teams features depend on licensing, meeting types, and organizational policies. Recurring meetings currently require manual import of the transcript for the specific occurrence.
+Deployment in a real Microsoft 365 environment and compatibility with actual roleALPHA read/write interfaces still require acceptance testing. Local simulations do not replace that verification. Teams features depend on licensing, meeting types, and organizational policies. For recurring meetings, transcript parts are attributed to an occurrence by their recording time and imported after confirmation.
 
 ## Local development
 
