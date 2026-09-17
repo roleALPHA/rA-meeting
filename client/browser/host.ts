@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { AppError, outputTypes } from '../../shared/model';
+import type { Theme } from './brand';
 const https = z
   .string()
   .url()
@@ -92,6 +93,10 @@ export type BrowserHost = {
   // Provided by SPFx: same-site SPHttpClient and AadTokenProvider. No app secrets.
   sharepoint: (path: string, init?: RequestInit) => Promise<Response>;
   token: (resource: string) => Promise<string>;
+  /** Initial colour theme; the host follows changes through the handle mount() returns. */
+  theme?: Theme;
+  /** Bundled font file name -> URL the host serves it from (SPFx ClientSideAssets, Vite in the preview). */
+  fonts?: Record<string, string>;
 };
 /** True when url is the configured endpoint or, for 'prefix', a path below it on the same origin. */
 export function allowedDestination(url: string, configured: string, match: 'exact' | 'prefix') {

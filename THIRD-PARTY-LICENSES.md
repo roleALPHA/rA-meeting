@@ -13,7 +13,7 @@ The notices themselves -- the copyright lines and licence texts that MIT, BSD an
 the code -- are attached to each GitHub release as `THIRD-PARTY-LICENSES.txt`.
 
 The set below is the production dependency closure of `package.json` and `spfx/package.json`, without the
-`@microsoft/sp-*` packages SharePoint provides at runtime.
+`@microsoft/sp-*` packages SharePoint provides at runtime, plus the bundled brand fonts.
 
 ## 0BSD
 
@@ -145,6 +145,14 @@ Permissive. Requires the notice to travel with the code -- see --notices.
 - unpipe
 - vary
 - zod
+
+## OFL-1.1
+
+Font licence. Fonts may be bundled with software under any terms as long as they are not sold on their own and the licence text travels with them.
+
+- @fontsource-variable/ibm-plex-sans
+- @fontsource/ibm-plex-mono
+- @fontsource/instrument-serif
 
 ## Unlicense
 

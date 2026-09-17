@@ -91,6 +91,34 @@ export const PROJECT_LICENSE = 'LicenseRef-rA-Meetings-Internal-Collaboration-Li
 
 const INDEX_FILE = 'THIRD-PARTY-LICENSES.md';
 
+/**
+ * Files bundled into the package that do not arrive through a lockfile. The fonts were copied from their Fontsource
+ * npm packages (client/assets/fonts/README.md), so they are named and versioned as those packages.
+ */
+export const BUNDLED = [
+  {
+    name: '@fontsource-variable/ibm-plex-sans',
+    version: '5.3.0',
+    license: 'OFL-1.1',
+    path: 'client/assets/fonts',
+    notice: 'client/assets/fonts/OFL-IBM-Plex-Sans.txt',
+  },
+  {
+    name: '@fontsource/ibm-plex-mono',
+    version: '5.3.0',
+    license: 'OFL-1.1',
+    path: 'client/assets/fonts',
+    notice: 'client/assets/fonts/OFL-IBM-Plex-Mono.txt',
+  },
+  {
+    name: '@fontsource/instrument-serif',
+    version: '5.3.0',
+    license: 'OFL-1.1',
+    path: 'client/assets/fonts',
+    notice: 'client/assets/fonts/OFL-Instrument-Serif.txt',
+  },
+];
+
 /** Workspaces whose production closure ends up in the package, and the dependencies each provides at runtime. */
 const ROOTS = [
   { dir: '.', hostProvided: () => false },
@@ -112,7 +140,7 @@ The notices themselves -- the copyright lines and licence texts that MIT, BSD an
 the code -- are attached to each GitHub release as \`THIRD-PARTY-LICENSES.txt\`.
 
 The set below is the production dependency closure of \`package.json\` and \`spfx/package.json\`, without the
-\`@microsoft/sp-*\` packages SharePoint provides at runtime.
+\`@microsoft/sp-*\` packages SharePoint provides at runtime, plus the bundled brand fonts.
 `;
 
 /** The package name a lockfile key refers to: the part after the last `node_modules/`. */
@@ -187,7 +215,14 @@ export function merge(rowSets) {
   for (const row of rowSets.flat()) {
     const key = `${row.license} ${row.name}`;
     const existing = byKey.get(key);
-    if (!existing) byKey.set(key, { name: row.name, license: row.license, versions: [row.version], paths: [row.path] });
+    if (!existing)
+      byKey.set(key, {
+        name: row.name,
+        license: row.license,
+        versions: [row.version],
+        paths: [row.path],
+        ...(row.notice ? { notice: row.notice } : {}),
+      });
     else {
       if (!existing.versions.includes(row.version)) existing.versions.push(row.version);
       existing.paths.push(row.path);
@@ -254,7 +289,7 @@ export function renderNotices(rows) {
   ];
   const silent = [];
   for (const row of rows) {
-    const text = noticeTexts(row.paths);
+    const text = row.notice ? readFileSync(row.notice, 'utf8').trim() : noticeTexts(row.paths);
     if (!text) silent.push(row.name);
     parts.push(
       rule,
@@ -326,14 +361,15 @@ function licenseEntry(license) {
 }
 
 export function readRows(cwd = '.') {
-  return merge(
-    ROOTS.map(root =>
+  return merge([
+    ...ROOTS.map(root =>
       closure(JSON.parse(readFileSync(join(cwd, root.dir, 'package-lock.json'), 'utf8')), {
         dir: root.dir,
         hostProvided: root.hostProvided,
       }),
     ),
-  );
+    BUNDLED,
+  ]);
 }
 
 // --- command line ------------------------------------------------------------

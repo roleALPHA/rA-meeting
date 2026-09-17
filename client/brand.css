@@ -1,0 +1,64 @@
+/*
+ * BRAND LAYER — the only place in this repository where a brand value is written down.
+ *
+ * Everything else derives from it (client/style.css). The values are roleALPHA's corporate design as defined in
+ * rA-app (client/src/brand.css, doc/brand/roleALPHA-brand-handout.pdf); keep them identical to that source.
+ * Adding a brand value belongs here; a new shade, surface or opacity step is a derivation and belongs in
+ * style.css, never in a component. tests/brand.test.ts keeps this machine-checked.
+ *
+ * The stylesheet lives inside the web part's shadow root, so the tokens hang off :host, not :root.
+ */
+
+:host {
+  /*
+   * Type. Bundled with the package (client/assets/fonts), never loaded from a font service: the app must not
+   * call infrastructure outside the customer's tenant. The family names carry an "rA" prefix because the
+   * @font-face rules have to be registered on the SharePoint page (client/browser/brand.ts) and must not collide
+   * with fonts the page itself defines.
+   *
+   *   sans     body text, labels, tables, menus -- everything ordinary
+   *   mono     technical values: IDs, versions, timers, timestamps
+   *   display  the page title (h1) only; weight 400 exists, nothing else
+   */
+  --brand-font-sans: 'rA IBM Plex Sans';
+  --brand-font-mono: 'rA IBM Plex Mono';
+  --brand-font-display: 'rA Instrument Serif';
+
+  /*
+   * The five brand colours. Ink and Paper carry the surface. Bottle, Amber and Rust are accents and appear only
+   * where colour means something (action, status), never as decoration. Secondary text, borders, surfaces and
+   * badge backgrounds are never colours of their own but one of these five at reduced opacity (style.css).
+   */
+  --brand-ink: #131715;
+  --brand-paper: #f4f7f4;
+  --brand-bottle: #16402c;
+  --brand-amber: #8f5a0e;
+  --brand-rust: #ab2c22;
+
+  /*
+   * Data palette, a world of its own next to the brand: categories need more distinguishable hues than five
+   * brand colours provide. Slots are assigned in order and never cycled; rA-app validated the order for colour
+   * vision deficiencies. rA Meetings uses the first three for its template categories.
+   */
+  --brand-data-1: #0e8e59;
+  --brand-data-2: #643b9a;
+  --brand-data-3: #875806;
+}
+
+:host([data-theme='dark']) {
+  /* The dark data palette is chosen, not computed: the usable lightness band on Ink is narrower. */
+  --brand-data-1: #0e8e59;
+  --brand-data-2: #a47de3;
+  --brand-data-3: #c68206;
+}
+
+:host([data-theme='contrast']) {
+  /*
+   * Teams high-contrast theme. Not part of rA-app's brand sheet: it follows Teams' own high-contrast convention
+   * (black surface, white text, yellow for what is actionable or selected), because a user who chose it needs
+   * maximum contrast more than brand colours.
+   */
+  --brand-contrast-surface: #000000;
+  --brand-contrast-on-surface: #ffffff;
+  --brand-contrast-action: #ffff01;
+}

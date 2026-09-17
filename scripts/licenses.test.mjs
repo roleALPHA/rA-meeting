@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { closure, merge, renderIndex, renderSbom, violations } from './licenses.mjs';
+import { BUNDLED, closure, merge, readRows, renderIndex, renderSbom, violations } from './licenses.mjs';
 
 /** A lockfile trimmed to what the script reads. */
 const lock = {
@@ -94,4 +94,15 @@ test('the SBOM is CycloneDX 1.6 and identical for identical input', () => {
   assert.deepEqual(first.metadata.component.licenses, [
     { expression: 'LicenseRef-rA-Meetings-Internal-Collaboration-License-1.0' },
   ]);
+});
+
+test('bundled fonts are part of the closure, allowed, and carry their own licence text', () => {
+  const rows = readRows();
+  for (const font of BUNDLED) {
+    const row = rows.find(r => r.name === font.name);
+    assert.ok(row, font.name);
+    assert.equal(row.license, 'OFL-1.1');
+    assert.equal(row.notice, font.notice);
+  }
+  assert.deepEqual(violations(rows), []);
 });
