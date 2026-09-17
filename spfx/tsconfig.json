@@ -8,7 +8,8 @@
       "es2020",
       "dom"
     ],
-    "noImplicitAny": true
+    "noImplicitAny": true,
+    "target": "es2017"
   },
   "include": [
     "src/**/*.ts",

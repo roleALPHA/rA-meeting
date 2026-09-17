@@ -12,7 +12,7 @@ The app is installed in your organization's Microsoft 365 environment. It requir
 
 Capture tensions and topics independently of individual meetings, then add them to a meeting agenda. Users who prefer different terminology can display “Agenda” instead of “Tensions” without changing stored content.
 
-Link meetings to your own calendar events and open them as Teams tabs. Authorized participants can contribute before the discussion begins. Access follows the SharePoint workspace's permissions.
+Link meetings to your own calendar events and open them as Teams tabs. Site owners can choose whether linked Teams meetings allow transcription or are recorded and transcribed automatically. Authorized participants can contribute before the discussion begins. Access follows the SharePoint workspace's permissions.
 
 ### Configure your meeting process
 
@@ -54,7 +54,7 @@ The app is delivered as a **SharePoint Framework (SPFx)** package. Microsoft 365
 | Templates, agenda, meetings, and outcomes | Your organization's SharePoint site |
 | Imported transcripts | SharePoint workspace; the original recording is not downloaded by the app |
 | Calendar and transcript retrieval | Direct Microsoft Graph requests with the signed-in user's permissions |
-| Optional AI | Direct requests to the administratively configured AI service |
+| Optional AI | Direct requests to the configured AI service: Microsoft 365 Copilot (default), Claude via Microsoft Foundry, or an OpenAI-compatible endpoint |
 | Optional governance connection | Direct MCP requests to the configured roleALPHA endpoint |
 | Language and terminology | Personal browser preferences |
 
@@ -73,13 +73,15 @@ The app creates two storage areas:
 - `rA Meetings Browser Index`: record and version index.
 - `rA Meetings Browser Data`: document library containing stored content.
 
-Concurrent updates are checked for conflicts. Old content files are not currently cleaned up automatically. Retention, deletion, and recovery must cover both storage areas.
+SharePoint permissions are the only enforced boundary: editors can change stored content directly, bypassing the app's rules. The meeting view flags inconsistent data, but this is not tamper protection. Approved API permissions apply to all SharePoint Framework solutions in the tenant. See the [technical deployment guide](docs/technical-deployment.md#security-model-and-trust-boundary).
+
+Concurrent updates are checked for conflicts. Earlier versions of content files are kept; site owners can move files left by interrupted saves to the recycle bin under **Connections**. Retention, deletion, and recovery must cover both storage areas.
 
 ## Installation
 
 Microsoft 365 administrators install the package once. End users do not need development tools.
 
-1. Deploy `rolealpha-meetings.sppkg` in the SharePoint app catalog. The build produces it in `dist/`.
+1. Deploy `rolealpha-meetings.sppkg` in the SharePoint app catalog. Each [GitHub release](https://github.com/roleALPHA/rA-meeting/releases) carries the package together with its third-party notices and an SBOM; a local build writes it to `dist/`.
 2. Open the app and complete onboarding: select or create a SharePoint site, check access, and provision storage and starter templates.
 3. Review and publish the optional landing page. Approve calendar access, Teams availability, and optional services as needed.
 4. Verify the deployment with ordinary user accounts.
@@ -90,7 +92,7 @@ Follow the **[step-by-step administrator guide](docs/customer-deployment.md)** f
 
 The project includes a buildable SPFx package and automated tests covering storage, permissions, meeting workflows, translations, and integration contracts.
 
-Deployment in a real Microsoft 365 environment and compatibility with actual roleALPHA read/write interfaces still require acceptance testing. Local simulations do not replace that verification. Teams features depend on licensing, meeting types, and organizational policies. Recurring meetings currently require manual import of the transcript for the specific occurrence.
+Deployment in a real Microsoft 365 environment and compatibility with actual roleALPHA read/write interfaces still require acceptance testing. Local simulations do not replace that verification. Teams features depend on licensing, meeting types, and organizational policies. For recurring meetings, transcript parts are attributed to an occurrence by their recording time and imported after confirmation.
 
 ## Local development
 
@@ -103,6 +105,8 @@ npm run check
 npm test
 npm run build
 ```
+
+`npm run check` runs TypeScript, ESLint and Prettier. Commits are signed off (`git commit -s`); see [CONTRIBUTING.md](CONTRIBUTING.md). CI, the licence policy and the release process are described in [docs/ci-conventions.md](docs/ci-conventions.md).
 
 The package is written to `dist/rolealpha-meetings.sppkg`. Optional integration settings are in `spfx/customer.config.json`.
 

@@ -16,11 +16,9 @@ The package builder configures nonsecret endpoints in `spfx/customer.config.json
 {
   "language": "en",
   "ai": {
-    "url": "https://ai.organization.example/v1/chat/completions",
-    "resource": "api://ORGANIZATION-AI-APPLICATION-ID",
-    "permissionResource": "Organization AI",
-    "scope": "access_as_user",
-    "model": "organization-model"
+    "provider": "copilot",
+    "resource": "WORK-IQ-APPLICATION-ID-URI",
+    "permissionResource": "WORK-IQ-APPLICATION-DISPLAY-NAME"
   },
   "roleAlpha": {
     "url": "https://rolealpha.organization.example/mcp",
@@ -43,9 +41,97 @@ The package builder configures nonsecret endpoints in `spfx/customer.config.json
 
 Services must allow CORS from the actual SharePoint origins. For MCP, allow `Authorization`, `Content-Type`, `Mcp-Session-Id`, `MCP-Protocol-Version`, and the required HTTP methods, and expose `Mcp-Session-Id`. Check permissions separately for guest and cross-tenant sign-ins. Missing approval, CORS, or network access produces an error; there is no fallback through the manufacturer's infrastructure.
 
-**AI contract:** Chat Completions with `model`, `messages`, and `response_format: {"type":"json_object"}`; the response is read from `choices[0].message.content`. The integration supports transcript analysis, proposal forming, and objection integration. Model responses are validated. Objections, consent, and decisions remain human responsibilities.
-
 **MCP write contract:** Streamable HTTP, using `create_meeting` or an explicitly mapped `create_*` tool with `tenant_uuid`, `name`, `custom_id`, and `data`. The app checks advertised tools and the shared schema before writing. The expected confirmation is `{"draft_created":true,"draftId":"…","entityUuid":"…","status":"draft"}`. An uncertain response locks the outcome; writes are not retried automatically. Closing a tab during export can leave a `sending` status. After five minutes, the interface permits documented manual reconciliation.
+
+## Security model and trust boundary
+
+SharePoint permissions are the only enforced access boundary. The app runs entirely in the browser with the signed-in user's permissions; there is no server component that could enforce rules independently.
+
+- Readers of the workspace site can read all stored content, including transcripts and historical versions.
+- Editors can change stored content directly through SharePoint, bypassing the app. Rules the app applies (allowed outcome types per step, approval before transfer, immutable transferred outcomes, evidence references) guide users but are not security controls.
+- The meeting view runs a consistency check and shows a notice when stored data deviates from these rules, for example after direct editing. This check can detect inconsistencies; it cannot prevent or reliably detect deliberate manipulation.
+- Enforcing such rules against editors would require a server-side component, which is deliberately not part of this product. Use separately permissioned sites and SharePoint auditing where this matters.
+
+Approved API permissions are granted to the shared SharePoint Online Client Extensibility Web Application Principal and are therefore available to every SharePoint Framework solution in the tenant (see the [administrator guide](customer-deployment.md)). The build prints the permissions a package requests.
+
+## AI providers
+
+`ai.provider` selects one AI service. All providers receive the same tasks (transcript analysis, proposal forming, objection integration, governance answers), and every answer passes the same validation: unknown steps, outcome types, transcript segments, or governance source IDs are rejected, and nothing is approved automatically. The interface shows which provider produced a suggestion.
+
+### Microsoft 365 Copilot (default)
+
+Uses the Microsoft 365 Copilot Chat API (Work IQ) with the delegated permission `WorkIQAgent.Ask`.
+
+```json
+"ai": {
+  "provider": "copilot",
+  "url": "https://workiq.svc.cloud.microsoft/rest",
+  "resource": "WORK-IQ-APPLICATION-ID-URI",
+  "permissionResource": "WORK-IQ-APPLICATION-DISPLAY-NAME",
+  "scope": "WorkIQAgent.Ask",
+  "maxInputChars": 200000
+}
+```
+
+`url` and `scope` default to the values shown. Prerequisites: Work IQ enabled for the tenant, Copilot usage billing (Copilot Credits), and approval of the requested permission.
+
+Behavior and limits to review before enabling:
+
+- **No enforced JSON.** The app sends the output schema with the instructions, parses the answer, asks once for a corrected answer, and otherwise discards it.
+- **Tenant grounding.** Web grounding is switched off for every request. Copilot can still draw on other tenant content the user can access (for example mail or files). For governance questions, answers citing such content are discarded. For analysis and proposals, only outcomes linked to real transcript segments are accepted, but wording can still be influenced.
+- **Sensitivity labels.** If Copilot labels its answer, the interface shows the label before a suggestion is accepted, and transcript analysis records it in the meeting history.
+- **Conversation history.** Each task creates a new Copilot conversation in the user's context. Check your Copilot retention settings.
+- **Size.** Data is sent as additional context in parts. `maxInputChars` limits the total request size; set it to the limits verified for your tenant.
+
+### Claude via Microsoft Foundry
+
+Uses a Claude deployment in your Microsoft Foundry resource with Microsoft Entra ID authentication. No API key is used.
+
+```json
+"ai": {
+  "provider": "claude-foundry",
+  "url": "https://YOUR-RESOURCE.services.ai.azure.com/anthropic",
+  "resource": "https://ai.azure.com",
+  "permissionResource": "FOUNDRY-APPLICATION-DISPLAY-NAME",
+  "scope": "user_impersonation",
+  "model": "claude-opus-5",
+  "fallbackModel": null
+}
+```
+
+`model` is the Foundry **deployment name** (default `claude-opus-5`). Prerequisites: Entra ID authentication enabled on the Foundry resource and the **Foundry User** role (or Cognitive Services User) for all app users, ideally through a group. Prefer the **Hosted on Azure** deployment option so prompts and completions remain within Azure.
+
+Requests use the Messages API with adaptive thinking and structured output (`output_config.format` with a JSON schema; beta on Foundry). If the model declines a request, nothing is applied. Set `fallbackModel` to another deployment name to retry declined requests there.
+
+### OpenAI-compatible endpoint
+
+For an organization-operated Chat Completions endpoint (for example Azure OpenAI with Entra ID). Configurations without `provider` are read as this provider.
+
+```json
+"ai": {
+  "provider": "openai-compatible",
+  "url": "https://ai.organization.example/v1/chat/completions",
+  "resource": "api://ORGANIZATION-AI-APPLICATION-ID",
+  "permissionResource": "Organization AI",
+  "scope": "access_as_user",
+  "model": "organization-model"
+}
+```
+
+Contract: `model`, `messages`, and `response_format: {"type":"json_object"}`; the response is read from `choices[0].message.content`.
+
+### Tenant verification before go-live
+
+The adapters are tested against simulated responses only. Before enabling a provider, verify in the target tenant from a SharePoint page:
+
+- [ ] The service accepts browser requests from the SharePoint origin (CORS).
+- [ ] The SPFx token provider issues a token for the configured `resource`, and the permission appears under **API access** with the configured `permissionResource` and `scope`.
+- [ ] Copilot: Work IQ is enabled, a test conversation works with web grounding disabled, and a long transcript stays within the request limits.
+- [ ] Claude: the deployment name, structured output, and the RBAC assignment work for an ordinary user.
+- [ ] Each enabled function works with test data: transcript analysis, proposal forming, and a governance question.
+- [ ] Teams recording setting: as organizer, link an Outlook-created Teams event and check in the Teams meeting options that transcription and, if selected, automatic recording are set; check that transcription starts as expected under your policies.
+
+If a service cannot be called directly from the browser, it is not supported. Do not add a proxy; the app must run without infrastructure outside the Microsoft 365 tenant apart from the configured AI service and roleALPHA.
 
 ## Build the package
 

@@ -117,16 +117,22 @@ Skip this step if you initially want to create meetings manually and import tran
 | Requested permission | Purpose |
 | --- | --- |
 | `Calendars.Read` | Display and link the user's own calendar events |
-| `OnlineMeetings.Read` | Locate the linked Teams meeting |
+| `OnlineMeetings.ReadWrite` | Locate the linked Teams meeting and, if enabled under **Connections → Teams recording and transcription**, set its transcription and recording option |
 | `OnlineMeetingTranscript.Read.All` | Read available transcripts accessible to the user |
 
 4. Approve required requests individually. Already approved entries do not require approval again.
 5. Reopen the app with an ordinary test account. Link an rA meeting to one of that account's nonrecurring Teams events.
 6. After a test meeting with an actual transcript, try retrieving it under the transcript/analysis tab. Teams licensing, meeting policy, and user access must permit transcription and retrieval.
 
-**Check:** Calendar events appear and an accessible transcript can be retrieved. “Configured” alone does not confirm access. For recurring events, manually import the specific occurrence's VTT or TXT transcript.
+**Check:** Calendar events appear and an accessible transcript can be retrieved. “Configured” alone does not confirm access. For recurring events, check that the import preview lists only the parts recorded during the linked occurrence; otherwise import that occurrence's VTT or TXT file manually.
 
 These approvals apply to the shared SharePoint authentication component, not exclusively to this web part. See [Microsoft's API approval guidance](https://learn.microsoft.com/en-us/sharepoint/dev/spfx/use-aadhttpclient).
+
+**Tenant-wide effect:** SharePoint grants approved permissions to the shared *SharePoint Online Client Extensibility Web Application Principal*. Every SharePoint Framework solution in the tenant can then request tokens with these permissions for the signed-in user, including `OnlineMeetingTranscript.Read.All` and any approved AI or roleALPHA scopes. Before approving:
+
+- Restrict who can add solutions to the app catalog and review which solutions are deployed.
+- Approve only the permissions of features you use.
+- Review approved API access regularly and remove entries that are no longer needed.
 
 ## 8. Optional: make the apps available in Teams
 
@@ -169,6 +175,7 @@ These approvals apply to the shared SharePoint authentication component, not exc
 The meeting app works without these connections. Both are disabled in the default package.
 
 1. Decide whether to use AI assistance, transfers to roleALPHA Governance, or both.
+   For AI, choose one provider: **Microsoft 365 Copilot** (default; requires Work IQ and Copilot usage billing), **Claude via Microsoft Foundry** (requires a Foundry resource, a Claude deployment, and the Foundry User role for app users), or an organization-operated **OpenAI-compatible** endpoint. The [technical guide](technical-deployment.md#ai-providers) lists prerequisites and limits.
 2. Ask the person responsible for your roleALPHA deployment for a configured installation package. End users do not enter server addresses or keys. Connections cannot currently be activated solely from the app's **Connections** page.
 3. Confirm which services will receive data and where they process it. If content must never pass through roleALPHA-operated infrastructure, a centrally operated roleALPHA service is not an appropriate endpoint; the organization-controlled deployment must meet that requirement.
 4. Integration operators must enable Microsoft-account authentication and direct browser access. See the [technical guide](technical-deployment.md). A service accepting only a secret API key is not compatible with this deployment mode.
@@ -218,7 +225,11 @@ Complete these checks before sharing the app with the full group:
 
 The app processes data while it is in use. Calendar retrieval, transcript imports, AI calls, and transfers are explicitly started. There is no automatic background processing after the tab closes. Power Automate is neither required nor installed.
 
-Set retention and recovery rules for **both** storage areas from step 6. Historical and unreferenced content files are not automatically cleaned up. Deleting a record in the interface therefore does not permanently erase every historical copy. Test restoration of the index and library together.
+Set retention and recovery rules for **both** storage areas from step 6. Historical content files are kept and are not cleaned up automatically. Deleting a record in the interface therefore does not permanently erase every historical copy. Test restoration of the index and library together.
+
+A save that fails after uploading its content file moves that file to the SharePoint recycle bin. Files left by interrupted saves (for example a closed tab or lost connection) can be removed by a site owner under **Connections → Clean up storage**. Only files that no entry references, that belong to an existing entry, and that are older than 24 hours are offered; earlier versions, files of deleted entries, and files from app versions before this feature are never included. Files are moved to the recycle bin and can be restored there.
+
+Meeting transcripts are stored as separate entries. Meetings saved by earlier versions keep their transcript inline until they are next saved.
 
 Data from an older prototype is not automatically migrated. Plan any transfer with the responsible people, accounting for shared read access in the new workspace.
 

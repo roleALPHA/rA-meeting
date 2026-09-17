@@ -1,6 +1,6 @@
 {
   "name": "@rolealpha/meeting",
-  "version": "0.1.0",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -9,12 +9,23 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 4310 --strictPort",
     "build": "npm run check && npm run spfx:build",
-    "check": "tsc --noEmit",
-    "test": "node --import tsx --test tests/*.test.ts",
+    "check": "npm run typecheck && npm run lint && npm run format:check",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write client shared scripts tests spfx/src vite.config.ts eslint.config.mjs",
+    "format:check": "prettier --check client shared scripts tests spfx/src vite.config.ts eslint.config.mjs",
+    "test": "node --import tsx --test tests/*.test.ts scripts/*.test.mjs",
+    "test:coverage": "mkdir -p coverage && node --import tsx --test --experimental-test-coverage --test-coverage-include=\"shared/**\" --test-coverage-exclude=\"shared/locales/**\" --test-coverage-lines=95 --test-coverage-branches=85 --test-coverage-functions=95 --test-reporter=spec --test-reporter-destination=stdout --test-reporter=lcov --test-reporter-destination=coverage/lcov.info tests/*.test.ts scripts/*.test.mjs",
+    "check:licenses": "node scripts/licenses.mjs",
+    "licenses:write": "node scripts/licenses.mjs --write",
+    "licenses:notices": "node scripts/licenses.mjs --notices dist/THIRD-PARTY-LICENSES.txt",
+    "licenses:sbom": "node scripts/licenses.mjs --sbom dist/sbom.cdx.json",
     "spfx:build": "node --import tsx scripts/build-browser.ts && node scripts/package-spfx.mjs",
     "spfx:install": "npm ci --prefix spfx --cache .npm-cache --no-audit --no-fund"
   },
   "dependencies": {
+    "@anthropic-ai/foundry-sdk": "^0.4.7",
+    "@anthropic-ai/sdk": "^0.126.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@noble/hashes": "^2.4.0",
     "lucide-react": "^0.453.0",
@@ -23,13 +34,20 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.5",
     "@types/node": "^24.0.0",
     "@types/react": "17.0.89",
     "@types/react-dom": "17.0.26",
     "@vitejs/plugin-react": "^5.2.0",
     "esbuild": "^0.28.1",
+    "eslint": "^9.39.5",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.12.0",
+    "prettier": "3.9.7",
     "tsx": "^4.23.1",
     "typescript": "^5.6.3",
+    "typescript-eslint": "^8.70.0",
     "vite": "^7.3.5"
   },
   "license": "SEE LICENSE IN LICENSE.md"

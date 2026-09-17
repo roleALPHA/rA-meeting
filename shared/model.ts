@@ -1,46 +1,224 @@
+import { translate, type MessageId, type MessageParams } from './i18n.js';
 import { z } from 'zod';
 
-export const outputTypes = ['task', 'project', 'governance', 'policy', 'metric', 'checklist', 'okr', 'risk', 'it_system', 'note'] as const;
-export const outputLabels: Record<OutputType, string> = { task: 'Aufgabe', project: 'Projekt', governance: 'Rollenänderung', policy: 'Policy', metric: 'Kennzahl', checklist: 'Checkliste', okr: 'OKR', risk: 'Risiko', it_system: 'IT-System', note: 'Notiz' };
-export type OutputType = typeof outputTypes[number];
+export const outputTypes = [
+  'task',
+  'project',
+  'governance',
+  'policy',
+  'metric',
+  'checklist',
+  'okr',
+  'risk',
+  'it_system',
+  'note',
+] as const;
+export const outputLabels: Record<OutputType, MessageId> = {
+  task: 'labels.task',
+  project: 'labels.project',
+  governance: 'labels.roleChange',
+  policy: 'labels.policy',
+  metric: 'labels.metric',
+  checklist: 'labels.checklist',
+  okr: 'labels.okr',
+  risk: 'labels.risk',
+  it_system: 'labels.system',
+  note: 'labels.note',
+};
+export type OutputType = (typeof outputTypes)[number];
 export const stepKinds = ['check-in', 'checklist', 'metrics', 'projects', 'agenda', 'custom', 'check-out'] as const;
-export const stepLabels: Record<typeof stepKinds[number], string> = { 'check-in': 'Check-in', checklist: 'Checklisten', metrics: 'Kennzahlen', projects: 'Projektupdates', agenda: 'Agenda', custom: 'Freier Schritt', 'check-out': 'Check-out' };
+export const stepLabels: Record<(typeof stepKinds)[number], MessageId> = {
+  'check-in': 'labels.checkIn',
+  checklist: 'labels.checklists',
+  metrics: 'labels.metrics',
+  projects: 'labels.projectUpdates',
+  agenda: 'preferences.agenda',
+  custom: 'labels.customStep',
+  'check-out': 'labels.checkOut',
+};
 const text = z.string().trim().min(1).max(200);
 export const stepSchema = z.object({
-  id: z.string().uuid(), kind: z.enum(stepKinds), title: text, description: z.string().max(4000).default(''),
-  minutes: z.number().int().min(0).max(480).default(5), optional: z.boolean().default(false),
+  id: z.string().uuid(),
+  kind: z.enum(stepKinds),
+  title: text,
+  description: z.string().max(4000).default(''),
+  minutes: z.number().int().min(0).max(480).default(5),
+  optional: z.boolean().default(false),
   outputs: z.array(z.enum(outputTypes)).max(outputTypes.length).default([]),
   phases: z.array(text).max(20).default([]),
 });
 export type Step = z.infer<typeof stepSchema>;
-export const templateInput = z.object({ name: text, description: z.string().max(4000).default(''), category: z.enum(['tactical', 'governance', 'custom']), enabled: z.boolean(), steps: z.array(stepSchema).min(1).max(40) }).superRefine((v, ctx) => {
-  if (new Set(v.steps.map(s => s.id)).size !== v.steps.length) ctx.addIssue({ code: 'custom', message: 'Schritt-IDs müssen eindeutig sein.' });
-});
+export const templateInput = z
+  .object({
+    name: text,
+    description: z.string().max(4000).default(''),
+    category: z.enum(['tactical', 'governance', 'custom']),
+    enabled: z.boolean(),
+    steps: z.array(stepSchema).min(1).max(40),
+  })
+  .superRefine((v, ctx) => {
+    if (new Set(v.steps.map(s => s.id)).size !== v.steps.length)
+      ctx.addIssue({ code: 'custom', message: 'Schritt-IDs müssen eindeutig sein.' });
+  });
 export type TemplateInput = z.infer<typeof templateInput>;
 export type Template = TemplateInput & { id: string; version: number; createdAt: string; updatedAt: string };
-export type Actor = { id: string; name: string; tenantId: string; admin: boolean; workspace: 'read' | 'write' };
+export type Actor = { id: string; name: string; tenantId: string; workspace: 'read' | 'write' };
 export type Segment = { id: string; start: string; end: string; speaker: string; text: string };
 export const outcomeInput = z.object({
-  stepId: z.string().uuid(), agendaId: z.string().uuid().nullable().default(null), type: z.enum(outputTypes), title: text,
-  description: z.string().max(12000).default(''), owner: z.string().max(200).nullable().default(null),
-  dueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().default(null),
-  targetId: z.string().uuid().nullable().default(null), data: z.record(z.unknown()).default({}),
+  stepId: z.string().uuid(),
+  agendaId: z.string().uuid().nullable().default(null),
+  type: z.enum(outputTypes),
+  title: text,
+  description: z.string().max(12000).default(''),
+  owner: z.string().max(200).nullable().default(null),
+  dueDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .nullable()
+    .default(null),
+  targetId: z.string().uuid().nullable().default(null),
+  data: z.record(z.unknown()).default({}),
   evidence: z.array(z.string()).max(100).default([]),
 });
 export type OutcomeInput = z.infer<typeof outcomeInput>;
-export type Outcome = OutcomeInput & { id: string; source: 'manual' | 'ai'; status: 'proposed' | 'approved' | 'rejected'; approvedBy?: string; approvedAt?: string; export?: { state: 'sending' | 'draft_created' | 'uncertain'; startedAt?: string; draftId?: string; entityUuid?: string; message?: string } };
-export type AgendaItem = { proposal?: string; objections?: string; tensionId?: string; id: string; stepId: string; title: string; owner: string; status: 'open' | 'resolved'; phase: number };
+export type Outcome = OutcomeInput & {
+  id: string;
+  source: 'manual' | 'ai';
+  status: 'proposed' | 'approved' | 'rejected';
+  approvedBy?: string;
+  approvedAt?: string;
+  export?: {
+    state: 'sending' | 'draft_created' | 'uncertain';
+    startedAt?: string;
+    draftId?: string;
+    entityUuid?: string;
+    message?: string;
+  };
+};
+export type AgendaItem = {
+  proposal?: string;
+  objections?: string;
+  tensionId?: string;
+  id: string;
+  stepId: string;
+  title: string;
+  owner: string;
+  status: 'open' | 'resolved';
+  phase: number;
+};
 export type MeetingEvent = { id: string; at: string; actor: string; type: string; detail: string };
-export type CalendarEntry = { eventId: string; organizerId: string; title: string; start: string; end: string; cancelled: boolean; occurrence: boolean; seriesMasterId: string | null; joinUrl: string | null; webUrl: string | null; syncedAt: string };
+export type CalendarEntry = {
+  /** Event ID in the calendar of the person who linked it (immutable ID, valid only in that mailbox). */
+  eventId: string;
+  /** Entra object ID of the person who linked the event. */
+  linkedBy: string;
+  /** @deprecated Stored by earlier versions instead of linkedBy. */
+  organizerId?: string;
+  /** Identical for all attendees and unique per occurrence; null for links made before it was stored. */
+  iCalUId: string | null;
+  /** Original start of a recurring occurrence, or the start of a single event. */
+  originalStart: string | null;
+  title: string;
+  start: string;
+  end: string;
+  cancelled: boolean;
+  occurrence: boolean;
+  seriesMasterId: string | null;
+  joinUrl: string | null;
+  webUrl: string | null;
+  syncedAt: string;
+  /** Result of applying the workspace's Teams recording setting when the event was last linked or refreshed. */
+  teamsRecording?: TeamsRecordingResult;
+};
+export const teamsRecordingModes = ['off', 'allow-transcription', 'record-and-transcribe'] as const;
+export type TeamsRecordingMode = (typeof teamsRecordingModes)[number];
+export type TeamsRecordingResult = {
+  mode: Exclude<TeamsRecordingMode, 'off'>;
+  result: 'applied' | 'not-organizer' | 'not-found' | 'failed';
+  at: string;
+  by: string;
+};
+/** Workspace-wide settings, changed by site owners. */
+export type WorkspaceSettings = {
+  version: number;
+  teamsRecording: TeamsRecordingMode;
+  updatedAt: string | null;
+  updatedBy: string | null;
+};
+export const defaultWorkspaceSettings: WorkspaceSettings = {
+  version: 0,
+  teamsRecording: 'off',
+  updatedAt: null,
+  updatedBy: null,
+};
+export const calendarLinker = (entry: CalendarEntry) => entry.linkedBy ?? entry.organizerId;
 export type Meeting = {
   calendar?: CalendarEntry;
-  id: string; revision: number; title: string; circle: string; circleId: string | null; scheduledAt: string | null;
-  createdBy: string; createdAt: string; updatedAt: string;
-  template: Template; status: 'scheduled' | 'active' | 'completed'; currentStep: number; stepStartedAt: string | null;
-  completedSteps: string[]; notes: Record<string, string>; agenda: AgendaItem[]; outcomes: Outcome[];
-  transcript: Segment[]; transcriptHash?: string; analyzedHash?: string; events: MeetingEvent[];
+  id: string;
+  revision: number;
+  title: string;
+  circle: string;
+  circleId: string | null;
+  scheduledAt: string | null;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  template: Template;
+  status: 'scheduled' | 'active' | 'completed';
+  currentStep: number;
+  stepStartedAt: string | null;
+  completedSteps: string[];
+  notes: Record<string, string>;
+  agenda: AgendaItem[];
+  outcomes: Outcome[];
+  transcript: Segment[];
+  transcriptHash?: string;
+  /** Number of transcript segments; the segments themselves are stored in a separate transcript record. */
+  transcriptSegments?: number;
+  analyzedHash?: string;
+  events: MeetingEvent[];
 };
-export type Tension = { id: string; version: number; title: string; description: string; circle: string; createdBy: string; createdAt: string; updatedAt: string; status: 'open' | 'resolved' };
-export type Bootstrap = { tensions: Tension[]; actor: Actor; templates: Template[]; meetings: Meeting[]; integrations: { governance?: boolean; entityTypes: OutputType[]; storage: string; ai: boolean; mcp: boolean; graph: boolean; } };
-export class AppError extends Error { constructor(public status: number, message: string) { super(message); } }
-export function assert(condition: unknown, message: string, status = 400): asserts condition { if (!condition) throw new AppError(status, message); }
+/** Meeting without transcript segments, as listed in the workspace overview. */
+export type MeetingSummary = Omit<Meeting, 'transcript'> & { transcriptSegments: number };
+export type Tension = {
+  id: string;
+  version: number;
+  title: string;
+  description: string;
+  circle: string;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  status: 'open' | 'resolved';
+};
+export type Bootstrap = {
+  tensions: Tension[];
+  actor: Actor;
+  templates: Template[];
+  meetings: MeetingSummary[];
+  settings: WorkspaceSettings;
+  /** Site owners may change workspace settings and run storage maintenance. */
+  canManageWorkspace: boolean;
+  integrations: {
+    governance?: boolean;
+    entityTypes: OutputType[];
+    storage: string;
+    ai: boolean;
+    aiProvider?: 'copilot' | 'claude-foundry' | 'openai-compatible' | null;
+    mcp: boolean;
+    graph: boolean;
+  };
+};
+/** Error with a translatable message ID. The message is the German text for logs and diagnostics. */
+export class AppError extends Error {
+  constructor(
+    public status: number,
+    public id: MessageId,
+    public params?: MessageParams,
+  ) {
+    super(translate(id, 'de', params));
+  }
+}
+export function assert(condition: unknown, id: MessageId, status = 400, params?: MessageParams): asserts condition {
+  if (!condition) throw new AppError(status, id, params);
+}

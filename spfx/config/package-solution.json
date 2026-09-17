@@ -14,7 +14,7 @@
       },
       {
         "resource": "Microsoft Graph",
-        "scope": "OnlineMeetings.Read"
+        "scope": "OnlineMeetings.ReadWrite"
       },
       {
         "resource": "Microsoft Graph",

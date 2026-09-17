@@ -1,154 +1,629 @@
-import React, { useEffect, useRef, useState } from 'react';
-
-import { ArrowDown, ArrowUp, ArrowRight, Check, CheckCircle2, ChevronRight, Clock3, Copy, FileText, LayoutTemplate, ListChecks, Loader2, Plus, Settings2, Trash2, Users, Video, X, Upload, WandSparkles, Send, GripVertical, Circle } from 'lucide-react';
-import { outputLabels, outputTypes, stepKinds, stepLabels, type Bootstrap, type Template, type TemplateInput, type Step, type Meeting, type Outcome, type OutcomeInput } from '../shared/model';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  ArrowRight,
+  CheckCircle2,
+  ChevronRight,
+  Clock3,
+  Copy,
+  FileText,
+  LayoutTemplate,
+  ListChecks,
+  Loader2,
+  Plus,
+  Settings2,
+  Trash2,
+  Video,
+  X,
+  WandSparkles,
+  Send,
+  Circle,
+} from 'lucide-react';
+import { type Bootstrap, type Template, type Meeting, type MeetingSummary } from '../shared/model';
+import { summarize } from '../shared/meeting-store';
 import { useApi } from './api-context';
-
 import { Tensions } from './Tensions';
 import { GovernanceAssistant } from './GovernanceAssistant';
-import { Assistant } from './Assistant';
 import { Preferences } from './Preferences';
-import { t as tr, language, usePreferences } from './i18n';
-import { CalendarLink } from './CalendarLink';
+import { t as tr, errorText, language, usePreferences } from './i18n';
+import type { MessageId } from '../shared/i18n';
 
-const categoryLabels = { tactical: 'Tactical', governance: 'Governance', custom: 'Individuell' };
-const statusLabels = { scheduled: 'Geplant', active: 'Läuft', completed: 'Abgeschlossen' };
-const newStep = (kind: Step['kind']): Step => ({ id: crypto.randomUUID(), kind, title: tr(stepLabels[kind]), description: '', minutes: 5, optional: false, outputs: [], phases: [] });
-function Button({ children, className = '', ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) { return <button className={`button ${className}`} {...props}>{children}</button>; }
-function Modal({ title, close, children, wide = false }: { title: string; close: () => void; children: React.ReactNode; wide?: boolean }) {
-  const ref = useRef<HTMLDialogElement>(null);
-  useEffect(() => { ref.current?.showModal(); const dialog = ref.current; return () => dialog?.close(); }, []);
-  return <dialog ref={ref} className={wide ? 'wide' : ''} onCancel={close}><div className="modal-head"><h2>{title}</h2><Button className="icon" aria-label={tr("Schließen")} onClick={close}><X size={20}/></Button></div>{children}</dialog>;
-}
-function Field({ label, children }: { label: string; children: React.ReactNode }) { return <label className="field"><span>{tr(label)}</span>{children}</label>; }
-function TemplateEditor({ template, save, close, busy }: { template?: Template; save: (input: TemplateInput, id?: string, version?: number) => void; close: () => void; busy: boolean }) {
-  const [draft, setDraft] = useState<TemplateInput>(() => template ? structuredClone(template) : { name: '', description: '', category: 'custom', enabled: true, steps: [newStep('check-in'), newStep('agenda'), newStep('check-out')] });
-  const [active, setActive] = useState(draft.steps[0].id); const [drag, setDrag] = useState<number | null>(null);
-  const step = draft.steps.find(s => s.id === active) ?? draft.steps[0];
-  const update = (data: Partial<Step>) => setDraft(d => ({ ...d, steps: d.steps.map(s => s.id === step.id ? { ...s, ...data } : s) }));
-  const move = (from: number, to: number) => { if (to < 0 || to >= draft.steps.length) return; setDraft(d => { const steps = [...d.steps]; const [s] = steps.splice(from, 1); steps.splice(to, 0, s); return { ...d, steps }; }); };
-  return <Modal title={template ? tr("Template bearbeiten") : tr("Neues Meeting-Template")} close={close} wide><form onSubmit={e => { e.preventDefault(); save(draft, template?.id, template?.version); }}>
-    <div className="editor-meta"><Field label={tr("Name")}><input required maxLength={200} value={draft.name} onChange={e => setDraft({ ...draft, name: e.target.value })} placeholder={tr("z. B. Monatliche Strategie-Runde")}/></Field><Field label={tr("Meetingtyp")}><select value={draft.category} onChange={e => setDraft({ ...draft, category: e.target.value as TemplateInput['category'] })}>{Object.entries(categoryLabels).map(([key, label]) => <option key={key} value={key}>{tr(label)}</option>)}</select></Field></div>
-    <Field label={tr("Beschreibung")}><textarea rows={2} maxLength={4000} value={draft.description} onChange={e => setDraft({ ...draft, description: e.target.value })}/></Field>
-    <div className="editor-grid"><section className="step-list"><div className="section-label">{tr("ABLAUF")}<span>{draft.steps.length} {tr("Schritte")}</span></div>{draft.steps.map((s, i) => <div key={s.id} className={`edit-step ${step.id === s.id ? 'selected' : ''}`} draggable onDragStart={() => setDrag(i)} onDragOver={e => e.preventDefault()} onDrop={() => { if (drag !== null) move(drag, i); setDrag(null); }}><button type="button" className="step-select" onClick={() => setActive(s.id)}><GripVertical size={16}/><span className="step-num">{i + 1}</span><span>{s.title}</span></button><div className="step-actions"><button type="button" aria-label={`${s.title} ${tr("nach oben")} `} disabled={i === 0} onClick={() => move(i, i - 1)}><ArrowUp size={14}/></button><button type="button" aria-label={`${s.title} ${tr("nach unten")} `} disabled={i === draft.steps.length - 1} onClick={() => move(i, i + 1)}><ArrowDown size={14}/></button></div></div>)}
-      <Field label={tr("Schritt hinzufügen")}><select value="" onChange={e => { const s = newStep(e.target.value as Step['kind']); setDraft(d => ({ ...d, steps: [...d.steps, s] })); setActive(s.id); }}><option value="" disabled>{tr("Schritttyp auswählen …")}</option>{stepKinds.map(k => <option key={k} value={k}>{tr(stepLabels[k])}</option>)}</select></Field>
-    </section><section className="step-detail"><div className="detail-heading"><span className="pill">{tr(stepLabels[step.kind])}</span><Button type="button" className="icon danger" title={tr("Schritt entfernen")} aria-label={tr("Schritt entfernen")} disabled={draft.steps.length === 1} onClick={() => { const steps = draft.steps.filter(s => s.id !== step.id); setDraft({ ...draft, steps }); setActive(steps[0].id); }}><Trash2 size={17}/></Button></div>
-      <Field label={tr("Schrittname")}><input required maxLength={200} value={step.title} onChange={e => update({ title: e.target.value })}/></Field><Field label={tr("Hinweis für die Moderation")}><textarea rows={3} maxLength={4000} value={step.description} onChange={e => update({ description: e.target.value })} placeholder={tr("Was soll in diesem Schritt passieren?")}/></Field>
-      <div className="inline-fields"><Field label={tr("Zeitbox in Minuten")}><input type="number" min={0} max={480} value={step.minutes} onChange={e => update({ minutes: Number(e.target.value) })}/></Field><label className="check"><input type="checkbox" checked={step.optional} onChange={e => update({ optional: e.target.checked })}/>{tr("Optionaler Schritt")}</label></div>
-      <div className="field"><span>{tr("Erlaubte Ergebnisse")}</span><div className="output-choices">{outputTypes.map(type => <label className={`output-choice ${step.outputs.includes(type) ? 'checked' : ''}`} key={type}><input type="checkbox" checked={step.outputs.includes(type)} onChange={e => update({ outputs: e.target.checked ? [...step.outputs, type] : step.outputs.filter(t => t !== type) })}/>{tr(outputLabels[type])}</label>)}</div><small>{tr("Ohne Auswahl werden in diesem Schritt nur Notizen und Agendaelemente erfasst.")}</small></div>
-      <Field label={tr("Unterphasen pro Agendaelement (eine pro Zeile)")}><textarea rows={4} value={step.phases.join("\n")} onChange={e => update({ phases: e.target.value.split("\n") })} onBlur={() => update({ phases: step.phases.map(p => p.trim()).filter(Boolean) })} placeholder={tr("Vorschlag vorstellen\nVerständnisfragen\nErgebnis dokumentieren")}/></Field>
-    </section></div><div className="modal-footer"><label className="check"><input type="checkbox" checked={draft.enabled} onChange={e => setDraft({ ...draft, enabled: e.target.checked })}/>{tr("Für neue Meetings verfügbar")}</label><Button type="submit" className="primary" disabled={busy}>{busy ? <Loader2 className="spin" size={16}/> : <Check size={16}/>}{tr("Template speichern")}</Button></div>
-  </form></Modal>;
-}
-function CreateMeeting({ templates, save, close, busy }: { templates: Template[]; save: (body: unknown) => void; close: () => void; busy: boolean }) {
-  const enabled = templates.filter(t => t.enabled); const [selected, setSelected] = useState(enabled[0]?.id || '');
-  const [title, setTitle] = useState(''); const [circle, setCircle] = useState(''); const [date, setDate] = useState('');
-  const template = enabled.find(t => t.id === selected);
-  return <Modal title={tr("Meeting anlegen")} close={close}><form onSubmit={e => { e.preventDefault(); save({ title, circle, templateId: selected, scheduledAt: date ? new Date(date).toISOString() : null }); }}>
-    <Field label={tr("Meetingname")}><input required value={title} onChange={e => setTitle(e.target.value)} placeholder={tr("z. B. Produktkreis · Wöchentliches Tactical")}/></Field><Field label={tr("Kreis / Team")}><input required value={circle} onChange={e => setCircle(e.target.value)} placeholder={tr("Produktkreis")}/></Field>
-    <Field label={tr("Meeting-Template")}><select required value={selected} onChange={e => setSelected(e.target.value)}>{enabled.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}</select></Field>
-    {template && <div className="template-preview"><p>{template.description}</p><div className="mini-flow">{template.steps.map(s => <span key={s.id}>{s.title}<ChevronRight size={13}/></span>)}</div></div>}
-    <Field label={tr("Termin (optional)")}><input type="datetime-local" value={date} onChange={e => setDate(e.target.value)}/></Field>
-    <div className="modal-footer"><span/><Button className="primary" disabled={busy || !selected}><Plus size={16}/>{tr("Meeting anlegen")}</Button></div>
-  </form></Modal>;
-}
-function OutcomeForm({ meeting, stepId, initial, close, save, busy }: { meeting: Meeting; stepId: string; initial?: Outcome; close: () => void; save: (o: OutcomeInput) => void; busy: boolean }) {
-  const step = meeting.template.steps.find(s => s.id === stepId)!;
-  const [value, setValue] = useState<OutcomeInput>(initial ? { ...initial } : { stepId, agendaId: null, type: step.outputs[0], title: '', description: '', owner: null, dueDate: null, targetId: null, data: {}, evidence: [] });
-  return <Modal title={initial ? tr("Ergebnis bearbeiten") : tr("Ergebnis festhalten")} close={close}><form onSubmit={e => { e.preventDefault(); save(value); }}>
-    <Field label={tr("Ergebnistyp")}><select value={value.type} onChange={e => setValue({ ...value, type: e.target.value as OutcomeInput['type'] })}>{step.outputs.map(t => <option key={t} value={t}>{tr(outputLabels[t])}</option>)}</select></Field>
-    <Field label={tr("Titel")}><input required value={value.title} onChange={e => setValue({ ...value, title: e.target.value })}/></Field>
-    <Field label={tr("Inhalt / genauer Wortlaut")}><textarea rows={5} value={value.description} onChange={e => setValue({ ...value, description: e.target.value })}/></Field>
-    <Field label={tr("Agendaelement")}><select value={value.agendaId || ''} onChange={e => setValue({ ...value, agendaId: e.target.value || null })}><option value="">{tr("Keine Zuordnung")}</option>{meeting.agenda.filter(a => a.stepId === stepId).map(a => <option key={a.id} value={a.id}>{a.title}</option>)}</select></Field>
-    <div className="inline-fields"><Field label={tr("Verantwortlich")}><input value={value.owner || ''} onChange={e => setValue({ ...value, owner: e.target.value || null })} placeholder={tr("Offen")}/></Field><Field label={tr("Fällig am")}><input type="date" value={value.dueDate || ''} onChange={e => setValue({ ...value, dueDate: e.target.value || null })}/></Field></div>
-    <p className="muted">{tr("Nach dem Speichern als Vorschlag prüfen. Eine Änderung hebt eine frühere Bestätigung auf.")}</p><div className="modal-footer"><span/><Button className="primary" disabled={busy}><Check size={16}/>{tr("Vorschlag speichern")}</Button></div>
-  </form></Modal>;
-}
-function MeetingRoom({ meeting: m, actor, integrations, update, busy, run }: { meeting: Meeting; actor: Bootstrap['actor']; integrations: Bootstrap['integrations']; update: (m: Meeting) => void; busy: boolean; run: (task: () => Promise<void>) => void }) {
-  const { request } = useApi();
-  const [tab, setTab] = useState<'flow' | 'results' | 'transcript' | 'history' | 'governance'>('flow'); const [note, setNote] = useState(m.notes[m.template.steps[m.currentStep].id] || '');
-  const [agendaTitle, setAgendaTitle] = useState(''); const [agendaOwner, setAgendaOwner] = useState('');
-  const [outcome, setOutcome] = useState<{ stepId: string; initial?: Outcome } | null>(null); const [raw, setRaw] = useState('');
-  const [entityPreview, setEntityPreview] = useState<{ outcomeId: string; revision: number; plan: { label: string; destination: string; tool: string; arguments: unknown } } | null>(null);
-  const [confirmExport, setConfirmExport] = useState(false); const [reconcile, setReconcile] = useState<Outcome | null>(null); const [resolution, setResolution] = useState('created'); const [draftId, setDraftId] = useState(''); const [reconcileNote, setReconcileNote] = useState('');
-  const [clock, setClock] = useState(Date.now()); const step = m.template.steps[m.currentStep];
-  const editable = actor.workspace === 'write';
-  useEffect(() => { setNote(m.notes[step.id] || ''); }, [m.id, step.id]);
-  useEffect(() => { const timer = setInterval(() => setClock(Date.now()), 1000); return () => clearInterval(timer); }, []);
-  const elapsed = m.stepStartedAt ? Math.max(0, Math.floor((clock - Date.parse(m.stepStartedAt)) / 1000)) : 0;
-  const remaining = step.minutes * 60 - elapsed;
-  const act = (body: Record<string, unknown>) => run(async () => update(await request<Meeting>(`/meetings/${m.id}/command`, { ...body, revision: m.revision })));
-  const post = (path: string, body: Record<string, unknown> = {}) => request<Meeting>(`/meetings/${m.id}/${path}`, { ...body, revision: m.revision });
-  const approved = m.outcomes.filter(o => o.status === 'approved' && !o.export);
-  return <>
-    <div className="meeting-heading"><div><div className="eyebrow">{m.circle} <span> / </span> {m.template.name} {tr("· v")}{m.template.version}</div><h1>{m.title}</h1></div><span className={`pill ${m.status === 'active' ? 'green' : ''}`}>{m.status === 'active' && <span className="live-dot"/>}{tr(statusLabels[m.status])}</span></div>
-    <CalendarLink meeting={m} editable={editable} enabled={integrations.graph} actorId={actor.id} run={run} update={update}/>
-    <div className="tabs" role="tablist">{([['flow', tr("Meetingablauf")], ['results', `${tr("Ergebnisse")} (${m.outcomes.length})`], ['transcript', tr("Transkript & Analyse")], ['history', tr("Verlauf")], ['governance', tr('Governance fragen')]] as const).map(([key, label]) => <button role="tab" aria-selected={tab === key} key={key} onClick={() => setTab(key)}>{tr(label)}</button>)}</div>
-    {tab === 'flow' && <div className="room-grid"><aside className="flow-sidebar"><div className="section-label">{tr("UNSER ABLAUF")}</div>{m.template.steps.map((s, i) => <div className={`flow-step ${i === m.currentStep && m.status !== 'completed' ? 'active' : ''}`} key={s.id}><span className="step-circle">{m.completedSteps.includes(s.id) ? <Check size={15}/> : i + 1}</span><div><strong>{s.title}</strong><small>{s.minutes ? `${s.minutes} ${tr("Min.")}` : tr("Ohne Zeitbox")}{s.optional ? tr(" · Optional") : ''}</small></div></div>)}<p className="small muted">{tr("Vorlage v")}{m.template.version} {tr("· Änderungen am Template beeinflussen dieses Meeting nicht.")}</p></aside>
-      <section className="meeting-work"><div className="active-step-heading"><span className="eyebrow">{tr("SCHRITT")}{" "}{m.currentStep + 1} {" "}{tr("VON")}{" "}{m.template.steps.length}</span><span className={`timer ${remaining < 0 ? 'overtime' : ''}`}><Clock3 size={17}/>{step.minutes ? `${remaining < 0 ? '+' : ''}${Math.floor(Math.abs(remaining) / 60).toString().padStart(2, '0')}:${(Math.abs(remaining) % 60).toString().padStart(2, '0')}` : tr("Offene Zeitbox")}</span></div><h2>{m.status === 'completed' ? tr("Meeting abgeschlossen") : step.title}</h2><p className="step-description">{m.status === 'completed' ? tr("Prüfe die Ergebnisse und halte die vereinbarten nächsten Schritte fest.") : step.description}</p>
-      {m.status === 'scheduled' && <div className="start-banner"><div><strong>{tr("Bereit, gemeinsam Klarheit zu schaffen?")}</strong><p>{tr("Die Vorlage ist vorbereitet. Mit dem Start beginnt die erste Zeitbox.")}</p></div>{editable && <Button className="primary" disabled={busy} onClick={() => act({ type: 'start' })}>{tr("Meeting starten")}<ArrowRight size={17}/></Button>}</div>}
-      {step.kind === 'agenda' && <section><div className="section-heading"><h3>{tr("Spannungen & Themen")}</h3><span className="muted">{m.agenda.filter(a => a.stepId === step.id && a.status === 'open').length} {tr("offen")}</span></div>{m.agenda.filter(a => a.stepId === step.id).map(a => <article className={`agenda-card ${a.status === 'resolved' ? 'resolved' : ''}`} key={a.id}><div className="row"><strong>{a.title}</strong>{a.status === 'resolved' && <CheckCircle2 size={18}/>}</div>{a.owner && <p className="small muted">{tr("Eingebracht von")}{" "}{a.owner}</p>}{step.phases.length > 0 && <div className="phases">{step.phases.map((phase, index) => <button key={index} className={a.phase === index ? 'selected' : ''} disabled={!editable || busy || m.status !== 'active' || a.status !== 'open'} onClick={() => act({ type: 'agenda.phase', id: a.id, phase: index })}>{index + 1}. {phase}</button>)}</div>}{a.proposal && <p className="preserve"><strong>{tr("Vorschlagsentwurf")}: </strong>{a.proposal}</p>}{a.objections && <details><summary>{tr("Einwände (einer pro Absatz)")}</summary><p className="preserve">{a.objections}</p></details>}{editable && a.status === 'open' && m.status !== 'completed' && <Assistant meeting={m} item={a} enabled={integrations.ai} busy={busy} run={run} update={update}/>}{editable && a.status === 'open' && m.status === 'active' && <Button disabled={busy} onClick={() => act({ type: 'agenda.resolve', id: a.id })}><Check size={15}/>{tr("Bearbeitung abschließen")}</Button>}</article>)}
-        {editable && m.status !== 'completed' && <form className="agenda-add" onSubmit={e => { e.preventDefault(); run(async () => { update(await post('command', { type: 'agenda.add', stepId: step.id, title: agendaTitle, owner: agendaOwner })); setAgendaTitle(''); setAgendaOwner(''); }); }}><input aria-label={tr("Spannung oder Thema")} placeholder={tr("Welche Spannung möchtest du bearbeiten?")} required value={agendaTitle} onChange={e => setAgendaTitle(e.target.value)}/><input aria-label={tr("Eingebracht von")} placeholder={tr("Eingebracht von")} value={agendaOwner} onChange={e => setAgendaOwner(e.target.value)}/><Button disabled={busy} aria-label={tr("Thema hinzufügen")}><Plus size={18}/></Button></form>}
-      </section>}
-      <Field label={tr("Notizen zu diesem Schritt")}><textarea rows={6} readOnly={!editable || m.status === 'completed'} value={note} onChange={e => setNote(e.target.value)} placeholder={tr("Beobachtungen, Antworten und wichtige Punkte festhalten …")}/></Field>
-      <div className="row wrap">{editable && m.status !== 'completed' && <Button disabled={busy || note === (m.notes[step.id] || '')} onClick={() => act({ type: 'note', text: note })}><Check size={15}/>{tr("Notizen speichern")}</Button>}{step.outputs.length > 0 && editable && <Button disabled={busy} onClick={() => setOutcome({ stepId: step.id })}><Plus size={15}/>{tr("Ergebnis festhalten")}</Button>}<div className="output-tags">{step.outputs.map(t => <span key={t}>{tr(outputLabels[t])}</span>)}</div></div>
-      {editable && m.status === 'active' && <div className="next-step"><span>{step.optional && <Button disabled={busy} onClick={() => act({ type: 'skip' })}>{tr("Überspringen")}</Button>}</span><Button className="primary" disabled={busy} onClick={() => run(async () => { let current = m; if (note !== (m.notes[step.id] || '')) current = await post('command', { type: 'note', text: note }); update(await request<Meeting>(`/meetings/${m.id}/command`, { type: 'next', revision: current.revision })); })}>{m.currentStep === m.template.steps.length - 1 ? tr("Meeting abschließen") : tr("Nächster Schritt")}<ArrowRight size={17}/></Button></div>}
-      </section></div>}
-    {tab === 'results' && <section className="results-view"><div className="section-heading"><div><h2>{tr("Vom Gespräch zum nächsten Schritt")}</h2><p className="muted">{tr("Vorschläge prüfen und verbindliche Ergebnisse festhalten. Eine Übertragung nach roleALPHA ist optional.")}</p></div>{editable && integrations.mcp && <Button className="primary" disabled={busy || !approved.length} onClick={() => setConfirmExport(true)}><Send size={16}/>{approved.length} {tr("als Protokoll")}</Button>}</div>
-      {!m.outcomes.length && <div className="empty"><ListChecks size={32}/><h3>{tr("Noch keine Ergebnisse")}</h3><p>{tr("Halte Ergebnisse im Meetingablauf fest oder werte ein Transkript aus.")}</p><Button onClick={() => setTab('transcript')}>{tr("Transkript öffnen")}<ArrowRight size={15}/></Button></div>}
-      {m.outcomes.map(o => <article className="result-card" key={o.id}><div className="result-top"><span className="pill">{tr(outputLabels[o.type])}</span><span className={`pill ${o.status === 'approved' ? 'green' : ''}`}>{o.export?.state === 'draft_created' ? tr("Entwurf in roleALPHA") : o.export?.state === 'uncertain' ? tr("Export prüfen") : o.export?.state === 'sending' ? tr("Wird übertragen") : o.status === 'approved' ? tr("Bestätigt") : o.status === 'rejected' ? tr("Verworfen") : tr("Zur Prüfung")}</span><span className="small muted">{o.source === 'ai' ? tr("KI-Vorschlag") : tr("Manuell erfasst")}</span></div><h3>{o.title}</h3><p className="preserve">{o.description}</p>{Object.keys(o.data).length > 0 && <details><summary>{tr("Weitere Entitätsfelder")}</summary><dl>{Object.entries(o.data).map(([key, value]) => <React.Fragment key={key}><dt>{key}</dt><dd>{typeof value === 'object' ? JSON.stringify(value) : String(value)}</dd></React.Fragment>)}</dl></details>}<div className="result-meta"><span><Users size={14}/>{o.owner || tr("Verantwortung offen")}</span><span><Clock3 size={14}/>{o.dueDate || tr("Kein Termin")}</span></div>
-        {o.evidence.length > 0 && <details><summary>{o.evidence.length} {tr("Transkriptbelege")}</summary>{m.transcript.filter(s => o.evidence.includes(s.id)).map(s => <blockquote key={s.id}><small>{s.start || s.id} {s.speaker}</small>{s.text}</blockquote>)}</details>}
-        {o.export?.draftId && <p className="small muted">{tr("Entwurf-ID:")}{o.export.draftId} {tr("· Freigabe in roleALPHA ausstehend.")}</p>}
-        {editable && o.status === 'approved' && !o.export && integrations.entityTypes.includes(o.type) && <Button className="primary" disabled={busy} onClick={() => run(async () => { const plan = await request<{ label: string; destination: string; tool: string; arguments: unknown }>(`/meetings/${m.id}/entity-preview`, { revision: m.revision, outcomeId: o.id }); setEntityPreview({ outcomeId: o.id, revision: m.revision, plan }); })}>{tr(outputLabels[o.type])} {tr("in roleALPHA anlegen")}</Button>}
-        {editable && !o.export && <div className="row"><Button disabled={busy} onClick={() => setOutcome({ stepId: o.stepId, initial: o })}>{tr("Bearbeiten")}</Button>{o.status !== 'rejected' && <Button disabled={busy} onClick={() => act({ type: 'outcome.review', id: o.id, status: 'rejected' })}>{tr("Verwerfen")}</Button>}{o.status !== 'approved' && <Button className="approve" disabled={busy} onClick={() => act({ type: 'outcome.review', id: o.id, status: 'approved' })}><Check size={16}/>{tr("Wortlaut bestätigen")}</Button>}</div>}
-        {editable && (o.export?.state === 'uncertain' || (o.export?.state === 'sending' && clock - Date.parse(o.export.startedAt || '') > 300_000)) && <Button onClick={() => { setReconcile(o); setReconcileNote(''); setDraftId(''); }}>{tr("Export mit roleALPHA abgleichen")}</Button>}
-      </article>)}
-    </section>}
-    {tab === 'governance' && <GovernanceAssistant enabled={!!integrations.governance}/>}
-    {tab === 'transcript' && <div className="transcript-grid"><section><div className="section-heading"><h2>{tr("Transkript")}</h2><span className="pill">{m.transcript.length} {tr("Segmente")}</span></div><p className="muted">{tr("Teams-VTT, TXT oder Text mit Zeitmarken. Die Originalaufnahme bleibt bei Microsoft.")}</p>{editable && <><label className="upload"><Upload size={18}/><span>{tr("Datei auswählen (.vtt / .txt)")}</span><input type="file" accept=".vtt,.txt,text/plain,text/vtt" onChange={e => { const f = e.target.files?.[0]; if (f) run(async () => { if (f.size > 1_000_000) throw new Error(tr("Maximal 1 MB pro Transkript.")); setRaw(await f.text()); }); }}/></label><textarea aria-label={tr("Transkripttext")} rows={8} value={raw} onChange={e => setRaw(e.target.value)} placeholder={tr("Transkript hier einfügen …")}/><div className="row"><Button disabled={busy || !raw.trim()} onClick={() => run(async () => { update(await post('transcript', { text: raw })); setRaw(''); })}><Upload size={15}/>{tr("Importieren")}</Button><Button className="primary" disabled={busy || !m.transcript.length || !integrations.ai || m.analyzedHash === m.transcriptHash} onClick={() => run(async () => { update(await post('analyze', { language: language() })); setTab('results'); })}><WandSparkles size={16}/>{m.analyzedHash && m.analyzedHash === m.transcriptHash ? tr("Bereits ausgewertet") : tr("Ergebnisse analysieren")}</Button></div></>}
-      {m.transcript.length > 0 && <div className="transcript-segments">{m.transcript.map(s => <div className="segment" key={s.id}><span>{s.start || s.id}</span><p><strong>{s.speaker}</strong>{s.text}</p></div>)}</div>}
-      </section><aside className="integration-card"><h3><Video size={19}/>{tr("Teams-Verknüpfung")}</h3><><p>{tr("Transkripte werden auf Knopfdruck über dein Microsoft-Konto geladen. Alternativ eine VTT- oder Textdatei importieren.")}</p>{editable && <Button disabled={busy || !m.calendar?.joinUrl} onClick={() => run(async () => update(await post('graph-fetch')))}>{tr("Transkript jetzt abrufen")}</Button>}</><div className="connection-status"><span className={`dot ${integrations.ai ? 'on' : ''}`}/>{tr("KI")}{" "}{integrations.ai ? tr('konfiguriert') : tr("nicht konfiguriert")}</div><div className="connection-status"><span className={`dot ${integrations.graph ? 'on' : ''}`}/>{tr("Microsoft Graph")}{" "}{integrations.graph ? tr('konfiguriert') : tr("nicht konfiguriert")}</div></aside></div>}
-    {tab === 'history' && <section className="history"><h2>{tr("Nachvollziehbarer Verlauf")}</h2>{[...m.events].reverse().map(e => <div className="history-row" key={e.id}><span className="history-dot"/><div><strong>{e.detail}</strong><p>{e.actor} · {new Date(e.at).toLocaleString(language())}</p></div></div>)}</section>}
-    {outcome && <OutcomeForm meeting={m} stepId={outcome.stepId} initial={outcome.initial} close={() => setOutcome(null)} busy={busy} save={value => run(async () => { update(await post('command', { type: outcome.initial ? 'outcome.edit' : 'outcome.add', id: outcome.initial?.id, outcome: value })); setOutcome(null); })}/>}
-    {entityPreview && <Modal title={`${entityPreview.plan.label} ${tr("in roleALPHA anlegen")}`} close={() => setEntityPreview(null)}><p>{tr("Der bestätigte Wortlaut wird als neuer Entwurf angelegt. Die bestehende Spannung bleibt in der Meeting-App.")}</p><h3>{m.outcomes.find(o => o.id === entityPreview.outcomeId)?.title}</h3><p className="preserve">{m.outcomes.find(o => o.id === entityPreview.outcomeId)?.description}</p><p>{tr("Verantwortlich:")}{" "}{m.outcomes.find(o => o.id === entityPreview.outcomeId)?.owner || tr("Offen")}</p><p className="small muted">{tr("Zugehörige Transkriptbelege und der Bestätigungsnachweis werden mit übertragen.")}</p><div className="modal-footer"><Button onClick={() => setEntityPreview(null)}>{tr("Abbrechen")}</Button><Button className="primary" disabled={busy} onClick={() => run(async () => { update(await request<Meeting>(`/meetings/${m.id}/export-entity`, { revision: entityPreview.revision, outcomeId: entityPreview.outcomeId, plan: entityPreview.plan })); setEntityPreview(null); })}>{tr("Geprüften Entwurf anlegen")}</Button></div></Modal>}
-    {confirmExport && <Modal title={tr("Bestätigte Ergebnisse übertragen")} close={() => setConfirmExport(false)}><p>{tr("Diese")}{" "}{approved.length} {tr("Ergebnisse werden einschließlich ihrer Transkriptbelege als")}{" "}<strong>{tr("Meeting-Entwurf")}</strong> {tr("nach roleALPHA übertragen.")}</p><ul>{approved.map(o => <li key={o.id}>{o.title}</li>)}</ul><p>{tr("Rollen und Policies werden dadurch noch nicht verändert. Der Entwurf wird in roleALPHA weiterbearbeitet und freigegeben.")}</p><div className="modal-footer"><Button onClick={() => setConfirmExport(false)}>{tr("Abbrechen")}</Button><Button className="primary" disabled={busy} onClick={() => run(async () => { update(await post('export', { ids: approved.map(o => o.id) })); setConfirmExport(false); })}><Send size={16}/>{tr("Entwurf übertragen")}</Button></div></Modal>}
-    {reconcile && <Modal title={tr("Export abgleichen")} close={() => setReconcile(null)}><form onSubmit={e => { e.preventDefault(); run(async () => { update(await post('export-reconcile', { ids: [reconcile.id], resolution, draftId, note: reconcileNote })); setReconcile(null); }); }}><p>{tr("Prüfe zuerst den Entwurfsbereich in roleALPHA. Nur wenn dort kein Entwurf angelegt wurde, darf die Übertragung erneut freigegeben werden.")}</p><Field label={tr("Prüfergebnis")}><select value={resolution} onChange={e => setResolution(e.target.value)}><option value="created">{tr("Entwurf existiert")}</option><option value="not-created">{tr("Kein Entwurf angelegt – erneut erlauben")}</option></select></Field>{resolution === 'created' && <Field label={tr("Entwurf-ID")}><input required value={draftId} onChange={e => setDraftId(e.target.value)}/></Field>}<Field label={tr("Prüfnotiz")}><textarea required minLength={10} value={reconcileNote} onChange={e => setReconcileNote(e.target.value)}/></Field><div className="modal-footer"><span/><Button className="primary" disabled={busy}>{tr("Abgleich dokumentieren")}</Button></div></form></Modal>}
-  </>;
-}
+type SettingsCard = {
+  title: MessageId;
+  icon: React.ReactNode;
+  ready: boolean;
+  value: MessageId;
+  description: MessageId;
+};
+import { Button, Modal } from './ui';
+import { aiProviderLabels, categoryLabels } from './labels';
+import { statusLabels } from './labels';
+import { TemplateEditor } from './TemplateEditor';
+import { CreateMeeting } from './CreateMeeting';
+import { MeetingRoom } from './MeetingRoom';
+import { StorageMaintenance } from './StorageMaintenance';
+import { TeamsRecordingSettings } from './TeamsRecordingSettings';
+
 export function App() {
-  const api = useApi(); const { request, initializeTeams } = api;
+  const api = useApi();
+  const { request, initializeTeams } = api;
   usePreferences();
-  const [data, setData] = useState<Bootstrap | null>(null); const [view, setView] = useState('meetings'); const [selected, setSelected] = useState<string | null>(api.initialMeeting || new URLSearchParams(location.search).get('raMeeting'));
-  const [error, setError] = useState(''); const [busy, setBusy] = useState(false); const [editor, setEditor] = useState<Template | 'new' | null>(null); const [create, setCreate] = useState(false); const [remove, setRemove] = useState<Template | null>(null); const [teams, setTeams] = useState(false);
+  const [data, setData] = useState<Bootstrap | null>(null);
+  const [view, setView] = useState('meetings');
+  const [selected, setSelected] = useState<string | null>(
+    api.initialMeeting || new URLSearchParams(location.search).get('raMeeting'),
+  );
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [editor, setEditor] = useState<Template | 'new' | null>(null);
+  const [create, setCreate] = useState(false);
+  const [remove, setRemove] = useState<Template | null>(null);
+  const [teams, setTeams] = useState(false);
   const busyRef = useRef(false);
-  const load = async () => { const d = await request<Bootstrap>('/bootstrap'); setData(d); return d; };
-  useEffect(() => { void (async () => { setTeams(await initializeTeams()); await load(); })().catch(e => setError(tr(e.message))); }, []);
-  const run = (task: () => Promise<void>) => { if (busyRef.current) return; busyRef.current = true; setBusy(true); setError(''); void task().catch(async e => { setError(tr(e.message)); try { await load(); } catch { /* Keep original error. */ } }).finally(() => { busyRef.current = false; setBusy(false); }); };
-  const update = (m: Meeting) => setData(d => d ? { ...d, meetings: d.meetings.map(old => old.id === m.id ? m : old) } : d);
+  const load = async () => {
+    const d = await request<Bootstrap>('/bootstrap');
+    setData(d);
+    return d;
+  };
+  useEffect(() => {
+    void (async () => {
+      setTeams(await initializeTeams());
+      setData(await request<Bootstrap>('/bootstrap'));
+    })().catch(e => setError(errorText(e)));
+  }, [initializeTeams, request]);
+  const run = (task: () => Promise<void>) => {
+    if (busyRef.current) return;
+    busyRef.current = true;
+    setBusy(true);
+    setError('');
+    void task()
+      .catch(async e => {
+        setError(errorText(e));
+        try {
+          await load();
+        } catch {
+          /* Keep original error. */
+        }
+      })
+      .finally(() => {
+        busyRef.current = false;
+        setBusy(false);
+      });
+  };
+  // The overview holds summaries; the open meeting is loaded with its transcript.
+  const [meeting, setMeeting] = useState<Meeting | null>(null);
+  const update = useCallback((m: Meeting) => {
+    setData(d => (d ? { ...d, meetings: d.meetings.map(old => (old.id === m.id ? summarize(m) : old)) } : d));
+    setMeeting(current => (current && current.id !== m.id ? current : m));
+  }, []);
+  useEffect(() => {
+    setMeeting(null);
+    if (!selected) return;
+    let alive = true;
+    void request<Meeting>(`/meetings/${selected}`)
+      .then(m => {
+        if (alive) update(m);
+      })
+      .catch(e => {
+        if (alive) setError(errorText(e));
+      });
+    return () => {
+      alive = false;
+    };
+  }, [request, selected, update]);
   // Refresh the shared SharePoint meeting while this view is open.
-  useEffect(() => { if (!selected) return; const timer = setInterval(() => { if (!busyRef.current) void request<Meeting>(`/meetings/${selected}`).then(update).catch(() => {}); }, 10_000); return () => clearInterval(timer); }, [selected]);
-  const meeting = data?.meetings.find(m => m.id === selected);
-  const back = () => { setSelected(null); const u = new URL(location.href); u.searchParams.delete('raMeeting'); history.replaceState(null, '', u); };
-  const open = (m: Meeting) => { setSelected(m.id); setView('meetings'); const u = new URL(location.href); u.searchParams.set('raMeeting',m.id); history.replaceState(null,'',u); };
-  return <div className="app"><aside className="sidebar"><div className="brand"><div className="brand-mark">r<span>A</span></div><div>role<span>ALPHA</span><small>{tr("MEETINGS")}</small></div></div><nav><button className={view === 'meetings' ? 'active' : ''} onClick={() => { back(); setView('meetings'); }}><Video size={19}/>{tr("Meetings")}</button><button className={view === 'tensions' ? 'active' : ''} onClick={() => { back(); setView('tensions'); }}><ListChecks size={19}/>{tr("Spannungen")}</button><button className={view === 'templates' ? 'active' : ''} onClick={() => { back(); setView('templates'); }}><LayoutTemplate size={19}/>{tr("Templates")}</button><button className={view === 'governance' ? 'active' : ''} onClick={() => { back(); setView('governance'); }}><WandSparkles size={19}/>{tr('Governance fragen')}</button><button className={view === 'settings' ? 'active' : ''} onClick={() => { back(); setView('settings'); }}><Settings2 size={19}/>{tr("Verbindungen")}</button></nav><div className="sidebar-bottom"><div className="quiet-label">{tr("GEMEINSAM WEITERKOMMEN")}</div><p>{tr("Klare Abläufe.")}<br/>{tr("Verbindliche Ergebnisse.")}</p><div className="user"><div className="avatar">{data?.actor.name.slice(0, 1) || '…'}</div><div><strong>{data?.actor.name || tr("Anmeldung")}</strong><small>{tr(data?.actor.workspace === 'write' ? 'Bearbeitung' : 'Lesezugriff')}</small></div></div></div></aside>
-    <main><header className="topbar"><div className="breadcrumb">{tr("Arbeitsbereich")}<ChevronRight size={14}/><span>{view === 'tensions' ? tr("Spannungsspeicher") : view === 'templates' ? tr("Meeting-Templates") : view === 'settings' ? tr("Verbindungen") : view === 'governance' ? tr('Governance fragen') : tr("Meetings")}</span></div><div className="topbar-right"><Preferences/>{busy && <Loader2 size={17} className="spin"/>}{teams && <span className="pill"><Video size={14}/>{tr("Microsoft Teams")}</span>}</div></header>
-    <div className="page">{data?.actor.workspace && <p className="notice">{tr("Dieser Arbeitsbereich ist für alle berechtigten Teammitglieder sichtbar. SharePoint steuert Lesen und Bearbeiten.")}</p>}{error && <div role="alert" className="error"><span>{error}</span><Button className="icon" aria-label={tr("Fehlermeldung schließen")} onClick={() => setError('')}><X size={18}/></Button></div>}
-    {!data && <div className="empty">{!error && <Loader2 className="spin" size={26}/>}<h2>{error ? tr("Verbindung erforderlich") : tr("Arbeitsbereich wird geladen")}</h2>{error && <p>{tr("Bei Entra-Anmeldung die App in Microsoft Teams öffnen und die Konfiguration prüfen.")}</p>}</div>}
-    {data && meeting && view === 'meetings' && <><button className="back" onClick={back}>{tr("← Alle Meetings")}</button><MeetingRoom key={meeting.id} meeting={meeting} actor={data.actor} integrations={data.integrations} update={update} busy={busy} run={run}/></>}
-    {data && !meeting && view === 'meetings' && <><div className="page-heading"><div><div className="eyebrow">{tr("RAUM FÜR ZUSAMMENARBEIT")}</div><h1>{tr("Unsere Meetings")}</h1><p>{tr("Spannungen bearbeiten. Entscheidungen festhalten. Gemeinsam handeln.")}</p></div><Button className="primary" onClick={() => setCreate(true)} disabled={data.actor.workspace === 'read' || !data.templates.some(t => t.enabled)}><Plus size={18}/>{tr("Meeting anlegen")}</Button></div>
-      <div className="stats"><div><span>{data.meetings.filter(m => m.status === 'active').length.toString().padStart(2, '0')}</span><p>{tr("Laufende Meetings")}</p></div><div><span>{data.meetings.filter(m => m.status === 'scheduled').length.toString().padStart(2, '0')}</span><p>{tr("Geplante Meetings")}</p></div><div><span>{data.meetings.reduce((n, m) => n + m.outcomes.filter(o => o.status === 'proposed').length, 0).toString().padStart(2, '0')}</span><p>{tr("Ergebnisse zur Prüfung")}</p></div></div>
-      <div className="section-heading"><h2>{tr("Meetingübersicht")}</h2><span className="small muted">{data.meetings.length} {tr("Meetings")}</span></div>{!data.meetings.length && <div className="empty first-meeting"><div className="empty-symbol"><Video size={30}/></div><h2>{tr("Ein guter Ablauf macht den Unterschied.")}</h2><p>{tr("Starte mit einem Tactical, Governance oder einem eigenen Template.")}<br/>{tr("Dein Team gibt den Inhalt vor.")}</p><Button className="primary" onClick={() => setCreate(true)} disabled={data.actor.workspace === 'read' || !data.templates.some(t => t.enabled)}><Plus size={17}/>{tr("Erstes Meeting anlegen")}</Button><button className="text-button" onClick={() => setView('templates')}>{tr("Zuerst Templates entdecken")}<ArrowRight size={15}/></button></div>}
-      <div className="meeting-list">{[...data.meetings].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map(m => <button className="meeting-row" key={m.id} onClick={() => open(m)}><div className={`meeting-icon ${m.template.category}`}><Video size={22}/></div><div className="meeting-title"><strong>{m.title}</strong><span>{m.circle} · {m.template.name}</span></div><span className="meeting-date">{new Date(m.scheduledAt || m.createdAt).toLocaleDateString(language(), { day: '2-digit', month: 'short' })}</span><span className={`pill ${m.status === 'active' ? 'green' : ''}`}>{tr(statusLabels[m.status])}</span><ChevronRight size={18}/></button>)}</div>
-    </>}
-    {data && view === 'tensions' && <Tensions data={data} run={run} refresh={load}/>}
-    {data && view === 'templates' && <><div className="page-heading"><div><div className="eyebrow">{tr("STRUKTUR, DIE ZU EUCH PASST")}</div><h1>{tr("Meeting-Templates")}</h1><p>{tr("Ein bewährter Anfang. Frei anpassbar an eure Zusammenarbeit.")}</p></div>{data.actor.admin && <Button className="primary" onClick={() => setEditor('new')}><Plus size={18}/>{tr("Neues Template")}</Button>}</div>
-      <div className="template-grid">{data.templates.map(t => <article className={`template-card ${!t.enabled ? 'disabled-template' : ''}`} key={t.id}><div className="template-card-top"><span className={`template-icon ${t.category}`}><LayoutTemplate size={22}/></span><span className="pill">{tr(categoryLabels[t.category])}</span><span className={`availability ${t.enabled ? 'enabled' : ''}`}>{t.enabled ? tr("Aktiv") : tr("Inaktiv")}</span></div><h2>{t.name}</h2><p>{t.description}</p><div className="template-metrics"><span><ListChecks size={15}/>{t.steps.length} {tr("Schritte")}</span><span><Clock3 size={15}/>{t.steps.reduce((n, s) => n + s.minutes, 0)} {tr("Min.")}</span><span>v{t.version}</span></div><ol className="template-steps">{t.steps.map(s => <li key={s.id}>{s.title}<span>{s.minutes}′</span></li>)}</ol>{data.actor.admin && <div className="template-footer"><Button onClick={() => setEditor(t)}><Settings2 size={15}/>{tr("Bearbeiten")}</Button><Button className="icon" aria-label={`${t.name} ${tr("duplizieren")} `} onClick={() => run(async () => { await request('/templates', { ...t, name: `${t.name} (${tr("Kopie")})` }); await load(); })}><Copy size={16}/></Button><Button className="icon" aria-label={`${t.name} ${t.enabled ? tr('deaktivieren') : tr('aktivieren')}`} onClick={() => run(async () => { await request(`/templates/${t.id}`, { ...t, enabled: !t.enabled }, 'PUT'); await load(); })}>{t.enabled ? <CheckCircle2 size={17}/> : <Circle size={17}/>}</Button><Button className="icon danger" aria-label={`${t.name} ${tr("löschen")} `} onClick={() => setRemove(t)}><Trash2 size={16}/></Button></div>}</article>)}</div>
-    </>}
-    {data && view === 'governance' && <GovernanceAssistant enabled={!!data.integrations.governance}/>}
-    {data && view === 'settings' && <>{api.openSetup&&<button className="button" onClick={api.openSetup}>{tr('Einrichtungsassistent öffnen')}</button>}<div className="page-heading"><div><div className="eyebrow">{tr("DATEN & INTEGRATIONEN")}</div><h1>{tr("Verbindungen")}</h1><p>{tr("Anmeldung über Microsoft 365. Optionale Dienste werden durch die Administration freigegeben.")}</p></div></div><div className="settings-grid">{[{ title: 'Datenspeicherung', icon: <FileText size={22}/>, ready: data.integrations.storage === 'sharepoint', value: tr("SharePoint · Microsoft 365"), description: 'Templates, Spannungen, Meetings und Ergebnisse liegen im SharePoint des Kunden. Aufnahmen bleiben bei Microsoft.' }, { title: 'Microsoft Teams', icon: <Video size={22}/>, ready: data.integrations.graph, value: data.integrations.graph ? tr("Graph konfiguriert") : tr("Noch nicht verbunden"), description: 'Kalendertermine verbinden und Transkripte nach dem Meeting abrufen. Auswertung standardmäßig auf Knopfdruck.' }, { title: 'KI-Analyse', icon: <WandSparkles size={22}/>, ready: data.integrations.ai, value: data.integrations.ai ? tr("Endpunkt konfiguriert") : tr("Noch nicht verbunden"), description: 'Ergebnisvorschläge mit Quellen aus dem Transkript. Jede Übernahme bleibt nachvollziehbar.' }, { title: 'roleALPHA · optional', icon: <Send size={22}/>, ready: data.integrations.mcp || data.integrations.entityTypes.length > 0 || !!data.integrations.governance, value: data.integrations.mcp || data.integrations.entityTypes.length > 0 || !!data.integrations.governance ? tr("MCP konfiguriert") : tr("Nicht eingerichtet · optional"), description: 'Optional bestätigte Ergebnisse nach roleALPHA übertragen. Spannungsspeicher, Meetings und Ergebnisprüfung funktionieren auch ohne diese Verbindung.' }].map(s => <section className="integration-card" key={s.title}><div className="connection-icon">{s.icon}</div><h2>{tr(s.title)}</h2><div className="connection-status"><span className={`dot ${s.ready ? 'on' : ''}`}/>{tr(s.value)}</div><p>{tr(s.description)}</p></section>)}</div><p className="notice">{tr("„Konfiguriert“ bedeutet, dass die erforderlichen Einstellungen vorhanden sind. Die Verbindung wird bei der jeweiligen Aktion geprüft.")}</p></>}
-    </div></main>
-    {editor && <TemplateEditor template={editor === 'new' ? undefined : editor} close={() => setEditor(null)} busy={busy} save={(input, id, version) => run(async () => { await request(id ? `/templates/${id}` : '/templates', { ...input, version }, id ? 'PUT' : 'POST'); await load(); setEditor(null); })}/>}
-    {create && data && <CreateMeeting templates={data.templates} busy={busy} close={() => setCreate(false)} save={body => run(async () => { const m = await request<Meeting>('/meetings', body); await load(); setCreate(false); open(m); })}/>}
-    {remove && <Modal title={tr("Template löschen?")} close={() => setRemove(null)}><p>„{remove.name}{tr("“ wird aus der Vorlagenbibliothek entfernt. Bereits angelegte Meetings behalten ihre Vorlage.")}</p><div className="modal-footer"><Button onClick={() => setRemove(null)}>{tr("Abbrechen")}</Button><Button className="danger-solid" disabled={busy} onClick={() => run(async () => { await request(`/templates/${remove.id}`, { version: remove.version }, 'DELETE'); await load(); setRemove(null); })}>{tr("Template löschen")}</Button></div></Modal>}
-  </div>;
+  useEffect(() => {
+    if (!selected) return;
+    const timer = setInterval(() => {
+      if (!busyRef.current)
+        void request<Meeting>(`/meetings/${selected}`)
+          .then(update)
+          .catch(() => {});
+    }, 10_000);
+    return () => clearInterval(timer);
+  }, [request, selected, update]);
+  const back = () => {
+    setSelected(null);
+    const u = new URL(location.href);
+    u.searchParams.delete('raMeeting');
+    history.replaceState(null, '', u);
+  };
+  const open = (m: MeetingSummary) => {
+    setSelected(m.id);
+    setView('meetings');
+    const u = new URL(location.href);
+    u.searchParams.set('raMeeting', m.id);
+    history.replaceState(null, '', u);
+  };
+  return (
+    <div className="app">
+      <aside className="sidebar">
+        <div className="brand">
+          <div className="brand-mark">
+            r<span>A</span>
+          </div>
+          <div>
+            role<span>ALPHA</span>
+            <small>{tr('app.meetings')}</small>
+          </div>
+        </div>
+        <nav>
+          <button
+            className={view === 'meetings' ? 'active' : ''}
+            onClick={() => {
+              back();
+              setView('meetings');
+            }}
+          >
+            <Video size={19} />
+            {tr('app.meetings2')}
+          </button>
+          <button
+            className={view === 'tensions' ? 'active' : ''}
+            onClick={() => {
+              back();
+              setView('tensions');
+            }}
+          >
+            <ListChecks size={19} />
+            {tr('app.tensions')}
+          </button>
+          <button
+            className={view === 'templates' ? 'active' : ''}
+            onClick={() => {
+              back();
+              setView('templates');
+            }}
+          >
+            <LayoutTemplate size={19} />
+            {tr('app.templates')}
+          </button>
+          <button
+            className={view === 'governance' ? 'active' : ''}
+            onClick={() => {
+              back();
+              setView('governance');
+            }}
+          >
+            <WandSparkles size={19} />
+            {tr('app.askGovernance')}
+          </button>
+          <button
+            className={view === 'settings' ? 'active' : ''}
+            onClick={() => {
+              back();
+              setView('settings');
+            }}
+          >
+            <Settings2 size={19} />
+            {tr('app.connections')}
+          </button>
+        </nav>
+        <div className="sidebar-bottom">
+          <div className="quiet-label">{tr('app.movingForwardTogether')}</div>
+          <p>
+            {tr('app.clearProcesses')}
+            <br />
+            {tr('app.agreedOutcomes')}
+          </p>
+          <div className="user">
+            <div className="avatar">{data?.actor.name.slice(0, 1) || '…'}</div>
+            <div>
+              <strong>{data?.actor.name || tr('app.sign')}</strong>
+              <small>{tr(data?.actor.workspace === 'write' ? 'app.editor' : 'app.readAccess')}</small>
+            </div>
+          </div>
+        </div>
+      </aside>
+      <main>
+        <header className="topbar">
+          <div className="breadcrumb">
+            {tr('app.workspace')}
+            <ChevronRight size={14} />
+            <span>
+              {view === 'tensions'
+                ? tr('app.tensionBacklog')
+                : view === 'templates'
+                  ? tr('app.meetingTemplates')
+                  : view === 'settings'
+                    ? tr('app.connections')
+                    : view === 'governance'
+                      ? tr('app.askGovernance')
+                      : tr('app.meetings2')}
+            </span>
+          </div>
+          <div className="topbar-right">
+            <Preferences />
+            {busy && <Loader2 size={17} className="spin" />}
+            {teams && (
+              <span className="pill">
+                <Video size={14} />
+                {tr('app.microsoftTeams')}
+              </span>
+            )}
+          </div>
+        </header>
+        <div className="page">
+          {data?.actor.workspace && <p className="notice">{tr('app.workspaceVisibleAllAuthorized')}</p>}
+          {error && (
+            <div role="alert" className="error">
+              <span>{error}</span>
+              <Button className="icon" aria-label={tr('app.dismissError')} onClick={() => setError('')}>
+                <X size={18} />
+              </Button>
+            </div>
+          )}
+          {!data && (
+            <div className="empty">
+              {!error && <Loader2 className="spin" size={26} />}
+              <h2>{error ? tr('app.connectionRequired') : tr('app.loadingWorkspace')}</h2>
+              {error && <p>{tr('app.entraSignOpenApp')}</p>}
+            </div>
+          )}
+          {data && selected && !meeting && view === 'meetings' && (
+            <>
+              <button className="back" onClick={back}>
+                {tr('app.allMeetings')}
+              </button>
+              <p>
+                <Loader2 size={16} className="spin" /> {tr('app.loadingMeeting')}
+              </p>
+            </>
+          )}
+          {data && meeting && view === 'meetings' && (
+            <>
+              <button className="back" onClick={back}>
+                {tr('app.allMeetings')}
+              </button>
+              <MeetingRoom
+                key={meeting.id}
+                meeting={meeting}
+                actor={data.actor}
+                integrations={data.integrations}
+                update={update}
+                busy={busy}
+                run={run}
+              />
+            </>
+          )}
+          {data && !selected && view === 'meetings' && (
+            <>
+              <div className="page-heading">
+                <div>
+                  <div className="eyebrow">{tr('app.spaceCollaboration')}</div>
+                  <h1>{tr('app.ourMeetings')}</h1>
+                  <p>{tr('app.addressTensionsRecordDecisions')}</p>
+                </div>
+                <Button
+                  className="primary"
+                  onClick={() => setCreate(true)}
+                  disabled={data.actor.workspace === 'read' || !data.templates.some(t => t.enabled)}
+                >
+                  <Plus size={18} />
+                  {tr('app.createMeeting')}
+                </Button>
+              </div>
+              <div className="stats">
+                <div>
+                  <span>
+                    {data.meetings
+                      .filter(m => m.status === 'active')
+                      .length.toString()
+                      .padStart(2, '0')}
+                  </span>
+                  <p>{tr('app.activeMeetings')}</p>
+                </div>
+                <div>
+                  <span>
+                    {data.meetings
+                      .filter(m => m.status === 'scheduled')
+                      .length.toString()
+                      .padStart(2, '0')}
+                  </span>
+                  <p>{tr('app.scheduledMeetings')}</p>
+                </div>
+                <div>
+                  <span>
+                    {data.meetings
+                      .reduce((n, m) => n + m.outcomes.filter(o => o.status === 'proposed').length, 0)
+                      .toString()
+                      .padStart(2, '0')}
+                  </span>
+                  <p>{tr('app.outcomesReview')}</p>
+                </div>
+              </div>
+              <div className="section-heading">
+                <h2>{tr('app.meetingOverview')}</h2>
+                <span className="small muted">
+                  {data.meetings.length} {tr('app.meetings2')}
+                </span>
+              </div>
+              {!data.meetings.length && (
+                <div className="empty first-meeting">
+                  <div className="empty-symbol">
+                    <Video size={30} />
+                  </div>
+                  <h2>{tr('app.goodProcessMakesDifference')}</h2>
+                  <p>
+                    {tr('app.startTacticalGovernanceOwn')}
+                    <br />
+                    {tr('app.teamProvidesContent')}
+                  </p>
+                  <Button
+                    className="primary"
+                    onClick={() => setCreate(true)}
+                    disabled={data.actor.workspace === 'read' || !data.templates.some(t => t.enabled)}
+                  >
+                    <Plus size={17} />
+                    {tr('app.createFirstMeeting')}
+                  </Button>
+                  <button className="text-button" onClick={() => setView('templates')}>
+                    {tr('app.exploreTemplatesFirst')}
+                    <ArrowRight size={15} />
+                  </button>
+                </div>
+              )}
+              <div className="meeting-list">
+                {[...data.meetings]
+                  .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+                  .map(m => (
+                    <button className="meeting-row" key={m.id} onClick={() => open(m)}>
+                      <div className={`meeting-icon ${m.template.category}`}>
+                        <Video size={22} />
+                      </div>
+                      <div className="meeting-title">
+                        <strong>{m.title}</strong>
+                        <span>
+                          {m.circle} · {m.template.name}
+                        </span>
+                      </div>
+                      <span className="meeting-date">
+                        {new Date(m.scheduledAt || m.createdAt).toLocaleDateString(language(), {
+                          day: '2-digit',
+                          month: 'short',
+                        })}
+                      </span>
+                      <span className={`pill ${m.status === 'active' ? 'green' : ''}`}>
+                        {tr(statusLabels[m.status])}
+                      </span>
+                      <ChevronRight size={18} />
+                    </button>
+                  ))}
+              </div>
+            </>
+          )}
+          {data && view === 'tensions' && <Tensions data={data} run={run} refresh={load} />}
+          {data && view === 'templates' && (
+            <>
+              <div className="page-heading">
+                <div>
+                  <div className="eyebrow">{tr('app.structureFitsTeam')}</div>
+                  <h1>{tr('app.meetingTemplates')}</h1>
+                  <p>{tr('app.provenStartingPointAdapt')}</p>
+                </div>
+                {data.actor.workspace === 'write' && (
+                  <Button className="primary" onClick={() => setEditor('new')}>
+                    <Plus size={18} />
+                    {tr('app.newTemplate')}
+                  </Button>
+                )}
+              </div>
+              <div className="template-grid">
+                {data.templates.map(t => (
+                  <article className={`template-card ${!t.enabled ? 'disabled-template' : ''}`} key={t.id}>
+                    <div className="template-card-top">
+                      <span className={`template-icon ${t.category}`}>
+                        <LayoutTemplate size={22} />
+                      </span>
+                      <span className="pill">{tr(categoryLabels[t.category])}</span>
+                      <span className={`availability ${t.enabled ? 'enabled' : ''}`}>
+                        {t.enabled ? tr('app.active') : tr('app.inactive')}
+                      </span>
+                    </div>
+                    <h2>{t.name}</h2>
+                    <p>{t.description}</p>
+                    <div className="template-metrics">
+                      <span>
+                        <ListChecks size={15} />
+                        {t.steps.length} {tr('app.steps')}
+                      </span>
+                      <span>
+                        <Clock3 size={15} />
+                        {t.steps.reduce((n, s) => n + s.minutes, 0)} {tr('app.min')}
+                      </span>
+                      <span>v{t.version}</span>
+                    </div>
+                    <ol className="template-steps">
+                      {t.steps.map(s => (
+                        <li key={s.id}>
+                          {s.title}
+                          <span>{s.minutes}′</span>
+                        </li>
+                      ))}
+                    </ol>
+                    {data.actor.workspace === 'write' && (
+                      <div className="template-footer">
+                        <Button onClick={() => setEditor(t)}>
+                          <Settings2 size={15} />
+                          {tr('app.edit')}
+                        </Button>
+                        <Button
+                          className="icon"
+                          aria-label={`${t.name} ${tr('app.duplicate')} `}
+                          onClick={() =>
+                            run(async () => {
+                              await request('/templates', { ...t, name: `${t.name} (${tr('app.copy')})` });
+                              await load();
+                            })
+                          }
+                        >
+                          <Copy size={16} />
+                        </Button>
+                        <Button
+                          className="icon"
+                          aria-label={`${t.name} ${t.enabled ? tr('app.disable') : tr('app.enable')}`}
+                          onClick={() =>
+                            run(async () => {
+                              await request(`/templates/${t.id}`, { ...t, enabled: !t.enabled }, 'PUT');
+                              await load();
+                            })
+                          }
+                        >
+                          {t.enabled ? <CheckCircle2 size={17} /> : <Circle size={17} />}
+                        </Button>
+                        <Button
+                          className="icon danger"
+                          aria-label={`${t.name} ${tr('app.delete')} `}
+                          onClick={() => setRemove(t)}
+                        >
+                          <Trash2 size={16} />
+                        </Button>
+                      </div>
+                    )}
+                  </article>
+                ))}
+              </div>
+            </>
+          )}
+          {data && view === 'governance' && <GovernanceAssistant enabled={!!data.integrations.governance} />}
+          {data && view === 'settings' && (
+            <>
+              {api.openSetup && (
+                <button className="button" onClick={api.openSetup}>
+                  {tr('app.openSetupWizard')}
+                </button>
+              )}
+              <div className="page-heading">
+                <div>
+                  <div className="eyebrow">{tr('app.dataIntegrations')}</div>
+                  <h1>{tr('app.connections')}</h1>
+                  <p>{tr('app.signThroughMicrosoft365')}</p>
+                </div>
+              </div>
+              <div className="settings-grid">
+                {(
+                  [
+                    {
+                      title: 'app.dataStorage',
+                      icon: <FileText size={22} />,
+                      ready: data.integrations.storage === 'sharepoint',
+                      value: 'app.sharepointMicrosoft365',
+                      description: 'app.templatesTensionsMeetingsOutcomes',
+                    },
+                    {
+                      title: 'app.microsoftTeams',
+                      icon: <Video size={22} />,
+                      ready: data.integrations.graph,
+                      value: data.integrations.graph ? 'app.graphConfigured' : 'app.connectedYet',
+                      description: 'app.linkCalendarEventsFetch',
+                    },
+                    {
+                      title: 'app.aiAnalysis',
+                      icon: <WandSparkles size={22} />,
+                      ready: data.integrations.ai,
+                      value: data.integrations.aiProvider
+                        ? aiProviderLabels[data.integrations.aiProvider]
+                        : data.integrations.ai
+                          ? 'app.endpointConfigured'
+                          : 'app.connectedYet',
+                      description: 'app.outcomeSuggestionsTranscriptSources',
+                    },
+                    {
+                      title: 'app.rolealphaOptional',
+                      icon: <Send size={22} />,
+                      ready:
+                        data.integrations.mcp ||
+                        data.integrations.entityTypes.length > 0 ||
+                        !!data.integrations.governance,
+                      value:
+                        data.integrations.mcp ||
+                        data.integrations.entityTypes.length > 0 ||
+                        !!data.integrations.governance
+                          ? 'app.mcpConfigured'
+                          : 'app.setUpOptional',
+                      description: 'app.optionallySendConfirmedOutcomes',
+                    },
+                  ] satisfies SettingsCard[]
+                ).map(s => (
+                  <section className="integration-card" key={s.title}>
+                    <div className="connection-icon">{s.icon}</div>
+                    <h2>{tr(s.title)}</h2>
+                    <div className="connection-status">
+                      <span className={`dot ${s.ready ? 'on' : ''}`} />
+                      {tr(s.value)}
+                    </div>
+                    <p>{tr(s.description)}</p>
+                  </section>
+                ))}
+              </div>
+              <p className="notice">{tr('app.configuredMeansRequiredSettings')}</p>
+              <div className="settings-grid">
+                <TeamsRecordingSettings
+                  key={data.settings.version}
+                  settings={data.settings}
+                  canManage={data.canManageWorkspace}
+                  busy={busy}
+                  run={run}
+                  reload={load}
+                />
+                {data.actor.workspace === 'write' && <StorageMaintenance busy={busy} run={run} />}
+              </div>
+            </>
+          )}
+        </div>
+      </main>
+      {editor && (
+        <TemplateEditor
+          template={editor === 'new' ? undefined : editor}
+          close={() => setEditor(null)}
+          busy={busy}
+          save={(input, id, version) =>
+            run(async () => {
+              await request(id ? `/templates/${id}` : '/templates', { ...input, version }, id ? 'PUT' : 'POST');
+              await load();
+              setEditor(null);
+            })
+          }
+        />
+      )}
+      {create && data && (
+        <CreateMeeting
+          templates={data.templates}
+          busy={busy}
+          close={() => setCreate(false)}
+          save={body =>
+            run(async () => {
+              const m = await request<Meeting>('/meetings', body);
+              await load();
+              setCreate(false);
+              open(summarize(m));
+            })
+          }
+        />
+      )}
+      {remove && (
+        <Modal title={tr('app.deleteTemplate')} close={() => setRemove(null)}>
+          <p>
+            „{remove.name}
+            {tr('app.willRemovedTemplateLibrary')}
+          </p>
+          <div className="modal-footer">
+            <Button onClick={() => setRemove(null)}>{tr('app.cancel')}</Button>
+            <Button
+              className="danger-solid"
+              disabled={busy}
+              onClick={() =>
+                run(async () => {
+                  await request(`/templates/${remove.id}`, { version: remove.version }, 'DELETE');
+                  await load();
+                  setRemove(null);
+                })
+              }
+            >
+              {tr('app.deleteTemplate2')}
+            </Button>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
 }
