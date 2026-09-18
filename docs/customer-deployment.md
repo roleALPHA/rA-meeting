@@ -183,6 +183,7 @@ The meeting app works without these connections. Both are disabled in the defaul
 6. Inspect **Connections**, then test each enabled function using test data. Generate an AI suggestion, review it, and only then transfer an approved outcome to roleALPHA.
 7. Check in roleALPHA that the expected draft exists.
 8. For governance questions, also have the roleALPHA search integration and appropriate read access configured. Draft creation alone is insufficient.
+9. For any roleALPHA connection, a roleALPHA administrator must enable external applications for your tenant, register the Entra directory and add your SharePoint address as an allowed origin. Each person must have signed in to roleALPHA through Microsoft once; otherwise the app reports that the account is not linked.
 9. Open the governance assistant from the navigation or within a meeting. Ask about a known role or rule and start the governance check.
 10. Compare the answer and expandable original sources with roleALPHA's existing governance. Also test a question without relevant sources; the app must not present an unsupported answer as established governance.
 

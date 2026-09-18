@@ -39,7 +39,7 @@ This assistant does not change governance. It requires both AI and a compatible,
 
 Retrieve transcripts from accessible Teams meetings or import VTT/TXT files. Optional AI analysis proposes outcomes linked to transcript evidence. Users review outcomes before approving or transferring them.
 
-An optional roleALPHA connection can create drafts from approved outcomes, such as meeting records, risks, OKRs, or IT systems. Available entities depend on the configured integration. The tension backlog remains part of rA Meetings, and the app also works without the governance platform.
+An optional roleALPHA connection can create drafts from approved outcomes, such as meeting records, risks, OKRs, or IT systems. It signs in with the user's Microsoft identity, which roleALPHA exchanges for its own short-lived token. Available entities depend on the configured integration. The tension backlog remains part of rA Meetings, and the app also works without the governance platform.
 
 ## Languages
 

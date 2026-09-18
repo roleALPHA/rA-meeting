@@ -1,12 +1,12 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { z } from 'zod';
 import { assert, type Meeting, type Outcome } from '../../shared/model';
 import { analysisTask, validateAnalysis } from '../../shared/analysis';
 import { assistanceTask } from '../../shared/assistance-task';
 import { completeTask } from './ai/provider';
 import { assistanceResult, type AssistanceInput } from '../../shared/assistance';
-import { type BrowserHost, type Endpoint, endpointFetch } from './host';
+import type { BrowserHost, Endpoint } from './host';
+import { connectRoleAlpha, findTool, toolProperties } from './rolealpha';
 const receipt = z.object({
   draft_created: z.literal(true),
   draftId: z.string().min(1),
@@ -26,7 +26,8 @@ export type ExportPlan = {
   destination: string;
   tool: string;
   label: string;
-  arguments: { tenant_uuid: string; name: string; custom_id: string; data: unknown };
+  /** `tenant_uuid` is added only for a tool that declares it; roleALPHA's endpoint takes the tenant from the token. */
+  arguments: { entity_type: string; name: string; custom_id: string; data: unknown; tenant_uuid?: string };
 };
 export function entityPlan(host: BrowserHost, m: Meeting, o: Outcome): ExportPlan {
   assert(o.status === 'approved' && !o.export, 'error.integrations.onlyConfirmedUnexportedOutcomes', 409);
@@ -35,10 +36,10 @@ export function entityPlan(host: BrowserHost, m: Meeting, o: Outcome): ExportPla
   assert(route && host.settings.roleAlpha, 'error.integrations.mcpDestinationConfiguredOutcome', 503);
   return {
     destination: host.settings.roleAlpha.url,
-    tool: route.tool,
+    tool: host.settings.roleAlpha.createTool,
     label: route.label,
     arguments: {
-      tenant_uuid: host.settings.roleAlpha.tenant,
+      entity_type: route.entityType,
       name: o.title,
       custom_id: `ra-meeting:${m.id}:${o.id}`,
       data: {
@@ -69,10 +70,10 @@ export function meetingPlan(host: BrowserHost, m: Meeting, outputs: Outcome[]): 
   );
   return {
     destination: settings.url,
-    tool: 'create_meeting',
+    tool: settings.createTool,
     label: 'Meeting',
     arguments: {
-      tenant_uuid: settings.tenant,
+      entity_type: 'meeting',
       name: m.title,
       custom_id: `ra-meeting:${m.id}:${outputs
         .map(o => o.id)
@@ -106,33 +107,26 @@ export async function prepareExport(host: BrowserHost, plan: ExportPlan, target:
   assert(plan.destination === target.url, 'error.integrations.exportPreviewHasChanged', 409);
   const client = new Client({ name: 'ra-meeting-spfx', version: '1.0.0' });
   try {
-    const transport = new StreamableHTTPClientTransport(new URL(target.url), { fetch: endpointFetch(host, target) });
-    await client.connect(transport, { timeout: 15_000 });
-    let cursor: string | undefined;
-    let found;
-    const seen = new Set<string>();
-    for (let page = 0; page < 20; page++) {
-      const response = await client.listTools(cursor ? { cursor } : {});
-      found = response.tools.find(t => t.name === plan.tool);
-      if (found || !response.nextCursor) break;
-      assert(!seen.has(response.nextCursor), 'error.integrations.invalidMcpContinuationPage', 502);
-      seen.add(response.nextCursor);
-      cursor = response.nextCursor;
-    }
+    await connectRoleAlpha(host, client);
+    const found = await findTool(client, plan.tool, 'error.integrations.invalidMcpContinuationPage');
     assert(found, 'error.integrations.destinationServerDoesOffer', 502);
-    const properties = found.inputSchema.properties as Record<string, { type?: string }> | undefined;
+    const properties = toolProperties(found);
+    const args = properties?.tenant_uuid
+      ? { ...plan.arguments, tenant_uuid: host.settings.roleAlpha!.tenant }
+      : plan.arguments;
     assert(
       properties &&
-        ['tenant_uuid', 'name', 'custom_id'].every(k => properties[k]?.type === 'string') &&
+        ['entity_type', 'name', 'custom_id'].every(k => properties[k]?.type === 'string') &&
         properties.data?.type === 'object' &&
-        (found.inputSchema.required || []).every(k => k in plan.arguments),
+        (!properties.tenant_uuid || properties.tenant_uuid.type === 'string') &&
+        (found.inputSchema.required || []).every(k => k in args),
       'error.integrations.mcpToolDoesSupport',
       502,
     );
     return {
       close: () => client.close(),
       send: async () => {
-        const result = await client.callTool({ name: plan.tool, arguments: plan.arguments }, undefined, {
+        const result = await client.callTool({ name: plan.tool, arguments: args }, undefined, {
           timeout: 30_000,
         });
         assert(!result.isError, 'error.integrations.rolealphaDidConfirmDraft', 502);

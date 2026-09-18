@@ -608,4 +608,10 @@ export const en: Record<MessageId, string> = {
   'error.tensions.meetingRequired': 'Select a meeting.',
   'error.tensions.draftSearchIncompatible': 'Draft search in roleALPHA is not compatible.',
   'error.tensions.draftSearchFailed': 'Drafts could not be read from roleALPHA.',
+  'error.integrations.rolealphaTokenExchangeFailed':
+    'Signing in to roleALPHA failed. Check the connection settings and try again.',
+  'error.integrations.rolealphaAccountNotLinked':
+    'This account is not linked to Microsoft in roleALPHA. Sign in to roleALPHA through Microsoft once, then try again.',
+  'error.integrations.rolealphaAccessNotEnabled':
+    'roleALPHA has not enabled access for this application, or it was revoked. A roleALPHA administrator can grant it.',
 };

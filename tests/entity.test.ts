@@ -4,6 +4,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
 import { z } from 'zod';
 import { entityPlan, meetingPlan, prepareExport } from '../client/browser/integrations.js';
+import { tokenEndpoint } from '../client/browser/rolealpha.js';
 import { addOutcome, command, createMeeting, saveTemplate } from '../shared/domain.js';
 import { TestStore, actor, testHost } from './helpers/workspace.js';
 import type { Template } from '../shared/model.js';
@@ -13,6 +14,7 @@ test('browser export requires approval, uses delegated roleALPHA contract and co
   const servers: McpServer[] = [];
   let transport: WebStandardStreamableHTTPServerTransport;
   let writes = 0;
+  let exchanges = 0;
   let compatible = true;
   const original = globalThis.fetch;
   t.after(async () => {
@@ -21,23 +23,35 @@ test('browser export requires approval, uses delegated roleALPHA contract and co
   });
   globalThis.fetch = async (input, init) => {
     const url = String(input);
-    assert.equal(url, host.settings.roleAlpha!.url);
-    assert.equal(new Headers(init?.headers).get('Authorization'), 'Bearer test-token');
     assert.equal(init?.redirect, 'error');
+    // The delegated Microsoft token is exchanged for a roleALPHA token before the endpoint is called.
+    if (url === tokenEndpoint(host.settings.roleAlpha!.url)) {
+      exchanges++;
+      const body = new URLSearchParams(String(init?.body));
+      assert.equal(body.get('grant_type'), 'urn:ietf:params:oauth:grant-type:token-exchange');
+      assert.equal(body.get('subject_token'), 'test-token');
+      assert.equal(body.get('tenant_uuid'), actor.tenantId);
+      assert.equal(body.get('resource'), host.settings.roleAlpha!.url);
+      return Response.json({ access_token: 'rolealpha-token', token_type: 'Bearer', expires_in: 300 });
+    }
+    assert.equal(url, host.settings.roleAlpha!.url);
+    assert.equal(new Headers(init?.headers).get('Authorization'), 'Bearer rolealpha-token');
     if (init?.method === 'POST' && JSON.parse(String(init.body)).method === 'initialize') {
       const server = new McpServer({ name: 'rolealpha-test', version: '1' });
       servers.push(server);
-      for (const name of ['create_risk', 'create_meeting'])
+      {
         server.registerTool(
-          name,
+          'create_entity_draft',
           {
             inputSchema: compatible
-              ? { tenant_uuid: z.string(), name: z.string(), custom_id: z.string(), data: z.record(z.unknown()) }
+              ? { entity_type: z.string(), name: z.string(), custom_id: z.string(), data: z.record(z.unknown()) }
               : { name: z.string() },
           },
           async (args: Record<string, unknown>) => {
             writes++;
-            assert.equal(args.tenant_uuid, actor.tenantId);
+            // roleALPHA takes the tenant from the token; the app must not send one.
+            assert.equal(args.tenant_uuid, undefined);
+            assert.ok(['risk', 'meeting'].includes(String(args.entity_type)));
             assert.ok(String(args.custom_id).startsWith('ra-meeting:'));
             return {
               content: [
@@ -49,6 +63,7 @@ test('browser export requires approval, uses delegated roleALPHA contract and co
             };
           },
         );
+      }
       transport = new WebStandardStreamableHTTPServerTransport({
         sessionIdGenerator: () => crypto.randomUUID(),
         enableJsonResponse: true,
@@ -84,6 +99,8 @@ test('browser export requires approval, uses delegated roleALPHA contract and co
   compatible = false;
   await assert.rejects(prepareExport(host, plan, host.settings.roleAlpha!), /Erstellvertrag/);
   assert.equal(writes, 2);
+  // One exchanged token serves every call until it expires.
+  assert.equal(exchanges, 1);
   host.settings.roleAlpha = null;
   assert.throws(() => entityPlan(host, meeting, output), /kein MCP-Ziel/);
 });

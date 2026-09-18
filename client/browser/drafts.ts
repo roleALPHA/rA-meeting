@@ -1,9 +1,9 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { z } from 'zod';
 import { AppError, assert, type DraftLink } from '../../shared/model';
 import { checkDraftLink } from '../../shared/tensions';
-import { endpointFetch, type BrowserHost } from './host';
+import type { BrowserHost } from './host';
+import { connectRoleAlpha, findTool, toolProperties } from './rolealpha';
 
 export const draftQuery = z.object({ query: z.string().trim().max(200).default('') });
 const draftResults = z
@@ -36,22 +36,9 @@ export async function searchDrafts(host: BrowserHost, raw: unknown): Promise<Dra
   assert(target && drafts, 'error.tensions.draftsNotConfigured', 503);
   const client = new Client({ name: 'ra-meetings-drafts', version: '1.0.0' });
   try {
-    await client.connect(
-      new StreamableHTTPClientTransport(new URL(target.url), { fetch: endpointFetch(host, target) }),
-      { timeout: 15_000 },
-    );
-    let cursor: string | undefined;
-    let tool;
-    const seen = new Set<string>();
-    for (let page = 0; page < 20; page++) {
-      const response = await client.listTools(cursor ? { cursor } : {});
-      tool = response.tools.find(t => t.name === drafts.searchTool);
-      if (tool || !response.nextCursor) break;
-      assert(!seen.has(response.nextCursor), 'error.tensions.draftSearchIncompatible', 502);
-      seen.add(response.nextCursor);
-      cursor = response.nextCursor;
-    }
-    const properties = tool?.inputSchema.properties as Record<string, { type?: string }> | undefined;
+    await connectRoleAlpha(host, client);
+    const tool = await findTool(client, drafts.searchTool, 'error.tensions.draftSearchIncompatible');
+    const properties = toolProperties(tool);
     const args: Record<string, unknown> = { query, limit: 20 };
     // The tenant is passed only to a tool that declares it; a tool that takes it from the token does not need it.
     if (properties?.tenant_uuid) args.tenant_uuid = target.tenant;

@@ -27,9 +27,10 @@ The package builder configures nonsecret endpoints in `spfx/customer.config.json
     "scope": "access_as_user",
     "tenant": "11111111-1111-4111-8111-111111111111",
     "meeting": false,
+    "createTool": "create_entity_draft",
     "entities": {
       "risk": {
-        "tool": "create_risk",
+        "entityType": "risk",
         "label": "Risk"
       }
     }
@@ -37,11 +38,15 @@ The package builder configures nonsecret endpoints in `spfx/customer.config.json
 }
 ```
 
+**Sign-in: the delegated Microsoft token is exchanged.** roleALPHA's MCP endpoint does not accept Microsoft tokens. Before each call, the app exchanges the signed-in user's delegated Entra token for a short-lived roleALPHA token (RFC 8693) at `POST <origin of url>/api/auth/oauth/token` with `grant_type=urn:ietf:params:oauth:grant-type:token-exchange`, the Entra token as `subject_token`, the configured `tenant` as `tenant_uuid`, and `url` as `resource`. The token endpoint is derived from the endpoint's origin; it is the only second address of this integration, and it is never configured separately. The token lives in memory until it expires and is never stored; roleALPHA issues no refresh token deliberately. A rejected call is retried once with a freshly exchanged token.
+
+This requires on the roleALPHA side: the Entra directory registered for the tenant, the external-application feature enabled, the SharePoint origin registered for CORS, and **each user having signed in to roleALPHA through Microsoft at least once** — the exchange identifies the person by the Microsoft object ID, and an unknown account is refused with a message saying exactly that. Access is granted and revoked per user under connected applications in roleALPHA.
+
 `resource` is the service's Entra audience. `permissionResource` is its application display name in Entra; `scope` is its approved delegated scope. The build includes these permissions in the package's Microsoft 365 approval requests. Approve them under API access after deployment. Each service must validate audience, tenant, scope, and user permissions itself. SPFx approvals apply to the shared SharePoint client principal, not exclusively to this web part.
 
 Services must allow CORS from the actual SharePoint origins. For MCP, allow `Authorization`, `Content-Type`, `Mcp-Session-Id`, `MCP-Protocol-Version`, and the required HTTP methods, and expose `Mcp-Session-Id`. Check permissions separately for guest and cross-tenant sign-ins. Missing approval, CORS, or network access produces an error; there is no fallback through the manufacturer's infrastructure.
 
-**MCP write contract:** Streamable HTTP, using `create_meeting` or an explicitly mapped `create_*` tool with `tenant_uuid`, `name`, `custom_id`, and `data`. The app checks advertised tools and the shared schema before writing. The expected confirmation is `{"draft_created":true,"draftId":"…","entityUuid":"…","status":"draft"}`. An uncertain response locks the outcome; writes are not retried automatically. Closing a tab during export can leave a `sending` status. After five minutes, the interface permits documented manual reconciliation.
+**MCP write contract:** Streamable HTTP, using the tool in `createTool` (default `create_entity_draft`) with `entity_type`, `name`, `custom_id`, and `data`. `entities` maps an outcome type to the roleALPHA entity type; the meeting record itself uses `meeting`. `tenant_uuid` is sent only to a tool that declares it, because roleALPHA's endpoint takes the tenant from the exchanged token. The app checks advertised tools and the shared schema before writing. The expected confirmation is `{"draft_created":true,"draftId":"…","entityUuid":"…","status":"draft"}`. An uncertain response locks the outcome; writes are not retried automatically. Closing a tab during export can leave a `sending` status. After five minutes, the interface permits documented manual reconciliation.
 
 ## Security model and trust boundary
 
@@ -162,7 +167,7 @@ The interface follows roleALPHA's corporate design as defined in rA-app: the fiv
 
 In addition to an AI target, set the optional `roleAlpha.governance` property to `{ "searchTool": "search_governance" }`. The name is an example: configure the actual verified search tool from the roleALPHA installation. Without this configuration, governance assistance remains disabled. Compatibility with a production roleALPHA read tool has not yet been verified.
 
-The adapter expects an explicitly read-only search operation at the same roleALPHA endpoint. There is no additional MCP address or model-selected tool. The configured name must start with `search_`. Its `tools/list` declaration must expose `readOnlyHint: true`, `destructiveHint: false`, and parameters `tenant_uuid` (string), `query` (string), and `limit` (number or integer). Additional required parameters are unsupported. Annotations do not replace service-side authorization: roleALPHA must enforce the signed-in user's read access and tenant boundaries, and the operation must actually be read-only.
+The adapter expects an explicitly read-only search operation at the same roleALPHA endpoint. There is no additional MCP address or model-selected tool. The configured name must start with `search_`. Its `tools/list` declaration must expose `readOnlyHint: true`, `destructiveHint: false`, and parameters `query` (string) and `limit` (number or integer). `tenant_uuid` (string) is supported and passed when declared; a tool that takes the tenant from the token may omit it. Additional required parameters are unsupported. Annotations do not replace service-side authorization: roleALPHA must enforce the signed-in user's read access and tenant boundaries, and the operation must actually be read-only.
 
 The call supplies the configured roleALPHA tenant ID, the user's question, and `limit: 12`. Return `structuredContent` or JSON in an MCP text block:
 

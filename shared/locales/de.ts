@@ -631,6 +631,12 @@ export const de = {
   'error.tensions.meetingRequired': 'Bitte ein Meeting auswählen.',
   'error.tensions.draftSearchIncompatible': 'Die Entwurfssuche in roleALPHA ist nicht kompatibel.',
   'error.tensions.draftSearchFailed': 'Entwürfe konnten nicht aus roleALPHA gelesen werden.',
+  'error.integrations.rolealphaTokenExchangeFailed':
+    'Die Anmeldung bei roleALPHA ist fehlgeschlagen. Prüfe die Verbindungseinstellungen und versuche es erneut.',
+  'error.integrations.rolealphaAccountNotLinked':
+    'Dieses Konto ist in roleALPHA nicht mit Microsoft verknüpft. Einmal über Microsoft bei roleALPHA anmelden, dann erneut versuchen.',
+  'error.integrations.rolealphaAccessNotEnabled':
+    'roleALPHA hat den Zugang für diese Anwendung nicht freigeschaltet oder widerrufen. Die roleALPHA-Administration kann ihn freigeben.',
 } as const;
 
 export type MessageId = keyof typeof de;

@@ -8,6 +8,7 @@ import { customerSettingsSchema, type BrowserHost } from '../client/browser/host
 import { fakeSharePoint, tenant, user } from './helpers/sharepoint-rest.js';
 import type { GovernanceReply } from '../shared/governance.js';
 import type { Bootstrap } from '../shared/model.js';
+import { tokenEndpoint } from '../client/browser/rolealpha.js';
 
 test('governance questions use the approved read tool, cite actual sources and never modify records', async t => {
   const servers: McpServer[] = [];
@@ -84,7 +85,6 @@ test('governance questions use the approved read tool, cite actual sources and n
   };
   globalThis.fetch = async (input, init) => {
     const url = String(input);
-    assert.equal(new Headers(init?.headers).get('Authorization'), 'Bearer test-token');
     assert.equal(init?.redirect, 'error');
     if (url.startsWith('https://workiq.svc.cloud.microsoft/')) {
       if (url.endsWith('/conversations')) return Response.json({ id: 'conv', messages: [] });
@@ -105,7 +105,10 @@ test('governance questions use the approved read tool, cite actual sources and n
         ],
       });
     }
+    if (url === tokenEndpoint(host.settings.roleAlpha!.url))
+      return Response.json({ access_token: 'rolealpha-token', expires_in: 300 });
     if (url === host.settings.roleAlpha!.url) {
+      assert.equal(new Headers(init?.headers).get('Authorization'), 'Bearer rolealpha-token');
       if (init?.method === 'POST' && JSON.parse(String(init.body)).method === 'initialize') await connect();
       return transport.handleRequest(new Request(url, init));
     }
