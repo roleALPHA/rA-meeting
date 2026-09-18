@@ -216,7 +216,7 @@ test('governance configuration has one roleALPHA connection and rejects generic 
     scope: 'access_as_user',
     tenant,
     meeting: true,
-    entities: { risk: { tool: 'create_risk', label: 'Risk' } },
+    entities: { risk: { entityType: 'risk', label: 'Risk' } },
   };
   const settings = customerSettingsSchema.parse({ roleAlpha: connection });
   assert.equal(settings.roleAlpha?.url, connection.url);
@@ -242,9 +242,9 @@ test('governance configuration has one roleALPHA connection and rejects generic 
       host,
       {
         destination: 'https://other.example/mcp',
-        tool: 'create_risk',
+        tool: 'create_entity_draft',
         label: 'Risk',
-        arguments: { tenant_uuid: tenant, name: 'x', custom_id: 'x', data: {} },
+        arguments: { entity_type: 'risk', name: 'x', custom_id: 'x', data: {} },
       },
       { ...connection, url: 'https://other.example/mcp' },
     ),

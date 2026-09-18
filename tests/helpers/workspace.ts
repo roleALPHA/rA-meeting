@@ -25,7 +25,7 @@ export function testHost(): BrowserHost {
         scope: 'access_as_user',
         tenant,
         meeting: true,
-        entities: { risk: { tool: 'create_risk', label: 'Risiko' } },
+        entities: { risk: { entityType: 'risk', label: 'Risiko' } },
       },
     }),
   };

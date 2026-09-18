@@ -619,4 +619,10 @@ export const es: Record<MessageId, string> = {
   'error.tensions.meetingRequired': 'Selecciona una reunión.',
   'error.tensions.draftSearchIncompatible': 'La búsqueda de borradores en roleALPHA no es compatible.',
   'error.tensions.draftSearchFailed': 'No se pudieron leer los borradores de roleALPHA.',
+  'error.integrations.rolealphaTokenExchangeFailed':
+    'El inicio de sesión en roleALPHA ha fallado. Revisa los ajustes de conexión e inténtalo de nuevo.',
+  'error.integrations.rolealphaAccountNotLinked':
+    'Esta cuenta no está vinculada a Microsoft en roleALPHA. Inicia sesión una vez en roleALPHA con Microsoft y vuelve a intentarlo.',
+  'error.integrations.rolealphaAccessNotEnabled':
+    'roleALPHA no ha habilitado el acceso para esta aplicación, o se ha revocado. Un administrador de roleALPHA puede concederlo.',
 };

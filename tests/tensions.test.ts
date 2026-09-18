@@ -18,6 +18,7 @@ import {
 import { seedTemplates } from '../shared/templates.js';
 import { createBrowserApi } from '../client/browser/runtime.js';
 import { customerSettingsSchema, type BrowserHost } from '../client/browser/host.js';
+import { tokenEndpoint } from '../client/browser/rolealpha.js';
 
 const owner = { id: 'owner', name: 'Owner', tenantId: 'tenant', workspace: 'write' as const };
 async function workspace() {
@@ -261,8 +262,12 @@ test('own drafts are searched with the approved read-only tool and attached as l
   };
   globalThis.fetch = async (input, init) => {
     const url = String(input);
+    if (url === tokenEndpoint(host.settings.roleAlpha!.url)) {
+      assert.equal(new URLSearchParams(String(init?.body)).get('subject_token'), 'delegated');
+      return Response.json({ access_token: 'rolealpha-token', expires_in: 300 });
+    }
     assert.equal(url, host.settings.roleAlpha!.url);
-    assert.equal(new Headers(init?.headers).get('Authorization'), 'Bearer delegated');
+    assert.equal(new Headers(init?.headers).get('Authorization'), 'Bearer rolealpha-token');
     if (init?.method === 'POST' && JSON.parse(String(init.body)).method === 'initialize') await connect();
     return transport.handleRequest(new Request(url, init));
   };

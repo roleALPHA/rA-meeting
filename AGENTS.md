@@ -7,7 +7,7 @@ SPFx app for SharePoint and Teams. All logic runs in the browser; data lives in 
 - **No external infrastructure.** The app must run entirely inside the customer's Microsoft 365 tenant: SPFx in the browser, storage in SharePoint, Microsoft Graph with the signed-in user's delegated permissions.
 - **No own backend.** Do not add servers, proxies, databases, Power Automate flows, Azure Functions, or background services — not even as an optional fallback.
 - **Only two outbound interfaces are allowed:**
-  1. The MCP call to the configured roleALPHA endpoint.
+  1. The configured roleALPHA endpoint: its MCP address and, on the same origin, the token endpoint that exchanges the delegated Entra token (`client/browser/rolealpha.ts`). No other roleALPHA address.
   2. The configured AI assistants: Microsoft 365 Copilot (default), Codex via Microsoft Foundry, or an OpenAI-compatible endpoint.
 - **Delegated Entra ID tokens only.** No API keys, client secrets, or other credentials in browser code, configuration, or storage.
 - Check every new dependency, endpoint, or data flow against these rules. If a service cannot be called directly from the browser (for example because of CORS or token audience), do not work around it with a proxy; document it as unsupported and raise it instead.

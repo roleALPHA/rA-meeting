@@ -631,4 +631,10 @@ export const fr: Record<MessageId, string> = {
   'error.tensions.meetingRequired': 'Sélectionnez une réunion.',
   'error.tensions.draftSearchIncompatible': 'La recherche de brouillons dans roleALPHA n’est pas compatible.',
   'error.tensions.draftSearchFailed': 'Impossible de lire les brouillons depuis roleALPHA.',
+  'error.integrations.rolealphaTokenExchangeFailed':
+    'La connexion à roleALPHA a échoué. Vérifiez les paramètres de connexion et réessayez.',
+  'error.integrations.rolealphaAccountNotLinked':
+    'Ce compte n’est pas lié à Microsoft dans roleALPHA. Connectez-vous une fois à roleALPHA via Microsoft, puis réessayez.',
+  'error.integrations.rolealphaAccessNotEnabled':
+    'roleALPHA n’a pas autorisé l’accès pour cette application, ou il a été révoqué. Un administrateur roleALPHA peut l’accorder.',
 };

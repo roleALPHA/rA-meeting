@@ -73,10 +73,16 @@ export const customerSettingsSchema = z
           .nullable()
           .default(null),
         meeting: z.boolean().default(false),
+        /** The write tool roleALPHA offers at its MCP endpoint; it takes the entity type as an argument. */
+        createTool: z
+          .string()
+          .regex(/^create_[a-z0-9_]+$/)
+          .default('create_entity_draft'),
+        /** Which roleALPHA entity type an approved outcome becomes; the meeting record itself uses `meeting`. */
         entities: z
           .record(
             z.enum(outputTypes),
-            z.object({ tool: z.string().regex(/^create_[a-z0-9_]+$/), label: z.string().min(1) }).strict(),
+            z.object({ entityType: z.string().regex(/^[a-z][a-z0-9_]*$/), label: z.string().min(1) }).strict(),
           )
           .default({}),
       })
