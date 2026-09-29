@@ -8,6 +8,11 @@ import {
 } from '../../../shared/model';
 import { workspaceAccess } from '../../../shared/storage/sharepoint-rest';
 import { rev, type Route, type RouteContext } from './types';
+import { loadConnections, saveConnections, testConnection } from '../connections';
+
+async function ownersOnly({ host }: RouteContext) {
+  assert((await workspaceAccess(host.sharepoint)).owner, 'error.connections.ownersOnly', 403);
+}
 
 const key = { kind: 'settings', id: 'workspace' };
 
@@ -38,6 +43,32 @@ export const settingsRoutes: Route[] = [
       };
       await store.save(actor.tenantId, key.kind, key.id, next.version, next, expected || undefined);
       return next;
+    },
+  },
+  {
+    verb: 'GET',
+    path: /^\/connections$/,
+    handle: async ctx => {
+      await ownersOnly(ctx);
+      return loadConnections(ctx.host.sharepoint);
+    },
+  },
+  {
+    verb: 'PUT',
+    path: /^\/connections$/,
+    handle: async (ctx, { body }) =>
+      saveConnections(
+        ctx.host,
+        { settings: body.settings, version: z.number().int().min(0).parse(body.version) },
+        ctx.actor.id,
+      ),
+  },
+  {
+    verb: 'POST',
+    path: /^\/connections\/test$/,
+    handle: async (ctx, { body }) => {
+      await ownersOnly(ctx);
+      return { result: await testConnection(ctx.host, z.enum(['ai', 'roleAlpha']).parse(body.part), body.settings) };
     },
   },
 ];

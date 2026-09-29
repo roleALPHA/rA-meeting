@@ -5,7 +5,7 @@ import {
   PropertyPaneTextField,
   PropertyPaneDropdown,
 } from '@microsoft/sp-property-pane';
-import { mount, settings, teamsTheme } from '../../generated/app';
+import { mount, teamsTheme } from '../../generated/app';
 import { fonts } from '../../generated/fonts';
 interface Properties {
   workspaceUrl?: string;
@@ -86,8 +86,8 @@ export default class MeetingsWebPart extends BaseClientSideWebPart<Properties> {
       webUrl,
       isTeams: !!this.context.sdks.microsoftTeams,
       initialMeeting: this.properties.meetingId,
+      language: this.language(),
       fonts,
-      settings,
       onMeetingsChanged: (meetings: { id: string; title: string }[]): void => {
         this.meetings = meetings;
         this.context.propertyPane.refresh();
@@ -100,6 +100,11 @@ export default class MeetingsWebPart extends BaseClientSideWebPart<Properties> {
       sharepoint: (path: string, init?: RequestInit): Promise<Response> => sharepointAt(webUrl, path, init),
     });
     this.followTeamsTheme();
+  }
+  /** Starter templates and meeting defaults follow the SharePoint UI language. */
+  private language(): 'de' | 'en' | 'fr' | 'es' {
+    const code = this.context.pageContext.cultureInfo.currentUICultureName.slice(0, 2).toLowerCase();
+    return code === 'en' || code === 'fr' || code === 'es' ? code : 'de';
   }
   /** In Teams the app follows the client theme (default, dark, high contrast); SharePoint pages stay light. */
   private followTeamsTheme(): void {

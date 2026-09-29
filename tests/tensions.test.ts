@@ -17,7 +17,7 @@ import {
 } from '../shared/model.js';
 import { seedTemplates } from '../shared/templates.js';
 import { createBrowserApi } from '../client/browser/runtime.js';
-import { customerSettingsSchema, type BrowserHost } from '../client/browser/host.js';
+import { connectionSettingsSchema, type BrowserHost } from '../client/browser/host.js';
 import { tokenEndpoint } from '../client/browser/rolealpha.js';
 
 const owner = { id: 'owner', name: 'Owner', tenantId: 'tenant', workspace: 'write' as const };
@@ -109,7 +109,7 @@ test('submitted items join the agenda at the start, later ones on request, and f
     userName: 'Facilitator',
     webUrl: 'https://customer.sharepoint.com/sites/circle',
     isTeams: false,
-    settings: customerSettingsSchema.parse({}),
+    settings: connectionSettingsSchema.parse({}),
     sharepoint: sp.request,
     token: async () => {
       throw new Error('no token expected');
@@ -249,11 +249,10 @@ test('own drafts are searched with the approved read-only tool and attached as l
       tokens.push(resource);
       return 'delegated';
     },
-    settings: customerSettingsSchema.parse({
+    settings: connectionSettingsSchema.parse({
       roleAlpha: {
         url: 'https://rolealpha.example/mcp',
         resource: 'api://rolealpha',
-        permissionResource: 'roleALPHA',
         scope: 'access_as_user',
         tenant,
         drafts: { searchTool: 'search_my_drafts', appUrl: 'https://app.rolealpha.example' },
@@ -313,7 +312,7 @@ test('own drafts are searched with the approved read-only tool and attached as l
   assert.ok(tokens.every(r => r === 'api://rolealpha'));
 
   const withDrafts = (drafts: unknown) =>
-    customerSettingsSchema.parse({ roleAlpha: { ...host.settings.roleAlpha, drafts } });
+    connectionSettingsSchema.parse({ roleAlpha: { ...host.settings.roleAlpha, drafts } });
   assert.ok(withDrafts({ searchTool: 'search_drafts', appUrl: 'https://a.example' }).roleAlpha?.drafts);
   assert.throws(() => withDrafts({ searchTool: 'create_draft', appUrl: 'https://a.example' }));
   assert.throws(() => withDrafts({ searchTool: 'search_drafts', appUrl: 'http://a.example' }));

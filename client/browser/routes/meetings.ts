@@ -106,7 +106,7 @@ export const meetingActions: Record<string, MeetingAction> = {
     const { outcomes, completion } = await analyzeBrowser(
       host,
       m,
-      parseLanguage(typeof body.language === 'string' ? body.language : host.settings.language),
+      parseLanguage(typeof body.language === 'string' ? body.language : (host.language ?? 'de')),
     );
     for (const output of outcomes) addOutcome(m, actor, output, 'ai');
     m.analyzedHash = m.transcriptHash;

@@ -2,7 +2,6 @@
 // Development-only static preview. Never imported by the SPFx production entry point.
 import { mount } from './browser/mount';
 import { teamsTheme } from './browser/brand';
-import { customerSettingsSchema } from './browser/host';
 import { fakeSharePoint, tenant, user } from '../tests/helpers/sharepoint-rest';
 const root = document.getElementById('root')!;
 const notice = document.createElement('p');
@@ -29,7 +28,6 @@ const handle = mount(root, {
   isTeams: false,
   theme: requested ? teamsTheme(requested) : scheme.matches ? 'dark' : 'light',
   fonts,
-  settings: customerSettingsSchema.parse({}),
   sharepoint: sp.request,
   token: async () => {
     throw new Error('In der lokalen Demo sind keine Microsoft- oder KI-Dienste verbunden.');

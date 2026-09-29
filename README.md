@@ -60,7 +60,7 @@ The app is delivered as a **SharePoint Framework (SPFx)** package. Microsoft 365
 
 No central roleALPHA proxy, additional application runtime, or Power Automate flow is required. No automatic processing runs after the app closes. Users explicitly start analysis and transfers.
 
-The default package contains no AI or roleALPHA endpoints. Optional services must support Microsoft Entra sign-in and direct browser access. Secret API keys must not be placed in browser configuration.
+The package contains no AI or roleALPHA endpoints. Site owners set them up per workspace in the app (setup wizard or **Connections**); an Entra administrator grants each service's delegated permission once. Optional services must support Microsoft Entra sign-in and direct browser access. The app never stores API keys.
 
 **Optional services determine additional data flows.** To keep content entirely within your organization's controlled environment, deploy AI and roleALPHA accordingly. A centrally operated service would receive content sent to it. MCP is the protocol for the roleALPHA connection; the app does not offer arbitrary MCP providers.
 
@@ -108,7 +108,7 @@ npm run build
 
 `npm run check` runs TypeScript, ESLint and Prettier. Commits are signed off (`git commit -s`); see [CONTRIBUTING.md](CONTRIBUTING.md). CI, the licence policy and the release process are described in [docs/ci-conventions.md](docs/ci-conventions.md).
 
-The package is written to `dist/rolealpha-meetings.sppkg`. Optional integration settings are in `spfx/customer.config.json`.
+The package is written to `dist/rolealpha-meetings.sppkg`. It is the same for every customer; AI and roleALPHA are set up in the app.
 
 ```sh
 npm run dev

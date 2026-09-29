@@ -42,6 +42,7 @@ import { CreateMeeting } from './CreateMeeting';
 import { MeetingRoom } from './MeetingRoom';
 import { StorageMaintenance } from './StorageMaintenance';
 import { TeamsRecordingSettings } from './TeamsRecordingSettings';
+import { WorkspaceConnections } from './ConnectionSettings';
 import { BrandMark } from './BrandMark';
 
 export function App() {
@@ -557,6 +558,12 @@ export function App() {
                 ))}
               </div>
               <p className="notice">{tr('app.configuredMeansRequiredSettings')}</p>
+              {data.canManageConnections && (
+                <>
+                  <h2>{tr('connections.title')}</h2>
+                  <WorkspaceConnections saved={load} />
+                </>
+              )}
               <div className="settings-grid">
                 <TeamsRecordingSettings
                   key={data.settings.version}

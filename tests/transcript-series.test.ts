@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createBrowserApi } from '../client/browser/runtime.js';
-import { customerSettingsSchema } from '../client/browser/host.js';
+import { connectionSettingsSchema } from '../client/browser/host.js';
 import { fakeSharePoint, tenant, user } from './helpers/sharepoint-rest.js';
 import type { Bootstrap, Meeting } from '../shared/model.js';
 
@@ -50,7 +50,7 @@ test('series transcripts are attributed by time window, previewed and imported o
     userName: 'Anna',
     webUrl: 'https://customer.sharepoint.com/sites/circle',
     isTeams: true,
-    settings: customerSettingsSchema.parse({}),
+    settings: connectionSettingsSchema.parse({}),
     sharepoint: sp.request,
     token: async () => 'delegated-test',
   });

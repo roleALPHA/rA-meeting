@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { roleAlphaFetch, roleAlphaToken, tokenEndpoint } from '../client/browser/rolealpha.js';
-import { customerSettingsSchema, type BrowserHost } from '../client/browser/host.js';
+import { connectionSettingsSchema, type BrowserHost } from '../client/browser/host.js';
 import { fakeSharePoint, tenant, user } from './helpers/sharepoint-rest.js';
 
 const url = 'https://rolealpha.example/api/mcp';
@@ -19,11 +19,10 @@ function fixture(workspace = crypto.randomUUID()) {
       tokens.push(resource);
       return 'entra-token';
     },
-    settings: customerSettingsSchema.parse({
+    settings: connectionSettingsSchema.parse({
       roleAlpha: {
         url,
         resource: 'api://rolealpha',
-        permissionResource: 'roleALPHA',
         scope: 'access_as_user',
         tenant,
       },

@@ -12,6 +12,7 @@ import { meetingActions, meetingRoutes } from './routes/meetings';
 import { exportActions } from './routes/export';
 import { maintenanceRoutes } from './routes/maintenance';
 import { settingsRoutes } from './routes/settings';
+import { applyConnections } from './connections';
 
 export type AppApi = {
   openSetup?: () => void;
@@ -64,7 +65,8 @@ export async function createBrowserApi(host: BrowserHost): Promise<AppApi> {
   };
   const store = new SharePointRestStore(host.tenantId, host.webUrl, host.sharepoint);
   await store.initialize();
-  if (access.write) await store.seed(host.tenantId, host.settings.language);
+  await applyConnections(host);
+  if (access.write) await store.seed(host.tenantId, host.language);
   return browserApi(host, store, actor);
 }
 

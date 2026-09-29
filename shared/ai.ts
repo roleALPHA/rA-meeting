@@ -14,7 +14,7 @@ export type JsonObjectSchema = {
  * Callers always validate the returned value with their own Zod schema.
  */
 export type AiTask = {
-  name: 'analysis' | 'assistance' | 'governance';
+  name: 'analysis' | 'assistance' | 'governance' | 'check';
   instructions: string;
   data: unknown;
   outputSchema: JsonObjectSchema;

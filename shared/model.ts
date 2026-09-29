@@ -216,6 +216,8 @@ export type Bootstrap = {
   settings: WorkspaceSettings;
   /** Site owners may change workspace settings and run storage maintenance. */
   canManageWorkspace: boolean;
+  /** Site owners (Manage Permissions) set up AI and roleALPHA connections. */
+  canManageConnections: boolean;
   integrations: {
     governance?: boolean;
     /** Own roleALPHA drafts can be searched and attached to tensions. */

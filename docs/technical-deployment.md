@@ -10,39 +10,50 @@ Use services controlled by your organization. Verify ownership, region, and proc
 
 Governance integration is specifically for roleALPHA. MCP is its protocol, not an arbitrary provider setting. One roleALPHA endpoint handles meeting records and all enabled entity types. Per-entity endpoints and generic MCP configuration are rejected. Administrators must verify the service's identity; an address alone does not prove it.
 
-The package builder configures nonsecret endpoints in `spfx/customer.config.json`. The default package has **no AI or MCP targets**. Example configuration, containing no real credentials:
+**Settings live in the workspace, not in the package.** The package is the same for every customer and contains no AI or MCP targets. A site owner sets up the connections per workspace in the setup wizard or under **Connections**. The app stores them as JSON in the list `rA Meetings Connections` on the workspace site, one item, and reads them each time the app starts. Stored format, containing no real credentials:
 
 ```json
 {
-  "language": "en",
-  "ai": {
-    "provider": "copilot",
-    "resource": "WORK-IQ-APPLICATION-ID-URI",
-    "permissionResource": "WORK-IQ-APPLICATION-DISPLAY-NAME"
-  },
-  "roleAlpha": {
-    "url": "https://rolealpha.organization.example/api/mcp",
-    "resource": "api://ORGANIZATION-ROLEALPHA-APPLICATION-ID",
-    "permissionResource": "roleALPHA Governance",
-    "scope": "access_as_user",
-    "tenant": "11111111-1111-4111-8111-111111111111",
-    "meeting": false,
-    "createTool": "create_entity_draft",
-    "entities": {
-      "risk": {
-        "entityType": "risk",
-        "label": "Risk"
-      }
+  "version": 1,
+  "updatedAt": "2026-09-29T12:00:00.000Z",
+  "updatedBy": "ENTRA-OBJECT-ID",
+  "settings": {
+    "ai": {
+      "provider": "copilot",
+      "url": "https://workiq.svc.cloud.microsoft/rest",
+      "resource": "WORK-IQ-APPLICATION-ID-URI",
+      "scope": "WorkIQAgent.Ask",
+      "maxInputChars": 200000
+    },
+    "roleAlpha": {
+      "url": "https://rolealpha.organization.example/api/mcp",
+      "resource": "api://ORGANIZATION-ROLEALPHA-APPLICATION-ID",
+      "scope": "access_as_user",
+      "tenant": "11111111-1111-4111-8111-111111111111",
+      "meeting": false,
+      "createTool": "create_entity_draft",
+      "entities": { "risk": { "entityType": "risk", "label": "Risk" } },
+      "governance": null,
+      "drafts": null
     }
   }
 }
 ```
 
+**Who can change them.** Whoever sets these addresses decides where transcripts and meeting content go. Workspace records can be changed by every site member directly in SharePoint (see the security model below), so the connections are kept apart:
+
+- Only accounts with **Manage Permissions** on the site (site owners, Full Control) can save them. SharePoint's Edit level includes Manage Lists, so the "can set up the workspace" check is not enough here.
+- When an owner first saves, the app creates the list, stops inheriting the site's permissions, and turns every assignment that could add, edit, or delete items into **Read**, except assignments with Manage Permissions. Nobody loses read access and nobody gains any access.
+- The app reads the settings only while the list still has its own permissions. If someone restores inheritance, or the stored value does not pass validation (for example because it contains a key), AI and roleALPHA are off until an owner saves again, which restores the protection.
+- The same validation applies as before: HTTPS without credentials or key-like query parameters, no secret fields, one roleALPHA endpoint, `search_` and `create_` tool names.
+
+**Connection test.** Before saving, **Test connection** tries the entered values. It requests a delegated token for `resource`; a failure there means the permission below is missing or not yet effective. It then makes one harmless call: for AI, a minimal structured request; for roleALPHA, the token exchange and `tools/list`, checking that every configured tool is offered.
+
 **Sign-in: the delegated Microsoft token is exchanged.** roleALPHA's MCP endpoint does not accept Microsoft tokens. Before each call, the app exchanges the signed-in user's delegated Entra token for a short-lived roleALPHA token (RFC 8693) at `POST <origin of url>/api/auth/oauth/token` with `grant_type=urn:ietf:params:oauth:grant-type:token-exchange`, the Entra token as `subject_token`, the configured `tenant` as `tenant_uuid`, and `url` as `resource`. The token endpoint is derived from the endpoint's origin; it is the only second address of this integration, and it is never configured separately. The token lives in memory until it expires and is never stored; roleALPHA issues no refresh token deliberately. A rejected call is retried once with a freshly exchanged token.
 
 This requires on the roleALPHA side: the Entra directory registered for the tenant, the external-application feature enabled, the SharePoint origin registered for CORS, and **each user having signed in to roleALPHA through Microsoft at least once** — the exchange identifies the person by the Microsoft object ID, and an unknown account is refused with a message saying exactly that. Access is granted and revoked per user under connected applications in roleALPHA.
 
-`resource` is the service's Entra audience. `permissionResource` is its application display name in Entra; `scope` is its approved delegated scope. The build includes these permissions in the package's Microsoft 365 approval requests. Approve them under API access after deployment. Each service must validate audience, tenant, scope, and user permissions itself. SPFx approvals apply to the shared SharePoint client principal, not exclusively to this web part.
+`resource` is the service's Entra audience (application ID URI); `scope` is its delegated permission. Because the services are set up at runtime, the package does not request these permissions and they do not appear under **API access**. An Entra administrator grants each one once, directly to the shared SharePoint client principal: **App registrations → All applications → SharePoint Online Client Extensibility Web Application Principal → API permissions → Add a permission → APIs my organization uses →** _the service_ **→ Delegated permissions →** _scope_ **→ Grant admin consent**. The form shows these steps with the entered values. Each service must validate audience, tenant, scope, and user permissions itself. The grant applies to every SharePoint Framework solution in the tenant, not exclusively to this web part.
 
 Services must allow CORS from the actual SharePoint origins. For MCP, allow `Authorization`, `Content-Type`, `Mcp-Session-Id`, `MCP-Protocol-Version`, and the required HTTP methods, and expose `Mcp-Session-Id`. Check permissions separately for guest and cross-tenant sign-ins. Missing approval, CORS, or network access produces an error; there is no fallback through the manufacturer's infrastructure.
 
@@ -54,6 +65,7 @@ SharePoint permissions are the only enforced access boundary. The app runs entir
 
 - Readers of the workspace site can read all stored content, including transcripts and historical versions.
 - Editors can change stored content directly through SharePoint, bypassing the app. Rules the app applies (allowed outcome types per step, approval before transfer, immutable transferred outcomes, evidence references) guide users but are not security controls.
+- AI and roleALPHA connections are the exception: they live in a list whose own permissions let only site owners write (see above), because they decide where content is sent.
 - The meeting view runs a consistency check and shows a notice when stored data deviates from these rules, for example after direct editing. This check can detect inconsistencies; it cannot prevent or reliably detect deliberate manipulation.
 - Enforcing such rules against editors would require a server-side component, which is deliberately not part of this product. Use separately permissioned sites and SharePoint auditing where this matters.
 
@@ -65,20 +77,19 @@ Approved API permissions are granted to the shared SharePoint Online Client Exte
 
 ### Microsoft 365 Copilot (default)
 
-Uses the Microsoft 365 Copilot Chat API (Work IQ) with the delegated permission `WorkIQAgent.Ask`.
+Uses the Microsoft 365 Copilot Chat API (Work IQ) with the delegated permission `WorkIQAgent.Ask`. The snippets in this section show the stored `ai` value; the form fills in the defaults.
 
 ```json
 "ai": {
   "provider": "copilot",
   "url": "https://workiq.svc.cloud.microsoft/rest",
   "resource": "WORK-IQ-APPLICATION-ID-URI",
-  "permissionResource": "WORK-IQ-APPLICATION-DISPLAY-NAME",
   "scope": "WorkIQAgent.Ask",
   "maxInputChars": 200000
 }
 ```
 
-`url` and `scope` default to the values shown. Prerequisites: Work IQ enabled for the tenant, Copilot usage billing (Copilot Credits), and approval of the requested permission.
+`url` and `scope` default to the values shown. Prerequisites: Work IQ enabled for the tenant, Copilot usage billing (Copilot Credits), and the granted delegated permission.
 
 Behavior and limits to review before enabling:
 
@@ -97,7 +108,6 @@ Uses a Claude deployment in your Microsoft Foundry resource with Microsoft Entra
   "provider": "claude-foundry",
   "url": "https://YOUR-RESOURCE.services.ai.azure.com/anthropic",
   "resource": "https://ai.azure.com",
-  "permissionResource": "FOUNDRY-APPLICATION-DISPLAY-NAME",
   "scope": "user_impersonation",
   "model": "claude-opus-5",
   "fallbackModel": null
@@ -117,7 +127,6 @@ For an organization-operated Chat Completions endpoint (for example Azure OpenAI
   "provider": "openai-compatible",
   "url": "https://ai.organization.example/v1/chat/completions",
   "resource": "api://ORGANIZATION-AI-APPLICATION-ID",
-  "permissionResource": "Organization AI",
   "scope": "access_as_user",
   "model": "organization-model"
 }
@@ -130,7 +139,7 @@ Contract: `model`, `messages`, and `response_format: {"type":"json_object"}`; th
 The adapters are tested against simulated responses only. Before enabling a provider, verify in the target tenant from a SharePoint page:
 
 - [ ] The service accepts browser requests from the SharePoint origin (CORS).
-- [ ] The SPFx token provider issues a token for the configured `resource`, and the permission appears under **API access** with the configured `permissionResource` and `scope`.
+- [ ] **Test connection** succeeds: the SPFx token provider issues a token for the configured `resource` after the delegated `scope` was granted to the SharePoint Online Client Extensibility principal.
 - [ ] Copilot: Work IQ is enabled, a test conversation works with web grounding disabled, and a long transcript stays within the request limits.
 - [ ] Claude: the deployment name, structured output, and the RBAC assignment work for an ordinary user.
 - [ ] Each enabled function works with test data: transcript analysis, proposal forming, and a governance question.
@@ -165,7 +174,7 @@ The interface follows roleALPHA's corporate design as defined in rA-app: the fiv
 
 ## Governance questions: roleALPHA read contract
 
-In addition to an AI target, set the optional `roleAlpha.governance` property to `{ "searchTool": "search_governance" }`. The name is an example: configure the actual verified search tool from the roleALPHA installation. Without this configuration, governance assistance remains disabled. Compatibility with a production roleALPHA read tool has not yet been verified.
+In addition to an AI service, enter the search tool for governance questions in the form (stored as `roleAlpha.governance`: `{ "searchTool": "search_governance" }`). The name is an example: configure the actual verified search tool from the roleALPHA installation. Without this configuration, governance assistance remains disabled. Compatibility with a production roleALPHA read tool has not yet been verified.
 
 The adapter expects an explicitly read-only search operation at the same roleALPHA endpoint. There is no additional MCP address or model-selected tool. The configured name must start with `search_`. Its `tools/list` declaration must expose `readOnlyHint: true`, `destructiveHint: false`, and parameters `query` (string) and `limit` (number or integer). `tenant_uuid` (string) is supported and passed when declared; a tool that takes the tenant from the token may omit it. Additional required parameters are unsupported. Annotations do not replace service-side authorization: roleALPHA must enforce the signed-in user's read access and tenant boundaries, and the operation must actually be read-only.
 
@@ -191,7 +200,7 @@ Acceptance testing must cover the real search contract, user and tenant isolatio
 
 ## Attaching roleALPHA drafts: read contract
 
-Set the optional `roleAlpha.drafts` property to `{ "searchTool": "search_my_drafts", "appUrl": "https://rolealpha.organization.example" }`. The tool name is an example and must start with `search_`; `appUrl` is the roleALPHA web application. Without this configuration, editors cannot attach drafts to tensions. Compatibility with a production roleALPHA tool has not yet been verified.
+Enter the search tool for own drafts and the roleALPHA application address in the form (stored as `roleAlpha.drafts`: `{ "searchTool": "search_my_drafts", "appUrl": "https://rolealpha.organization.example" }`). The tool name is an example and must start with `search_`; `appUrl` is the roleALPHA web application. Without this configuration, editors cannot attach drafts to tensions. Compatibility with a production roleALPHA tool has not yet been verified.
 
 The tool runs at the same roleALPHA MCP endpoint with the signed-in user's delegated token. Its `tools/list` declaration must expose `readOnlyHint: true`, `destructiveHint: false`, and parameters `query` (string) and `limit` (number or integer). If it declares `tenant_uuid` (string), the configured tenant is passed; a tool that takes the tenant from the token may omit it. Additional required parameters are unsupported. The app never passes a user ID: **roleALPHA must return only the signed-in user's own drafts** and enforce tenant and permission checks itself.
 
