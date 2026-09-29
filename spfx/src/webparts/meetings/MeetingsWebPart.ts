@@ -56,7 +56,10 @@ export default class MeetingsWebPart extends BaseClientSideWebPart<Properties> {
         path.includes('..')
       )
         throw new Error('Invalid SharePoint path');
-      const headers: Record<string, string> = { Accept: 'application/json;odata=minimalmetadata', 'odata-version': '' };
+      const headers: Record<string, string> = {
+        Accept: 'application/json;odata=minimalmetadata',
+        'odata-version': '3.0',
+      };
       new Headers(init.headers).forEach((value, key) => {
         headers[key] = value;
       });
