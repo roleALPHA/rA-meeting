@@ -43,7 +43,9 @@ export async function spJson<T>(request: SPRequest, path: string, init?: Request
   if (r.status === 404) throw new AppError(404, 'error.sharepointRest.recordFound');
   if (r.status === 401 || r.status === 403) throw new AppError(403, 'error.runtime.permissionSharepointWorkspace');
   assert(r.ok, 'error.sharepointRest.http', 502, { status: r.status });
-  return r.status === 204 ? (undefined as T) : ((await r.json()) as T);
+  // SharePoint answers some writes (DELETE via X-HTTP-Method) with 200 and no body.
+  const text = r.status === 204 ? '' : await r.text();
+  return (text ? JSON.parse(text) : undefined) as T;
 }
 export async function workspaceAccess(request: SPRequest): Promise<WorkspaceAccess> {
   const response = await spJson<{ EffectiveBasePermissions?: { Low: string }; Low?: string }>(
