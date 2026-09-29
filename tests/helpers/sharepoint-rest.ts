@@ -79,7 +79,8 @@ export function fakeSharePoint() {
       if (state.failIndexWrite) return json({}, 500);
       if (headers.get('X-HTTP-Method') === 'DELETE') {
         records.delete(id);
-        return new Response(null, { status: 204 });
+        // SharePoint Online answers a DELETE tunnelled through POST with 200 and an empty body.
+        return new Response('', { status: 200 });
       }
       records.set(id, { ...body, Id: id, 'odata.etag': `"${++serial}"` });
       return new Response(null, { status: 204 });
