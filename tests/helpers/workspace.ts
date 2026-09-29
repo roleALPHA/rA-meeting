@@ -1,6 +1,6 @@
 import { SharePointRestStore } from '../../shared/storage/sharepoint-rest.js';
 import { fakeSharePoint, tenant, user } from './sharepoint-rest.js';
-import { customerSettingsSchema, type BrowserHost } from '../../client/browser/host.js';
+import { connectionSettingsSchema, type BrowserHost } from '../../client/browser/host.js';
 import type { Actor } from '../../shared/model.js';
 export class TestStore extends SharePointRestStore {
   constructor(tenantId: string) {
@@ -17,11 +17,10 @@ export function testHost(): BrowserHost {
     isTeams: false,
     sharepoint: fakeSharePoint().request,
     token: async () => 'test-token',
-    settings: customerSettingsSchema.parse({
+    settings: connectionSettingsSchema.parse({
       roleAlpha: {
         url: 'https://rolealpha.example/mcp',
         resource: 'api://rolealpha',
-        permissionResource: 'roleALPHA',
         scope: 'access_as_user',
         tenant,
         meeting: true,

@@ -65,7 +65,7 @@ Two export modes are supported:
 1. **Meeting record:** `create_meeting` receives approved outcomes and sources.
 2. **Individual entity:** an explicitly configured outcome type maps to an advertised compatible `create_*` tool at the roleALPHA MCP endpoint.
 
-Configure the optional connection under `roleAlpha` in `spfx/customer.config.json`. All entity types use the same endpoint; `entities` maps each type to its approved tool name. See the [technical deployment guide](technical-deployment.md).
+Site owners set up the optional connection under **Connections → Set up AI and roleALPHA**. All entity types use the same endpoint; each selected outcome type maps to a roleALPHA entity type. See the [technical deployment guide](technical-deployment.md).
 
 OKR and IT-system mappings also require explicit configuration. Tool names are not guessed. Before writing, the app verifies that the tool is available and supports the common creation contract: `tenant_uuid`, `name`, `custom_id`, and `data`. Incompatible schemas are rejected. Integration operators must additionally verify the entity-specific business schema; this check is not complete JSON Schema validation of every field.
 

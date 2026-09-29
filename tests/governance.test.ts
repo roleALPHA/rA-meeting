@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
 import { createBrowserApi } from '../client/browser/runtime.js';
-import { customerSettingsSchema, type BrowserHost } from '../client/browser/host.js';
+import { connectionSettingsSchema, type BrowserHost } from '../client/browser/host.js';
 import { fakeSharePoint, tenant, user } from './helpers/sharepoint-rest.js';
 import type { GovernanceReply } from '../shared/governance.js';
 import type { Bootstrap } from '../shared/model.js';
@@ -65,18 +65,16 @@ test('governance questions use the approved read tool, cite actual sources and n
       tokens.push(resource);
       return 'test-token';
     },
-    settings: customerSettingsSchema.parse({
+    settings: connectionSettingsSchema.parse({
       ai: {
         url: 'https://ai.example/chat',
         resource: 'api://ai',
-        permissionResource: 'AI',
         scope: 'read',
         model: 'test',
       },
       roleAlpha: {
         url: 'https://rolealpha.example/mcp',
         resource: 'api://rolealpha',
-        permissionResource: 'roleALPHA',
         scope: 'read',
         tenant,
         governance: { searchTool: 'search_governance' },
@@ -163,8 +161,8 @@ test('governance questions use the approved read tool, cite actual sources and n
   readOnly = true;
   sourceId = 'role-finance';
   sources = [{ id: 'role-finance', title: 'Finance', content: 'Finance approves expenditure up to 1000 EUR.' }];
-  host.settings.ai = customerSettingsSchema.parse({
-    ai: { provider: 'copilot', resource: 'api://workiq', permissionResource: 'Work IQ' },
+  host.settings.ai = connectionSettingsSchema.parse({
+    ai: { provider: 'copilot', resource: 'api://workiq' },
   }).ai;
   const copilotApi = await createBrowserApi(host);
   const askCopilot = () =>
@@ -183,17 +181,16 @@ test('governance configuration rejects write tools and a separate endpoint', () 
   const connection = {
     url: 'https://rolealpha.example/mcp',
     resource: 'api://ra',
-    permissionResource: 'roleALPHA',
     scope: 'read',
     tenant,
   };
   assert.equal(
-    customerSettingsSchema.safeParse({ roleAlpha: { ...connection, governance: { searchTool: 'create_risk' } } })
+    connectionSettingsSchema.safeParse({ roleAlpha: { ...connection, governance: { searchTool: 'create_risk' } } })
       .success,
     false,
   );
   assert.equal(
-    customerSettingsSchema.safeParse({
+    connectionSettingsSchema.safeParse({
       roleAlpha: { ...connection, governance: { searchTool: 'search_governance', url: 'https://other.example/mcp' } },
     }).success,
     false,

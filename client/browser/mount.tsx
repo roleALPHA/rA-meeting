@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import { App } from '../App';
 import { ApiProvider } from '../api-context';
 import { createBrowserApi, type AppApi } from './runtime';
-import type { BrowserHost } from './host';
+import { noConnections, type BrowserHost } from './host';
 import { Onboarding } from '../Onboarding';
 import { AppError } from '../../shared/model';
 import { errorText, t, usePreferences } from '../i18n';
@@ -84,7 +84,9 @@ export type MountHandle = (() => void) & { setTheme: (theme: Theme) => void };
  * Private React root and stylesheet; no document-wide CSS apart from the brand @font-face rules (see brand.ts),
  * no localhost or vendor API fallback.
  */
-export function mount(element: HTMLElement, host: BrowserHost): MountHandle {
+export function mount(element: HTMLElement, hostInput: Omit<BrowserHost, 'settings'>): MountHandle {
+  // Connections come from the workspace (see connections.ts), never from the package.
+  const host: BrowserHost = { ...hostInput, settings: noConnections };
   installFonts(host.fonts);
   const setTheme = (theme: Theme) => element.setAttribute('data-theme', theme);
   setTheme(host.theme ?? 'light');

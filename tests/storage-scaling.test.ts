@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createBrowserApi } from '../client/browser/runtime.js';
-import { customerSettingsSchema, type BrowserHost } from '../client/browser/host.js';
+import { connectionSettingsSchema, type BrowserHost } from '../client/browser/host.js';
 import { SharePointRestStore } from '../shared/storage/sharepoint-rest.js';
 import { fakeSharePoint, tenant, user } from './helpers/sharepoint-rest.js';
 import type { Bootstrap, Meeting } from '../shared/model.js';
@@ -17,7 +17,7 @@ function hostFor(sp: ReturnType<typeof fakeSharePoint>, userId = user): BrowserH
     userName: userId === user ? 'Anna' : 'Ben',
     webUrl,
     isTeams: false,
-    settings: customerSettingsSchema.parse({}),
+    settings: connectionSettingsSchema.parse({}),
     sharepoint: sp.request,
     token: async () => 'delegated-test',
   };

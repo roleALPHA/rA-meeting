@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { allowedDestination, customerSettingsSchema, type BrowserHost } from '../client/browser/host.js';
+import { allowedDestination, connectionSettingsSchema, type BrowserHost } from '../client/browser/host.js';
 import { completeTask } from '../client/browser/ai/provider.js';
 import { analysisOutputSchema, type AiTask } from '../shared/ai.js';
 import { tenant, user } from './helpers/sharepoint-rest.js';
@@ -26,7 +26,7 @@ function hostWith(ai: unknown) {
       tokens.push(resource);
       return 'delegated-test';
     },
-    settings: customerSettingsSchema.parse({ ai }),
+    settings: connectionSettingsSchema.parse({ ai }),
   };
   return { host, tokens };
 }
@@ -46,30 +46,29 @@ function mockFetch(t: { after: (fn: () => void) => void }, handler: (url: string
 }
 
 test('AI settings keep legacy configurations, apply provider defaults and reject secrets', () => {
-  const endpoint = { resource: 'api://ai', permissionResource: 'AI', scope: 'access_as_user' };
-  const legacy = customerSettingsSchema.parse({ ai: { ...endpoint, url: 'https://ai.example/chat', model: 'gpt' } });
+  const endpoint = { resource: 'api://ai', scope: 'access_as_user' };
+  const legacy = connectionSettingsSchema.parse({ ai: { ...endpoint, url: 'https://ai.example/chat', model: 'gpt' } });
   assert.equal(legacy.ai?.provider, 'openai-compatible');
-  const copilot = customerSettingsSchema.parse({
-    ai: { provider: 'copilot', resource: 'api://workiq', permissionResource: 'Work IQ' },
+  const copilot = connectionSettingsSchema.parse({
+    ai: { provider: 'copilot', resource: 'api://workiq' },
   });
   assert.equal(copilot.ai?.provider === 'copilot' && copilot.ai.url, 'https://workiq.svc.cloud.microsoft/rest');
   assert.equal(copilot.ai?.scope, 'WorkIQAgent.Ask');
-  const claude = customerSettingsSchema.parse({
+  const claude = connectionSettingsSchema.parse({
     ai: {
       provider: 'claude-foundry',
       url: 'https://example-resource.services.ai.azure.com/anthropic',
-      permissionResource: 'Azure AI Services',
       scope: 'user_impersonation',
     },
   });
   assert.equal(claude.ai?.resource, 'https://ai.azure.com');
   assert.equal(claude.ai?.provider === 'claude-foundry' && claude.ai.model, 'claude-opus-5');
   for (const ai of [
-    { provider: 'copilot', resource: 'api://workiq', permissionResource: 'Work IQ', apiKey: 'secret' },
+    { provider: 'copilot', resource: 'api://workiq', apiKey: 'secret' },
     { provider: 'claude-foundry', url: 'https://x.services.ai.azure.com/anthropic?api-key=secret', ...endpoint },
     { provider: 'unknown', url: 'https://ai.example', ...endpoint },
   ])
-    assert.equal(customerSettingsSchema.safeParse({ ai }).success, false);
+    assert.equal(connectionSettingsSchema.safeParse({ ai }).success, false);
 });
 
 test('prefix destinations allow only paths below the configured endpoint', () => {
@@ -84,7 +83,7 @@ test('prefix destinations allow only paths below the configured endpoint', () =>
 });
 
 test('Copilot receives data as context with web grounding off; fenced JSON, labels and citations are returned', async t => {
-  const { host, tokens } = hostWith({ provider: 'copilot', resource: 'api://workiq', permissionResource: 'Work IQ' });
+  const { host, tokens } = hostWith({ provider: 'copilot', resource: 'api://workiq' });
   const calls = mockFetch(t, url => {
     if (url.endsWith('/conversations')) return Response.json({ id: 'conv-1', messages: [] });
     return Response.json({
@@ -131,7 +130,7 @@ test('Copilot receives data as context with web grounding off; fenced JSON, labe
 });
 
 test('Copilot gets exactly one correction request; oversized input is never sent', async t => {
-  const { host } = hostWith({ provider: 'copilot', resource: 'api://workiq', permissionResource: 'Work IQ' });
+  const { host } = hostWith({ provider: 'copilot', resource: 'api://workiq' });
   let chats = 0;
   const calls = mockFetch(t, url => {
     if (url.endsWith('/conversations')) return Response.json({ id: 'conv-2', messages: [] });
@@ -145,7 +144,6 @@ test('Copilot gets exactly one correction request; oversized input is never sent
   const small = hostWith({
     provider: 'copilot',
     resource: 'api://workiq',
-    permissionResource: 'Work IQ',
     maxInputChars: 1000,
   });
   const before = calls.length;
@@ -182,7 +180,6 @@ test('Claude on Foundry uses the deployment, structured output and the delegated
   const { host, tokens } = hostWith({
     provider: 'claude-foundry',
     url: 'https://example-resource.services.ai.azure.com/anthropic',
-    permissionResource: 'Azure AI Services',
     scope: 'user_impersonation',
     model: 'claude-opus-5-meetings',
   });

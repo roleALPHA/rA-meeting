@@ -49,7 +49,7 @@ export const en: Record<MessageId, string> = {
   'app.delete': 'delete',
   'app.openSetupWizard': 'Open setup wizard',
   'app.dataIntegrations': 'DATA & INTEGRATIONS',
-  'app.signThroughMicrosoft365': 'Sign in through Microsoft 365. Administrators approve optional services.',
+  'app.signThroughMicrosoft365': 'Sign-in through Microsoft 365. Site owners set up AI and roleALPHA on this page.',
   'app.dataStorage': 'Data storage',
   'app.sharepointMicrosoft365': 'SharePoint · Microsoft 365',
   'app.templatesTensionsMeetingsOutcomes':
@@ -355,13 +355,9 @@ export const en: Record<MessageId, string> = {
     'Open the page, review its content and choose “Publish”. Then share the page link with your group.',
   'onboarding.optionalConnections': 'Optional connections',
   'onboarding.calendarAccessRequiresMicrosoft':
-    'Calendar access requires Microsoft Graph approval. AI and roleALPHA need a configured package. You can start using the app without these features.',
+    'The calendar needs Microsoft Graph approvals. You can use the app without this feature at first.',
   'onboarding.calendarAccessVerifiedSuccessfully': 'Calendar access verified successfully.',
   'onboarding.testCalendarAccess': 'Test calendar access',
-  'onboarding.aiConfiguredFunctionalTest': 'AI is configured; a functional test is still required.',
-  'onboarding.aiConfigured': 'AI is not configured.',
-  'onboarding.rolealphaConfiguredFunctionalTest': 'roleALPHA is configured; a functional test is still required.',
-  'onboarding.rolealphaConfigured': 'roleALPHA is not configured.',
   'onboarding.teamsAdministratorMustAdd':
     'For Teams: an administrator must add the app to Teams from the app catalog and approve it. Select the same workspace when adding a tab.',
   'onboarding.openWorkspace': 'Open workspace',
@@ -614,4 +610,77 @@ export const en: Record<MessageId, string> = {
     'This account is not linked to Microsoft in roleALPHA. Sign in to roleALPHA through Microsoft once, then try again.',
   'error.integrations.rolealphaAccessNotEnabled':
     'roleALPHA has not enabled access for this application, or it was revoked. A roleALPHA administrator can grant it.',
+  'connections.title': 'Set up AI and roleALPHA',
+  'connections.loading': 'Loading connections …',
+  'connections.ownersDecide':
+    'These settings decide which services receive transcripts and meeting content. Only site owners can change them; no keys are stored, sign-in uses Microsoft 365.',
+  'connections.unprotected':
+    'The connection settings are no longer protected: the list "rA Meetings Connections" inherits the site permissions again. AI and roleALPHA are switched off. Saving restores the protection.',
+  'connections.invalidStored':
+    'The stored connection settings are invalid. AI and roleALPHA are switched off until the settings are saved again.',
+  'connections.aiProvider': 'AI service',
+  'connections.noAi': 'No AI',
+  'connections.url': 'Address (URL)',
+  'connections.mcpUrl': 'roleALPHA MCP address',
+  'connections.resource': 'Resource (application ID URI of the service)',
+  'connections.scope': 'Delegated permission (scope)',
+  'connections.model': 'Model',
+  'connections.deployment': 'Deployment name',
+  'connections.fallbackDeployment': 'Fallback deployment (optional)',
+  'connections.connectRolealpha': 'Connect roleALPHA',
+  'connections.tenant': 'roleALPHA tenant ID',
+  'connections.sendMeeting': 'Send the meeting record to roleALPHA',
+  'connections.entities': 'Outcome types sent as drafts, with their roleALPHA entity type',
+  'connections.entityType': 'roleALPHA entity type for {type}',
+  'connections.createTool': 'Tool that creates drafts',
+  'connections.governanceTool': 'Search tool for governance questions (optional)',
+  'connections.draftsTool': 'Search tool for own drafts (optional)',
+  'connections.draftsAppUrl': 'Address of the roleALPHA application',
+  'connections.guide': 'Instructions',
+  'connections.guide.copilot1':
+    'Prerequisites: Work IQ is enabled for the tenant and Copilot usage billing (Copilot Credits) is set up.',
+  'connections.guide.copilot2':
+    'Enter the application ID URI of the Work IQ application as the resource (Microsoft Entra admin center → Enterprise applications). Address and permission are prefilled.',
+  'connections.guide.foundry1':
+    'In the Azure portal, create a Microsoft Foundry resource and deploy a Claude model, preferably with the "Hosted on Azure" option. Enter the deployment name here.',
+  'connections.guide.foundry2':
+    'Enable Microsoft Entra ID authentication on the resource and give every app user the "Foundry User" (or "Cognitive Services User") role, ideally through a group.',
+  'connections.guide.foundry3':
+    'Enter https://<resource>.services.ai.azure.com/anthropic as the address. Resource and permission are prefilled.',
+  'connections.guide.openai1':
+    "The endpoint must offer Chat Completions, accept the users' Microsoft Entra tokens (no API keys) and allow browser requests from {origin} (CORS).",
+  'connections.guide.grant1':
+    'Once, as an administrator: in the Microsoft Entra admin center, open "App registrations" → "All applications" and select "SharePoint Online Client Extensibility Web Application Principal".',
+  'connections.guide.grant2':
+    '"API permissions" → "Add a permission" → "APIs my organization uses", then find the API with the resource {resource} (by name or application ID).',
+  'connections.guide.grant3':
+    'Choose "Delegated permissions", select {scope}, add it and confirm "Grant admin consent".',
+  'connections.guide.grant4':
+    'The consent applies to every SharePoint Framework solution in the tenant and can take a few minutes. Then use "Test connection".',
+  'connections.guide.rolealpha1':
+    'In roleALPHA (administration): enable external applications for the tenant, register the Microsoft Entra directory and add {origin} as an allowed origin.',
+  'connections.guide.rolealpha2':
+    'Take the MCP address, resource (application ID URI), tenant ID and tool names from the roleALPHA administration.',
+  'connections.guide.rolealpha3':
+    'Everyone signs in to roleALPHA through Microsoft once. Otherwise the app reports that the account is not linked.',
+  'connections.test': 'Test connection',
+  'connections.aiTestPassed': 'The AI connection works.',
+  'connections.rolealphaTestPassed': 'The roleALPHA connection works and the configured tools are offered.',
+  'connections.checkFields': 'Please check these entries: {fields}',
+  'connections.saved': 'Connections saved.',
+  'connections.savedUntested': 'Connections saved. At least one connection has not been tested successfully yet.',
+  'onboarding.setUpConnections': 'Set up connections',
+  'onboarding.connectionsOptional':
+    'Optional: connect AI assistance and roleALPHA. You can also do this later on the Connections page.',
+  'onboarding.connectionsOwnersOnly':
+    'Only site owners can set up AI and roleALPHA. A site owner can do this later on the Connections page.',
+  'onboarding.continue': 'Continue',
+  'error.connections.ownersOnly': 'Only site owners can change the AI and roleALPHA connections.',
+  'error.connections.invalidStoredValue': 'The stored connection settings are invalid.',
+  'error.connections.tokenFailed':
+    'No Microsoft token could be obtained for {resource}. Has the delegated permission been granted in Entra? See the instructions.',
+  'error.connections.unreachable':
+    'The service cannot be reached from the browser. Check the address, the network and the CORS setting for this SharePoint address.',
+  'error.connections.unexpectedAnswer': 'The AI service answered, but not in the expected format.',
+  'error.connections.toolMissing': 'roleALPHA does not offer the tool "{tool}".',
 };

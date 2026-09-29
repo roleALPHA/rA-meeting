@@ -49,7 +49,7 @@ export const de = {
   'app.openSetupWizard': 'Einrichtungsassistent öffnen',
   'app.dataIntegrations': 'DATEN & INTEGRATIONEN',
   'app.signThroughMicrosoft365':
-    'Anmeldung über Microsoft 365. Optionale Dienste werden durch die Administration freigegeben.',
+    'Anmeldung über Microsoft 365. KI und roleALPHA richten Websitebesitzer auf dieser Seite ein.',
   'app.dataStorage': 'Datenspeicherung',
   'app.sharepointMicrosoft365': 'SharePoint · Microsoft 365',
   'app.templatesTensionsMeetingsOutcomes':
@@ -371,14 +371,9 @@ export const de = {
     'Öffnen Sie die Seite, prüfen Sie den Inhalt und wählen Sie „Veröffentlichen“. Teilen Sie danach den Seitenlink mit Ihrer Gruppe.',
   'onboarding.optionalConnections': 'Optionale Verbindungen',
   'onboarding.calendarAccessRequiresMicrosoft':
-    'Kalender benötigt Microsoft-Graph-Freigaben. KI und roleALPHA benötigen ein entsprechend konfiguriertes Paket. Sie können die App zunächst ohne diese Funktionen verwenden.',
+    'Der Kalender benötigt Microsoft-Graph-Freigaben. Sie können die App zunächst ohne diese Funktion verwenden.',
   'onboarding.calendarAccessVerifiedSuccessfully': 'Kalenderzugriff erfolgreich geprüft.',
   'onboarding.testCalendarAccess': 'Kalenderzugriff testen',
-  'onboarding.aiConfiguredFunctionalTest': 'KI ist konfiguriert; ein Funktionstest ist noch erforderlich.',
-  'onboarding.aiConfigured': 'KI ist nicht eingerichtet.',
-  'onboarding.rolealphaConfiguredFunctionalTest':
-    'roleALPHA ist konfiguriert; ein Funktionstest ist noch erforderlich.',
-  'onboarding.rolealphaConfigured': 'roleALPHA ist nicht eingerichtet.',
   'onboarding.teamsAdministratorMustAdd':
     'Für Teams: Die Administration muss die App im App-Katalog zu Teams hinzufügen und freigeben. Beim Hinzufügen einer Registerkarte denselben Arbeitsbereich wählen.',
   'onboarding.openWorkspace': 'Arbeitsbereich öffnen',
@@ -637,6 +632,81 @@ export const de = {
     'Dieses Konto ist in roleALPHA nicht mit Microsoft verknüpft. Einmal über Microsoft bei roleALPHA anmelden, dann erneut versuchen.',
   'error.integrations.rolealphaAccessNotEnabled':
     'roleALPHA hat den Zugang für diese Anwendung nicht freigeschaltet oder widerrufen. Die roleALPHA-Administration kann ihn freigeben.',
+  'connections.title': 'KI und roleALPHA einrichten',
+  'connections.loading': 'Verbindungen werden geladen …',
+  'connections.ownersDecide':
+    'Diese Einstellungen legen fest, an welche Dienste Transkripte und Meeting-Inhalte gesendet werden. Nur Websitebesitzer können sie ändern; es werden keine Schlüssel gespeichert, die Anmeldung erfolgt über Microsoft 365.',
+  'connections.unprotected':
+    'Der Schutz der Verbindungseinstellungen fehlt: Die Liste „rA Meetings Connections“ erbt wieder die Berechtigungen der Website. KI und roleALPHA sind deshalb abgeschaltet. Speichern stellt den Schutz wieder her.',
+  'connections.invalidStored':
+    'Die gespeicherten Verbindungseinstellungen sind ungültig. KI und roleALPHA sind abgeschaltet, bis die Einstellungen erneut gespeichert werden.',
+  'connections.aiProvider': 'KI-Dienst',
+  'connections.noAi': 'Keine KI',
+  'connections.url': 'Adresse (URL)',
+  'connections.mcpUrl': 'MCP-Adresse von roleALPHA',
+  'connections.resource': 'Ressource (Anwendungs-ID-URI des Dienstes)',
+  'connections.scope': 'Delegierte Berechtigung (Scope)',
+  'connections.model': 'Modell',
+  'connections.deployment': 'Name der Bereitstellung',
+  'connections.fallbackDeployment': 'Ausweich-Bereitstellung (optional)',
+  'connections.connectRolealpha': 'roleALPHA verbinden',
+  'connections.tenant': 'roleALPHA-Tenant-ID',
+  'connections.sendMeeting': 'Meeting-Protokoll an roleALPHA übertragen',
+  'connections.entities': 'Ergebnistypen, die als Entwurf übertragen werden, mit ihrem roleALPHA-Entitätstyp',
+  'connections.entityType': 'roleALPHA-Entitätstyp für {type}',
+  'connections.createTool': 'Werkzeug zum Anlegen von Entwürfen',
+  'connections.governanceTool': 'Suchwerkzeug für Governance-Fragen (optional)',
+  'connections.draftsTool': 'Suchwerkzeug für eigene Entwürfe (optional)',
+  'connections.draftsAppUrl': 'Adresse der roleALPHA-Anwendung',
+  'connections.guide': 'Anleitung',
+  'connections.guide.copilot1':
+    'Voraussetzungen: Work IQ ist im Tenant aktiviert und die Copilot-Abrechnung (Copilot Credits) ist eingerichtet.',
+  'connections.guide.copilot2':
+    'Als Ressource die Anwendungs-ID-URI der Work-IQ-Anwendung eintragen (Microsoft Entra Admin Center → Unternehmensanwendungen). Adresse und Berechtigung sind vorausgefüllt.',
+  'connections.guide.foundry1':
+    'Im Azure-Portal eine Microsoft-Foundry-Ressource anlegen und ein Claude-Modell bereitstellen, möglichst mit der Option „Hosted on Azure“. Den Namen der Bereitstellung hier eintragen.',
+  'connections.guide.foundry2':
+    'An der Ressource die Anmeldung mit Microsoft Entra ID aktivieren und allen Nutzenden der App die Rolle „Foundry User“ (oder „Cognitive Services User“) geben, am besten über eine Gruppe.',
+  'connections.guide.foundry3':
+    'Als Adresse https://<ressource>.services.ai.azure.com/anthropic eintragen. Ressource und Berechtigung sind vorausgefüllt.',
+  'connections.guide.openai1':
+    'Der Endpunkt muss Chat Completions anbieten, Microsoft-Entra-Tokens der Nutzenden annehmen (keine API-Schlüssel) und Browseranfragen von {origin} erlauben (CORS).',
+  'connections.guide.grant1':
+    'Einmalig als Administrator: Im Microsoft Entra Admin Center „App-Registrierungen“ → „Alle Anwendungen“ öffnen und „SharePoint Online Client Extensibility Web Application Principal“ wählen.',
+  'connections.guide.grant2':
+    '„API-Berechtigungen“ → „Berechtigung hinzufügen“ → „Von meiner Organisation verwendete APIs“ und die API mit der Ressource {resource} suchen (nach Name oder Anwendungs-ID).',
+  'connections.guide.grant3':
+    '„Delegierte Berechtigungen“ wählen, {scope} ankreuzen, hinzufügen und „Administratorzustimmung erteilen“ bestätigen.',
+  'connections.guide.grant4':
+    'Die Zustimmung gilt für alle SharePoint-Framework-Lösungen im Tenant und kann einige Minuten brauchen. Danach „Verbindung testen“.',
+  'connections.guide.rolealpha1':
+    'In roleALPHA (Administration): externe Anwendungen für den Tenant freischalten, das Microsoft-Entra-Verzeichnis registrieren und {origin} als erlaubten Ursprung eintragen.',
+  'connections.guide.rolealpha2':
+    'MCP-Adresse, Ressource (Anwendungs-ID-URI), Tenant-ID und die Namen der Werkzeuge von der roleALPHA-Administration übernehmen.',
+  'connections.guide.rolealpha3':
+    'Jede Person meldet sich einmal über Microsoft bei roleALPHA an. Sonst meldet die App, dass das Konto nicht verknüpft ist.',
+  'connections.test': 'Verbindung testen',
+  'connections.aiTestPassed': 'Die KI-Verbindung funktioniert.',
+  'connections.rolealphaTestPassed':
+    'Die roleALPHA-Verbindung funktioniert, die eingetragenen Werkzeuge sind vorhanden.',
+  'connections.checkFields': 'Bitte diese Eingaben prüfen: {fields}',
+  'connections.saved': 'Verbindungen gespeichert.',
+  'connections.savedUntested':
+    'Verbindungen gespeichert. Mindestens eine Verbindung wurde noch nicht erfolgreich getestet.',
+  'onboarding.setUpConnections': 'Verbindungen einrichten',
+  'onboarding.connectionsOptional':
+    'Optional: KI-Unterstützung und roleALPHA verbinden. Das geht auch später auf der Seite „Verbindungen“.',
+  'onboarding.connectionsOwnersOnly':
+    'Nur Websitebesitzer können KI und roleALPHA einrichten. Eine Person mit Besitzerrechten kann das später auf der Seite „Verbindungen“ erledigen.',
+  'onboarding.continue': 'Weiter',
+  'error.connections.ownersOnly': 'Nur Websitebesitzer können die KI- und roleALPHA-Verbindungen ändern.',
+  'error.connections.invalidStoredValue': 'Die gespeicherten Verbindungseinstellungen sind ungültig.',
+  'error.connections.tokenFailed':
+    'Für {resource} konnte kein Microsoft-Token abgerufen werden. Ist die delegierte Berechtigung in Entra erteilt? Siehe Anleitung.',
+  'error.connections.unreachable':
+    'Der Dienst ist vom Browser aus nicht erreichbar. Adresse, Netzwerk und die CORS-Freigabe für diese SharePoint-Adresse prüfen.',
+  'error.connections.unexpectedAnswer': 'Der KI-Dienst hat geantwortet, aber nicht im erwarteten Format.',
+  'error.connections.toolMissing': 'roleALPHA bietet das Werkzeug „{tool}“ nicht an.',
 } as const;
 
 export type MessageId = keyof typeof de;

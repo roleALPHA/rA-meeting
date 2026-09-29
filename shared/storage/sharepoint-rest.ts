@@ -36,7 +36,17 @@ const recordSegment = (value: string) => {
 export const payloadName = (kind: string, id: string, version: number) =>
   `${recordSegment(kind)}__${recordSegment(id)}__v${version}__${crypto.randomUUID()}.json`;
 const payloadPattern = /^([A-Za-z0-9.-]+)__([A-Za-z0-9.-]+)__v(\d+)__[0-9a-f-]{36}\.json$/i;
-export type WorkspaceAccess = { write: boolean; provision: boolean };
+/**
+ * `provision` is ManageLists, which SharePoint's Edit level (site members) also includes. `owner` is
+ * ManagePermissions, which only Full Control has: site owners.
+ */
+export type WorkspaceAccess = { write: boolean; provision: boolean; owner: boolean };
+/** SharePoint base permission bits in the low word. */
+export const manageLists = 0x800;
+export const managePermissions = 0x2000000;
+/** Add, edit or delete list items. */
+export const editItems = 0x2 | 0x4 | 0x8;
+export const hasPermission = (low: number | string, bits: number) => ((Number(low) >>> 0) & bits) !== 0;
 export async function spJson<T>(request: SPRequest, path: string, init?: RequestInit): Promise<T> {
   const r = await request(path, init);
   if (r.status === 409 || r.status === 412) throw new AppError(409, 'error.sharepointRest.recordHasChangedPlease');
@@ -53,7 +63,7 @@ export async function workspaceAccess(request: SPRequest): Promise<WorkspaceAcce
     '/web/EffectiveBasePermissions',
   );
   const low = Number(response.EffectiveBasePermissions?.Low ?? response.Low ?? '0') >>> 0;
-  return { write: (low & 14) === 14, provision: (low & 2048) === 2048 };
+  return { write: (low & 14) === 14, provision: (low & 2048) === 2048, owner: hasPermission(low, managePermissions) };
 }
 const jsonHeaders = { 'Content-Type': 'application/json;odata=nometadata' };
 /** Only a site owner/admin calls this explicit first-run action. All ACLs inherit from the selected workspace. */

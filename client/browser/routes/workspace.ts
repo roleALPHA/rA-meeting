@@ -23,7 +23,10 @@ export const workspaceRoutes: Route[] = [
         meetings,
         tensions: await store.list<Tension>(actor.tenantId, 'tension'),
         settings: await loadSettings(ctx),
-        canManageWorkspace: (await workspaceAccess(host.sharepoint)).provision,
+        ...(await workspaceAccess(host.sharepoint).then(access => ({
+          canManageWorkspace: access.provision,
+          canManageConnections: access.owner,
+        }))),
         integrations: {
           storage: 'sharepoint',
           governance: !!host.settings.ai && !!host.settings.roleAlpha?.governance,

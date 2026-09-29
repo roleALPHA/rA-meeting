@@ -3,6 +3,15 @@ export const tenant = '11111111-1111-4111-8111-111111111111';
 export const user = '22222222-2222-4222-8222-222222222222';
 export const indexId = '33333333-3333-4333-8333-333333333333';
 export const libraryId = '44444444-4444-4444-8444-444444444444';
+export const connectionsId = '55555555-5555-4555-8555-555555555555';
+/** SharePoint's built-in permission levels with their real low permission words. */
+export const roles = {
+  fullControl: { Id: 1073741829, BasePermissions: { Low: '4294967295' } },
+  edit: { Id: 1073741830, BasePermissions: { Low: '1011030767' } },
+  read: { Id: 1073741826, BasePermissions: { Low: '138612833' } },
+  limitedAccess: { Id: 1073741825, BasePermissions: { Low: '134287360' } },
+};
+type Binding = (typeof roles)[keyof typeof roles];
 export function fakeSharePoint() {
   const records = new Map<number, Record<string, unknown>>();
   const files = new Map<string, unknown>();
@@ -10,18 +19,97 @@ export function fakeSharePoint() {
   const fileMeta = new Map<string, { name: string; created: string }>();
   const recycled: string[] = [];
   const calls: { path: string; method: string }[] = [];
-  const state = { write: true, provision: true, ready: true, failIndexWrite: false };
+  const state = { write: true, provision: true, owner: true, ready: true, failIndexWrite: false };
+  /** The protected connections list; `assignments` are what breaking inheritance copies from the site. */
+  const connections = {
+    exists: false,
+    unique: false,
+    items: new Map<number, { Id: number; Title: string; Settings: string; etag: string }>(),
+    siteAssignments: [
+      { PrincipalId: 3, RoleDefinitionBindings: [roles.fullControl] as Binding[] },
+      { PrincipalId: 5, RoleDefinitionBindings: [roles.edit] as Binding[] },
+      { PrincipalId: 4, RoleDefinitionBindings: [roles.read] as Binding[] },
+      { PrincipalId: 7, RoleDefinitionBindings: [roles.limitedAccess] as Binding[] },
+    ],
+    assignments: [] as { PrincipalId: number; RoleDefinitionBindings: Binding[] }[],
+  };
   const created = new Set<string>();
   let serial = 0;
   const json = (value: unknown, status = 200, headers: HeadersInit = {}) =>
     new Response(JSON.stringify(value), { status, headers });
+  const empty = () => new Response('', { status: 200 });
+  function connectionsRequest(path: string, method: string, headers: Headers, raw: unknown): Response | undefined {
+    if (path.startsWith("/web/lists/getbytitle('rA Meetings Connections')"))
+      return connections.exists
+        ? json({ Id: connectionsId, HasUniqueRoleAssignments: connections.unique })
+        : json({}, 404);
+    const body = raw ? JSON.parse(String(raw)) : undefined;
+    if (path === '/web/lists' && method === 'POST' && body.Title === 'rA Meetings Connections') {
+      connections.exists = true;
+      return json({ Id: connectionsId });
+    }
+    if (path === '/web/roledefinitions/getbytype(2)?$select=Id') return json({ Id: roles.read.Id });
+    const prefix = `/web/lists(guid'${connectionsId}')`;
+    if (!path.startsWith(prefix)) return undefined;
+    const rest = path.slice(prefix.length);
+    if (rest === '/fields/createfieldasxml') return json({});
+    if (rest.startsWith('/breakroleinheritance(copyRoleAssignments=true')) {
+      if (!state.owner) return json({}, 403);
+      if (!connections.unique)
+        connections.assignments = connections.siteAssignments.map(a => ({
+          ...a,
+          RoleDefinitionBindings: [...a.RoleDefinitionBindings],
+        }));
+      connections.unique = true;
+      return empty();
+    }
+    if (rest.startsWith('/roleassignments?')) return json({ value: connections.assignments });
+    const change = /^\/roleassignments\/(add|remove)roleassignment\(principalid=(\d+),roledefid=(\d+)\)$/.exec(rest);
+    if (change) {
+      const principal = Number(change[2]);
+      const role = Object.values(roles).find(r => r.Id === Number(change[3]))!;
+      let assignment = connections.assignments.find(a => a.PrincipalId === principal);
+      if (!assignment)
+        connections.assignments.push((assignment = { PrincipalId: principal, RoleDefinitionBindings: [] }));
+      if (change[1] === 'add') assignment.RoleDefinitionBindings.push(role);
+      else assignment.RoleDefinitionBindings = assignment.RoleDefinitionBindings.filter(b => b.Id !== role.Id);
+      return empty();
+    }
+    // Site members write through their Edit permission unless the list has its own, narrowed permissions.
+    const canWrite = state.owner || !connections.unique;
+    if (rest.startsWith('/items?') && method === 'GET') {
+      const title = /Title eq '([^']*)'/.exec(decodeURIComponent(rest))?.[1];
+      return json({ value: [...connections.items.values()].filter(i => !title || i.Title === title) });
+    }
+    if (rest === '/items' && method === 'POST') {
+      if (!canWrite) return json({}, 403);
+      const Id = connections.items.size + 1;
+      connections.items.set(Id, { Id, Title: body.Title, Settings: body.Settings, etag: `"${++serial}"` });
+      return json({ Id });
+    }
+    const item = /^\/items\((\d+)\)/.exec(rest);
+    if (item) {
+      const current = connections.items.get(Number(item[1]));
+      if (!current) return json({}, 404);
+      if (method === 'GET') return json({ Id: current.Id }, 200, { ETag: current.etag });
+      if (!canWrite) return json({}, 403);
+      if (headers.get('IF-MATCH') !== current.etag) return json({}, 412);
+      connections.items.set(current.Id, { ...current, ...body, etag: `"${++serial}"` });
+      return new Response(null, { status: 204 });
+    }
+    throw new Error('Unexpected SharePoint request: ' + path);
+  }
   const request: SPRequest = async (path, init = {}) => {
     const method = init.method || 'GET';
     const headers = new Headers(init.headers);
     calls.push({ path, method });
     if (path === '/web/EffectiveBasePermissions')
-      return json({ Low: String((state.write ? 14 : 0) + (state.provision ? 2048 : 0)) });
+      return json({
+        Low: String((state.write ? 14 : 0) + (state.provision ? 2048 : 0) + (state.owner ? 0x2000000 : 0)),
+      });
     if (method !== 'GET' && !state.write) return json({}, 403);
+    const own = connectionsRequest(path, method, headers, init.body);
+    if (own) return own;
     if (path === '/web?$select=Title,Url')
       return json({ Title: 'Test Workspace', Url: 'https://customer.sharepoint.com/sites/circle' });
     if (path.includes('getbytitle'))
@@ -100,5 +188,5 @@ export function fakeSharePoint() {
     }
     throw new Error('Unexpected SharePoint request: ' + path);
   };
-  return { records, files, fileMeta, recycled, calls, state, request };
+  return { records, files, fileMeta, recycled, calls, state, connections, request };
 }

@@ -51,7 +51,7 @@ export const es: Record<MessageId, string> = {
   'app.openSetupWizard': 'Abrir asistente de configuración',
   'app.dataIntegrations': 'DATOS E INTEGRACIONES',
   'app.signThroughMicrosoft365':
-    'Inicio de sesión mediante Microsoft 365. La administración autoriza los servicios opcionales.',
+    'Inicio de sesión con Microsoft 365. Los propietarios del sitio configuran la IA y roleALPHA en esta página.',
   'app.dataStorage': 'Almacenamiento de datos',
   'app.sharepointMicrosoft365': 'SharePoint · Microsoft 365',
   'app.templatesTensionsMeetingsOutcomes':
@@ -362,13 +362,9 @@ export const es: Record<MessageId, string> = {
     'Abra la página, revise el contenido y elija «Publicar». Después comparta el enlace con su grupo.',
   'onboarding.optionalConnections': 'Conexiones opcionales',
   'onboarding.calendarAccessRequiresMicrosoft':
-    'El calendario requiere aprobación de Microsoft Graph. La IA y roleALPHA necesitan un paquete configurado. Puede empezar sin estas funciones.',
+    'El calendario necesita aprobaciones de Microsoft Graph. Puede usar la aplicación sin esta función al principio.',
   'onboarding.calendarAccessVerifiedSuccessfully': 'Acceso al calendario verificado correctamente.',
   'onboarding.testCalendarAccess': 'Probar acceso al calendario',
-  'onboarding.aiConfiguredFunctionalTest': 'La IA está configurada; aún falta una prueba funcional.',
-  'onboarding.aiConfigured': 'La IA no está configurada.',
-  'onboarding.rolealphaConfiguredFunctionalTest': 'roleALPHA está configurado; aún falta una prueba funcional.',
-  'onboarding.rolealphaConfigured': 'roleALPHA no está configurado.',
   'onboarding.teamsAdministratorMustAdd':
     'Para Teams: la administración debe añadir y autorizar la app desde el catálogo. Seleccione el mismo espacio al añadir una pestaña.',
   'onboarding.openWorkspace': 'Abrir espacio de trabajo',
@@ -625,4 +621,79 @@ export const es: Record<MessageId, string> = {
     'Esta cuenta no está vinculada a Microsoft en roleALPHA. Inicia sesión una vez en roleALPHA con Microsoft y vuelve a intentarlo.',
   'error.integrations.rolealphaAccessNotEnabled':
     'roleALPHA no ha habilitado el acceso para esta aplicación, o se ha revocado. Un administrador de roleALPHA puede concederlo.',
+  'connections.title': 'Configurar IA y roleALPHA',
+  'connections.loading': 'Cargando conexiones …',
+  'connections.ownersDecide':
+    'Esta configuración determina a qué servicios se envían las transcripciones y el contenido de las reuniones. Solo los propietarios del sitio pueden cambiarla; no se guardan claves, el inicio de sesión se hace con Microsoft 365.',
+  'connections.unprotected':
+    'La configuración de conexiones ya no está protegida: la lista «rA Meetings Connections» vuelve a heredar los permisos del sitio. La IA y roleALPHA están desactivados. Guardar restablece la protección.',
+  'connections.invalidStored':
+    'La configuración de conexiones guardada no es válida. La IA y roleALPHA están desactivados hasta que se vuelva a guardar.',
+  'connections.aiProvider': 'Servicio de IA',
+  'connections.noAi': 'Sin IA',
+  'connections.url': 'Dirección (URL)',
+  'connections.mcpUrl': 'Dirección MCP de roleALPHA',
+  'connections.resource': 'Recurso (URI de id. de aplicación del servicio)',
+  'connections.scope': 'Permiso delegado (scope)',
+  'connections.model': 'Modelo',
+  'connections.deployment': 'Nombre de la implementación',
+  'connections.fallbackDeployment': 'Implementación de respaldo (opcional)',
+  'connections.connectRolealpha': 'Conectar roleALPHA',
+  'connections.tenant': 'Id. de tenant de roleALPHA',
+  'connections.sendMeeting': 'Enviar el acta de la reunión a roleALPHA',
+  'connections.entities': 'Tipos de resultado enviados como borradores, con su tipo de entidad de roleALPHA',
+  'connections.entityType': 'Tipo de entidad de roleALPHA para {type}',
+  'connections.createTool': 'Herramienta que crea borradores',
+  'connections.governanceTool': 'Herramienta de búsqueda para preguntas de gobernanza (opcional)',
+  'connections.draftsTool': 'Herramienta de búsqueda para borradores propios (opcional)',
+  'connections.draftsAppUrl': 'Dirección de la aplicación roleALPHA',
+  'connections.guide': 'Instrucciones',
+  'connections.guide.copilot1':
+    'Requisitos: Work IQ está habilitado en el tenant y la facturación de Copilot (Copilot Credits) está configurada.',
+  'connections.guide.copilot2':
+    'Introducir como recurso el URI de id. de aplicación de la aplicación Work IQ (Centro de administración de Microsoft Entra → Aplicaciones empresariales). La dirección y el permiso vienen rellenados.',
+  'connections.guide.foundry1':
+    'En el portal de Azure, crear un recurso de Microsoft Foundry e implementar un modelo Claude, preferiblemente con la opción «Hosted on Azure». Introducir aquí el nombre de la implementación.',
+  'connections.guide.foundry2':
+    'Habilitar la autenticación con Microsoft Entra ID en el recurso y asignar a todos los usuarios de la aplicación el rol «Foundry User» (o «Cognitive Services User»), idealmente mediante un grupo.',
+  'connections.guide.foundry3':
+    'Introducir como dirección https://<recurso>.services.ai.azure.com/anthropic. El recurso y el permiso vienen rellenados.',
+  'connections.guide.openai1':
+    'El punto de conexión debe ofrecer Chat Completions, aceptar los tokens de Microsoft Entra de los usuarios (sin claves de API) y permitir solicitudes del navegador desde {origin} (CORS).',
+  'connections.guide.grant1':
+    'Una sola vez, como administrador: en el Centro de administración de Microsoft Entra, abrir «Registros de aplicaciones» → «Todas las aplicaciones» y elegir «SharePoint Online Client Extensibility Web Application Principal».',
+  'connections.guide.grant2':
+    '«Permisos de API» → «Agregar un permiso» → «API usadas en mi organización» y buscar la API del recurso {resource} (por nombre o id. de aplicación).',
+  'connections.guide.grant3':
+    'Elegir «Permisos delegados», marcar {scope}, agregarlo y confirmar «Conceder consentimiento de administrador».',
+  'connections.guide.grant4':
+    'El consentimiento se aplica a todas las soluciones de SharePoint Framework del tenant y puede tardar unos minutos. Después, usar «Probar conexión».',
+  'connections.guide.rolealpha1':
+    'En roleALPHA (administración): habilitar las aplicaciones externas para el tenant, registrar el directorio de Microsoft Entra y añadir {origin} como origen permitido.',
+  'connections.guide.rolealpha2':
+    'Tomar de la administración de roleALPHA la dirección MCP, el recurso (URI de id. de aplicación), el id. de tenant y los nombres de las herramientas.',
+  'connections.guide.rolealpha3':
+    'Cada persona inicia sesión una vez en roleALPHA con Microsoft. De lo contrario, la aplicación indica que la cuenta no está vinculada.',
+  'connections.test': 'Probar conexión',
+  'connections.aiTestPassed': 'La conexión con la IA funciona.',
+  'connections.rolealphaTestPassed':
+    'La conexión con roleALPHA funciona y las herramientas indicadas están disponibles.',
+  'connections.checkFields': 'Revise estos datos: {fields}',
+  'connections.saved': 'Conexiones guardadas.',
+  'connections.savedUntested': 'Conexiones guardadas. Al menos una conexión aún no se ha probado con éxito.',
+  'onboarding.setUpConnections': 'Configurar conexiones',
+  'onboarding.connectionsOptional':
+    'Opcional: conectar la asistencia de IA y roleALPHA. También se puede hacer más tarde en la página «Conexiones».',
+  'onboarding.connectionsOwnersOnly':
+    'Solo los propietarios del sitio pueden configurar la IA y roleALPHA. Un propietario puede hacerlo más tarde en la página «Conexiones».',
+  'onboarding.continue': 'Continuar',
+  'error.connections.ownersOnly':
+    'Solo los propietarios del sitio pueden cambiar las conexiones con la IA y roleALPHA.',
+  'error.connections.invalidStoredValue': 'La configuración de conexiones guardada no es válida.',
+  'error.connections.tokenFailed':
+    'No se pudo obtener un token de Microsoft para {resource}. ¿Se concedió el permiso delegado en Entra? Consulte las instrucciones.',
+  'error.connections.unreachable':
+    'No se puede acceder al servicio desde el navegador. Compruebe la dirección, la red y la autorización CORS para esta dirección de SharePoint.',
+  'error.connections.unexpectedAnswer': 'El servicio de IA respondió, pero no en el formato esperado.',
+  'error.connections.toolMissing': 'roleALPHA no ofrece la herramienta «{tool}».',
 };

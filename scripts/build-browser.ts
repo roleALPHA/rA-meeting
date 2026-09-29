@@ -1,16 +1,14 @@
 import { build } from 'esbuild';
 import { copyFile, readFile, rm, writeFile, mkdir } from 'node:fs/promises';
-import { customerSettingsSchema } from '../client/browser/host.js';
 const pkg = JSON.parse(await readFile('spfx/package.json', 'utf8')) as { version: string };
 if (!/^\d+\.\d+\.\d+$/.test(pkg.version)) throw new Error('SPFx version must have three numeric parts');
 const root = JSON.parse(await readFile('package.json', 'utf8')) as { version: string };
 if (root.version !== pkg.version)
   throw new Error(`Version mismatch: package.json ${root.version} and spfx/package.json ${pkg.version} must be equal`);
-const settings = customerSettingsSchema.parse(JSON.parse(await readFile('spfx/customer.config.json', 'utf8')));
 await mkdir('spfx/src/generated', { recursive: true });
 await writeFile(
   'spfx/src/generated/entry.ts',
-  `export { mount } from '../../../client/browser/mount';\nexport { teamsTheme } from '../../../client/browser/brand';\nexport const settings = ${JSON.stringify(settings)};\n`,
+  `export { mount } from '../../../client/browser/mount';\nexport { teamsTheme } from '../../../client/browser/brand';\n`,
 );
 const result = await build({
   entryPoints: ['spfx/src/generated/entry.ts'],
@@ -48,7 +46,7 @@ const unsafe = Object.keys(result.metafile!.inputs).filter(
 if (unsafe.length) throw new Error('Server dependency in browser package: ' + unsafe.join(', '));
 await writeFile(
   'spfx/src/generated/app.d.ts',
-  `export declare const settings: unknown;\nexport type Theme = 'light' | 'dark' | 'contrast';\nexport declare function teamsTheme(value: string | undefined): Theme;\nexport declare function mount(element: HTMLElement, host: { tenantId: string; userId: string; userName: string; webUrl: string; isTeams: boolean; initialMeeting?: string; settings: unknown; sharepointAt?: (webUrl: string, path: string, init?: RequestInit) => Promise<Response>; onMeetingsChanged?: (meetings: { id: string; title: string }[]) => void; sharepoint: (path: string, init?: RequestInit) => Promise<Response>; token: (resource: string) => Promise<string>; theme?: Theme; fonts?: Record<string, string> }): (() => void) & { setTheme: (theme: Theme) => void };\n`,
+  `export type Theme = 'light' | 'dark' | 'contrast';\nexport declare function teamsTheme(value: string | undefined): Theme;\nexport declare function mount(element: HTMLElement, host: { tenantId: string; userId: string; userName: string; webUrl: string; isTeams: boolean; initialMeeting?: string; language?: 'de' | 'en' | 'fr' | 'es'; sharepointAt?: (webUrl: string, path: string, init?: RequestInit) => Promise<Response>; onMeetingsChanged?: (meetings: { id: string; title: string }[]) => void; sharepoint: (path: string, init?: RequestInit) => Promise<Response>; token: (resource: string) => Promise<string>; theme?: Theme; fonts?: Record<string, string> }): (() => void) & { setTheme: (theme: Theme) => void };\n`,
 );
 // Brand fonts ship as separate files in the package's ClientSideAssets, served from the tenant. The SPFx webpack
 // configuration emits every required .woff2 as an asset and returns its URL; see docs/technical-deployment.md.
@@ -64,16 +62,13 @@ await writeFile(
 );
 // Entry was used only for esbuild; keep the SPFx compiler inside its own project.
 await writeFile('spfx/src/generated/entry.ts', 'export {};\n');
-const targets = [settings.ai, settings.roleAlpha].filter(Boolean);
+// AI and roleALPHA are set up per workspace at runtime; their delegated scopes are granted to the SharePoint Online
+// Client Extensibility principal in Entra (see docs/technical-deployment.md), not requested by the package.
 const permissions = [
   { resource: 'Microsoft Graph', scope: 'Calendars.Read' },
   { resource: 'Microsoft Graph', scope: 'OnlineMeetings.ReadWrite' },
   { resource: 'Microsoft Graph', scope: 'OnlineMeetingTranscript.Read.All' },
-  ...targets.map(t => ({ resource: t!.permissionResource, scope: t!.scope })),
 ];
-const unique = permissions.filter(
-  (p, i, all) => all.findIndex(q => q.resource === p.resource && q.scope === p.scope) === i,
-);
 await writeFile(
   'spfx/config/package-solution.json',
   JSON.stringify(
@@ -86,7 +81,7 @@ await writeFile(
         includeClientSideAssets: true,
         skipFeatureDeployment: true,
         isDomainIsolated: false,
-        webApiPermissionRequests: unique,
+        webApiPermissionRequests: permissions,
       },
       paths: { zippedPackage: 'solution/rolealpha-meetings.sppkg' },
     },
@@ -98,4 +93,4 @@ await mkdir('work', { recursive: true });
 await writeFile('work/browser-bundle-inputs.json', JSON.stringify(Object.keys(result.metafile!.inputs), null, 2));
 console.log('Browser-only bundle built. No server, SQL, client secret or /api fallback dependency.');
 console.log('Requested API permissions (after approval available to all SPFx solutions in the tenant):');
-for (const permission of unique) console.log(`  - ${permission.resource}: ${permission.scope}`);
+for (const permission of permissions) console.log(`  - ${permission.resource}: ${permission.scope}`);

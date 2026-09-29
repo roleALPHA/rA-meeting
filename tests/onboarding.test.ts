@@ -8,7 +8,7 @@ import {
   workspaceUrl,
   meetingsWebPartId,
 } from '../client/browser/onboarding.js';
-import { customerSettingsSchema, type BrowserHost } from '../client/browser/host.js';
+import { connectionSettingsSchema, type BrowserHost } from '../client/browser/host.js';
 import { fakeSharePoint, tenant, user } from './helpers/sharepoint-rest.js';
 const url = 'https://customer.sharepoint.com/sites/circle';
 function fixture() {
@@ -19,7 +19,7 @@ function fixture() {
     userId: user,
     userName: 'Owner',
     isTeams: false,
-    settings: customerSettingsSchema.parse({}),
+    settings: connectionSettingsSchema.parse({}),
     sharepoint: sp.request,
     token: async () => {
       throw new Error('No tokens required for onboarding');

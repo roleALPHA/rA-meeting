@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createBrowserApi } from '../client/browser/runtime.js';
-import { customerSettingsSchema, endpointFetch, type BrowserHost } from '../client/browser/host.js';
+import { connectionSettingsSchema, endpointFetch, type BrowserHost } from '../client/browser/host.js';
 import { fakeSharePoint, tenant, user } from './helpers/sharepoint-rest.js';
 import { SharePointRestStore } from '../shared/storage/sharepoint-rest.js';
 import type { Bootstrap, Meeting } from '../shared/model.js';
@@ -15,7 +15,7 @@ function fixture() {
     userName: 'Member',
     webUrl,
     isTeams: true,
-    settings: customerSettingsSchema.parse({}),
+    settings: connectionSettingsSchema.parse({}),
     sharepoint: sp.request,
     token: async resource => {
       tokens.push(resource);
@@ -110,15 +110,14 @@ test('browser integration configuration rejects secrets; delegated tokens go onl
   const target = {
     url: 'https://ai.customer.example/completions',
     resource: 'api://customer-ai',
-    permissionResource: 'Customer AI',
     scope: 'access_as_user',
   };
   assert.equal(
-    customerSettingsSchema.safeParse({ ai: { ...target, model: 'model', apiKey: 'secret' } }).success,
+    connectionSettingsSchema.safeParse({ ai: { ...target, model: 'model', apiKey: 'secret' } }).success,
     false,
   );
   assert.equal(
-    customerSettingsSchema.safeParse({
+    connectionSettingsSchema.safeParse({
       ai: { ...target, url: 'https://ai.customer.example/?api-key=secret', model: 'model' },
     }).success,
     false,
@@ -145,11 +144,10 @@ test('browser integration configuration rejects secrets; delegated tokens go onl
 
 test('browser AI uses delegated identity, produces reviewable drafts and does not export or approve', async t => {
   const { host, tokens } = fixture();
-  host.settings = customerSettingsSchema.parse({
+  host.settings = connectionSettingsSchema.parse({
     ai: {
       url: 'https://ai.customer.example/chat',
       resource: 'api://customer-ai',
-      permissionResource: 'Customer AI',
       scope: 'access_as_user',
       model: 'model',
     },
@@ -212,17 +210,16 @@ test('governance configuration has one roleALPHA connection and rejects generic 
   const connection = {
     url: 'https://rolealpha.customer.example/mcp',
     resource: 'api://rolealpha',
-    permissionResource: 'roleALPHA Governance',
     scope: 'access_as_user',
     tenant,
     meeting: true,
     entities: { risk: { entityType: 'risk', label: 'Risk' } },
   };
-  const settings = customerSettingsSchema.parse({ roleAlpha: connection });
+  const settings = connectionSettingsSchema.parse({ roleAlpha: connection });
   assert.equal(settings.roleAlpha?.url, connection.url);
-  assert.equal(customerSettingsSchema.safeParse({ mcp: connection }).success, false);
+  assert.equal(connectionSettingsSchema.safeParse({ mcp: connection }).success, false);
   assert.equal(
-    customerSettingsSchema.safeParse({
+    connectionSettingsSchema.safeParse({
       roleAlpha: {
         ...connection,
         entities: { risk: { ...connection.entities.risk, url: 'https://other.example/mcp' } },

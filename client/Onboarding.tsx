@@ -1,5 +1,5 @@
 import { AppError } from '../shared/model';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Preferences } from './Preferences';
 import { errorText, language, t as tr, usePreferences } from './i18n';
 import type { MessageId } from '../shared/i18n';
@@ -13,6 +13,9 @@ import {
   workspaceUrl,
 } from './browser/onboarding';
 import { graph } from './browser/host';
+import { loadConnections, saveConnections, testConnection } from './browser/connections';
+import { workspaceAccess } from '../shared/storage/sharepoint-rest';
+import { ConnectionSettings, type ConnectionsApi } from './ConnectionSettings';
 
 export function Onboarding({
   host,
@@ -38,6 +41,16 @@ export function Onboarding({
   const [progress, setProgress] = useState<MessageId | ''>('');
   const [pageUrl, setPageUrl] = useState('');
   const [calendar, setCalendar] = useState<MessageId | ''>('');
+  const [owner, setOwner] = useState(false);
+  const connections = useMemo<ConnectionsApi | null>(
+    () =>
+      selected && {
+        load: () => loadConnections(selected.sharepoint),
+        save: (settings, version) => saveConnections(selected, { settings, version }, selected.userId),
+        test: (part, settings) => testConnection(selected, part, settings),
+      },
+    [selected],
+  );
   const target = mode === 'existing' ? url : new URL(host.webUrl).origin + '/sites/' + slug;
   const run = async (action: () => Promise<void>) => {
     setBusy(true);
@@ -82,6 +95,7 @@ export function Onboarding({
             'onboarding.selectSite',
             'onboarding.reviewAccessSettings',
             'onboarding.setUpWorkspace',
+            'onboarding.setUpConnections',
             'onboarding.completeSetup',
           ] as const
         ).map((label, i) => (
@@ -193,6 +207,7 @@ export function Onboarding({
                 setStep(2);
                 void run(async () => {
                   const result = await setupWorkspace(selected, language(), page, setProgress);
+                  setOwner((await workspaceAccess(selected.sharepoint)).owner);
                   setPageUrl(result.pageUrl || '');
                   setProgress('');
                   setStep(3);
@@ -213,6 +228,22 @@ export function Onboarding({
         </>
       )}
       {step === 3 && selected && (
+        <>
+          <h2>{tr('onboarding.setUpConnections')}</h2>
+          <p>{tr('onboarding.connectionsOptional')}</p>
+          {owner && connections ? (
+            <ConnectionSettings api={connections} origin={new URL(selected.webUrl).origin} />
+          ) : (
+            <p className="notice">{tr('onboarding.connectionsOwnersOnly')}</p>
+          )}
+          <div className="row">
+            <button className="button primary" onClick={() => setStep(4)}>
+              {tr('onboarding.continue')}
+            </button>
+          </div>
+        </>
+      )}
+      {step === 4 && selected && (
         <>
           <h2>{tr('onboarding.workspaceReady')}</h2>
           <p>{tr('onboarding.storageStarterTemplatesStorage')}</p>
@@ -239,14 +270,6 @@ export function Onboarding({
             {tr('onboarding.testCalendarAccess')}
           </button>
           {calendar && <p role="status">{tr(calendar)}</p>}
-          <p>{tr(selected.settings.ai ? 'onboarding.aiConfiguredFunctionalTest' : 'onboarding.aiConfigured')}</p>
-          <p>
-            {tr(
-              selected.settings.roleAlpha
-                ? 'onboarding.rolealphaConfiguredFunctionalTest'
-                : 'onboarding.rolealphaConfigured',
-            )}
-          </p>
           <p>{tr('onboarding.teamsAdministratorMustAdd')}</p>
           <button className="button primary" disabled={busy} onClick={() => complete(selected)}>
             {tr('onboarding.openWorkspace')}

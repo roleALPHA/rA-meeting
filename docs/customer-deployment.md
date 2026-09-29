@@ -91,8 +91,9 @@ A **web part** is a component placed on a SharePoint page.
 7. Confirm that you have reviewed the authorized audience, then start workspace setup.
 8. Wait for the workspace-ready confirmation. The app creates storage and starter templates, then performs a write/read test. If an error occurs, previously created components remain. Go back, resolve the cause, and run setup again. Do not begin troubleshooting by deleting the created lists.
 9. If you requested a landing page, open the review-and-publish link. Review the page in SharePoint and select **Publish**. Share the link with the group only afterwards. Any organizational page approval requirement still applies.
-10. Optionally test calendar access. Complete step 7 if permissions are missing. Missing optional connections do not prevent basic meeting use. “Configured” does not replace actual AI or roleALPHA function tests.
-11. Open the workspace. Under **Templates**, verify that three starter templates exist. Create a test meeting from **Meetings** and reload the page. The meeting must remain available.
+10. On **Set up connections**, optionally set up AI and roleALPHA as described in step 10 below, or continue and do it later under **Connections**. Only site owners (Full Control) see the form.
+11. Optionally test calendar access. Complete step 7 if permissions are missing. Missing optional connections do not prevent basic meeting use. “Configured” does not replace actual AI or roleALPHA function tests.
+12. Open the workspace. Under **Templates**, verify that three starter templates exist. Create a test meeting from **Meetings** and reload the page. The meeting must remain available.
 
 **Check:** Open **Settings → Site contents** on the selected site and find:
 
@@ -101,6 +102,7 @@ A **web part** is a component placed on a SharePoint page.
 | `rA Meetings Browser Index` | Index of stored records |
 | `rA Meetings Browser Data` | Content and historical versions |
 | `rA-Meetings.aspx` in the pages library, if requested | Prepared landing page containing the app |
+| `rA Meetings Connections`, once connections are saved | AI and roleALPHA settings; its own permissions let only site owners change it |
 
 Do not rename the storage areas. After switching sites, the current app URL includes the workspace selection. Prefer the published landing page for a lasting entry point. In Teams, also enter the selected site address in the tab configuration.
 
@@ -172,19 +174,18 @@ These approvals apply to the shared SharePoint authentication component, not exc
 
 ## 10. Optional: enable AI and roleALPHA Governance
 
-The meeting app works without these connections. Both are disabled in the default package.
+The meeting app works without these connections. They are set up per workspace in the app, by a site owner (Full Control), either in the setup wizard or later under **Connections → Set up AI and roleALPHA**. No new package is needed. Each section of the form has an **Instructions** panel with these steps and the values you entered.
 
 1. Decide whether to use AI assistance, transfers to roleALPHA Governance, or both.
-   For AI, choose one provider: **Microsoft 365 Copilot** (default; requires Work IQ and Copilot usage billing), **Claude via Microsoft Foundry** (requires a Foundry resource, a Claude deployment, and the Foundry User role for app users), or an organization-operated **OpenAI-compatible** endpoint. The [technical guide](technical-deployment.md#ai-providers) lists prerequisites and limits.
-2. Ask the person responsible for your roleALPHA deployment for a configured installation package. End users do not enter server addresses or keys. Connections cannot currently be activated solely from the app's **Connections** page.
-3. Confirm which services will receive data and where they process it. If content must never pass through roleALPHA-operated infrastructure, a centrally operated roleALPHA service is not an appropriate endpoint; the organization-controlled deployment must meet that requirement.
-4. Integration operators must enable Microsoft-account authentication and direct browser access. See the [technical guide](technical-deployment.md). A service accepting only a secret API key is not compatible with this deployment mode.
-5. Install the configured package as described under “Install later updates” and approve any additional API requests.
-6. Inspect **Connections**, then test each enabled function using test data. Generate an AI suggestion, review it, and only then transfer an approved outcome to roleALPHA.
-7. Check in roleALPHA that the expected draft exists.
-8. For governance questions, also have the roleALPHA search integration and appropriate read access configured. Draft creation alone is insufficient.
-9. For any roleALPHA connection, a roleALPHA administrator must enable external applications for your tenant, register the Entra directory and add your SharePoint address as an allowed origin. Each person must have signed in to roleALPHA through Microsoft once; otherwise the app reports that the account is not linked.
-9. Open the governance assistant from the navigation or within a meeting. Ask about a known role or rule and start the governance check.
+   For AI, choose one provider: **Microsoft 365 Copilot** (requires Work IQ and Copilot usage billing), **Claude via Microsoft Foundry** (requires a Foundry resource, a Claude deployment, and the Foundry User role for app users), or an organization-operated **OpenAI-compatible** endpoint. The [technical guide](technical-deployment.md#ai-providers) lists prerequisites and limits.
+2. Confirm which services will receive data and where they process it. Whoever sets these addresses decides where transcripts and meeting content go; only site owners can change them. If content must never pass through roleALPHA-operated infrastructure, a centrally operated roleALPHA service is not an appropriate endpoint; the organization-controlled deployment must meet that requirement.
+3. Services must accept Microsoft Entra sign-in and direct browser requests from your SharePoint address (CORS). See the [technical guide](technical-deployment.md). A service accepting only a secret API key is not compatible. The form never asks for keys.
+4. For roleALPHA, a roleALPHA administrator enables external applications for your tenant, registers the Entra directory, and adds your SharePoint address as an allowed origin. They also give you the MCP address, the resource (application ID URI), the tenant ID, and the tool names. Each person must have signed in to roleALPHA through Microsoft once; otherwise the app reports that the account is not linked.
+5. Enter the values in the form. For roleALPHA, select which outcome types are sent as drafts and, optionally, the search tools for governance questions and own drafts.
+6. **Grant the delegated permission once per service** (Entra administrator). The package does not request these permissions, so they do not appear under API access. In the Microsoft Entra admin center, open **App registrations → All applications → SharePoint Online Client Extensibility Web Application Principal → API permissions → Add a permission → APIs my organization uses**, find the service's API, choose **Delegated permissions**, select the scope shown in the form, add it, and select **Grant admin consent**. As with the Graph permissions in step 7, this applies to every SharePoint Framework solution in the tenant.
+7. Select **Test connection** in each section. The test requests a token (a failure here means step 6 is missing or not yet effective), then makes one harmless call: a tiny AI request, or for roleALPHA the token exchange and the list of offered tools. Then **Save**.
+8. Test each enabled function using test data. Generate an AI suggestion, review it, and only then transfer an approved outcome to roleALPHA. Check in roleALPHA that the expected draft exists.
+9. For governance questions, the roleALPHA search tool and appropriate read access must be configured. Draft creation alone is insufficient. Open the governance assistant from the navigation or within a meeting. Ask about a known role or rule and start the governance check.
 10. Compare the answer and expandable original sources with roleALPHA's existing governance. Also test a question without relevant sources; the app must not present an unsupported answer as established governance.
 
 Governance assistance uses only the approved roleALPHA read tool and does not change roles or rules. The question goes to roleALPHA; the question and retrieved sources go to the approved AI service. Meeting content and transcripts are not automatically included. The meeting app does not persist these questions and answers. Connected services have their own logging and retention settings.
@@ -221,7 +222,8 @@ Complete these checks before sharing the app with the full group:
 | App is missing in Teams | Review synchronization, app approval, and user assignment in step 8. |
 | Calendar or transcript is unavailable | Review API approval, account, meeting type, and transcript availability in step 7. |
 | Concurrent editing causes a conflict | Save unsaved text elsewhere, load the latest version, and reapply the change. |
-| AI or roleALPHA fails despite being configured | Give the integration administrator the time and error message; have authentication and browser access checked. Do not send secret keys in messages. |
+| AI or roleALPHA fails despite being configured | Use **Test connection** under **Connections**. A token error means the delegated permission from step 10 is missing; an unreachable service means address, network or CORS. Otherwise give the integration administrator the time and error message. Do not send secret keys in messages. |
+| **Connections** reports that the protection is missing | Someone restored inherited permissions on `rA Meetings Connections`. AI and roleALPHA stay off until a site owner saves the connections again, which restores the protection. |
 
 ## Ongoing operation and retention
 

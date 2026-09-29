@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { AppError, outputTypes } from '../../shared/model';
 import type { Theme } from './brand';
+import type { Language } from '../../shared/i18n';
 const https = z
   .string()
   .url()
@@ -14,9 +15,11 @@ const https = z
       ![...u.searchParams.keys()].some(k => /key|token|secret|sig/i.test(k))
     );
   }, 'HTTPS endpoint without credentials required');
-const endpoint = z
-  .object({ url: https, resource: z.string().min(1), permissionResource: z.string().min(1), scope: z.string().min(1) })
-  .strict();
+/**
+ * A service the browser calls with the signed-in user's delegated token. `resource` is the token audience; `scope` is
+ * the delegated permission an administrator grants to the SharePoint Online Client Extensibility principal.
+ */
+const endpoint = z.object({ url: https, resource: z.string().trim().min(1), scope: z.string().trim().min(1) }).strict();
 /** Microsoft 365 Copilot Chat API (Work IQ) with the signed-in user's delegated permission. */
 const copilotSettings = endpoint
   .extend({
@@ -32,6 +35,7 @@ const claudeFoundrySettings = endpoint
   .extend({
     provider: z.literal('claude-foundry'),
     resource: z.string().min(1).default('https://ai.azure.com'),
+    scope: z.string().trim().min(1).default('user_impersonation'),
     /** Foundry deployment name, passed as the model parameter. */
     model: z.string().min(1).default('claude-opus-5'),
     /** Optional deployment that retries requests the primary model declines. */
@@ -39,11 +43,15 @@ const claudeFoundrySettings = endpoint
   })
   .strict();
 const openAiCompatibleSettings = endpoint
-  .extend({ provider: z.literal('openai-compatible'), model: z.string().min(1) })
+  .extend({
+    provider: z.literal('openai-compatible'),
+    scope: z.string().trim().min(1).default('access_as_user'),
+    model: z.string().min(1),
+  })
   .strict();
-export const customerSettingsSchema = z
+/** Connection settings site owners maintain per workspace (client/browser/connections.ts). */
+export const connectionSettingsSchema = z
   .object({
-    language: z.enum(['de', 'en', 'fr', 'es']).default('de'),
     ai: z
       .preprocess(
         // Configurations from before provider selection existed use the OpenAI-compatible adapter.
@@ -57,6 +65,7 @@ export const customerSettingsSchema = z
       .default(null),
     roleAlpha: endpoint
       .extend({
+        scope: z.string().trim().min(1).default('access_as_user'),
         tenant: z.string().uuid(),
         governance: z
           .object({ searchTool: z.string().regex(/^search_[a-z0-9_]+$/) })
@@ -91,9 +100,10 @@ export const customerSettingsSchema = z
       .default(null),
   })
   .strict();
-export type CustomerSettings = z.infer<typeof customerSettingsSchema>;
+export type ConnectionSettings = z.infer<typeof connectionSettingsSchema>;
+export const noConnections: ConnectionSettings = { ai: null, roleAlpha: null };
 export type Endpoint = z.infer<typeof endpoint>;
-export type AiSettings = NonNullable<CustomerSettings['ai']>;
+export type AiSettings = NonNullable<ConnectionSettings['ai']>;
 export type AiProviderName = AiSettings['provider'];
 export type BrowserHost = {
   tenantId: string;
@@ -102,7 +112,10 @@ export type BrowserHost = {
   webUrl: string;
   isTeams: boolean;
   initialMeeting?: string;
-  settings: CustomerSettings;
+  /** Language for starter templates and meeting defaults; the SharePoint UI language in SPFx. */
+  language?: Language;
+  /** Loaded from the workspace when the app starts; see loadConnections. */
+  settings: ConnectionSettings;
   sharepointAt?: (webUrl: string, path: string, init?: RequestInit) => Promise<Response>;
   onMeetingsChanged?: (meetings: { id: string; title: string }[]) => void;
   // Provided by SPFx: same-site SPHttpClient and AadTokenProvider. No app secrets.

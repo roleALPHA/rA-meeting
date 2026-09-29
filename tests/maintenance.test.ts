@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createBrowserApi } from '../client/browser/runtime.js';
-import { customerSettingsSchema, type BrowserHost } from '../client/browser/host.js';
+import { connectionSettingsSchema, type BrowserHost } from '../client/browser/host.js';
 import { SharePointRestStore, type OrphanFile } from '../shared/storage/sharepoint-rest.js';
 import { fakeSharePoint, tenant, user } from './helpers/sharepoint-rest.js';
 
@@ -48,7 +48,7 @@ test('storage cleanup is limited to site owners and recycles only confirmed orph
     userName: 'Owner',
     webUrl,
     isTeams: false,
-    settings: customerSettingsSchema.parse({}),
+    settings: connectionSettingsSchema.parse({}),
     sharepoint: sp.request,
     token: async () => 'delegated-test',
   };
