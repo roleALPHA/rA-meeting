@@ -6,13 +6,13 @@ rA Meetings loads **no** font from another server. The app must run entirely ins
 
 ## Origin
 
-The files are copied from rA-app (`client/public/fonts/`), which took them from the Fontsource npm packages, version 5.3.0. They are deliberately not an npm dependency.
+The files are copied from rA-app (`client/public/fonts/`), which took them from the Fontsource npm packages, version 5.3.0. They are deliberately not an npm dependency. The families are the ones the styleguide names (rebranding 10/2026); the font packages in Directus Media (`roleALPHA › Brand › Farben & Schriften`) hold the same families as desktop fonts.
 
-| Family           | Package                              | Files here                                          |
-| ---------------- | ------------------------------------ | --------------------------------------------------- |
-| IBM Plex Sans    | `@fontsource-variable/ibm-plex-sans` | variable, `wght` 100–700, latin + latin-ext, normal |
-| IBM Plex Mono    | `@fontsource/ibm-plex-mono`          | 400 and 600, latin + latin-ext, normal              |
-| Instrument Serif | `@fontsource/instrument-serif`       | 400, latin + latin-ext, normal                      |
+| Family        | Package                              | Files here                                          |
+| ------------- | ------------------------------------ | --------------------------------------------------- |
+| IBM Plex Sans | `@fontsource-variable/ibm-plex-sans` | variable, `wght` 100–700, latin + latin-ext, normal |
+| IBM Plex Mono | `@fontsource/ibm-plex-mono`          | 400 and 600, latin + latin-ext, normal              |
+| Manrope       | `@fontsource-variable/manrope`       | variable, `wght` 200–800, latin + latin-ext, normal |
 
 All three are licensed under the **SIL Open Font License 1.1** — see `OFL-*.txt` in this directory. Unlike rA-app, rA Meetings uses no italics and no mono weights besides 400 and 600, so those files are left out to keep the package small.
 

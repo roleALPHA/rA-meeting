@@ -167,11 +167,11 @@ The project uses the [rA Meetings Internal Collaboration License 1.0](../LICENSE
 
 ## Visual design and themes
 
-The interface follows roleALPHA's corporate design as defined in rA-app: the five brand colours Ink, Paper, Bottle, Amber and Rust, IBM Plex Sans and Mono with Instrument Serif for page titles, and the roleALPHA icon. `client/brand.css` holds the brand values and nothing else; `client/style.css` derives every colour, surface and border from them. `tests/brand.test.ts` and an ESLint rule reject raw colour values elsewhere.
+The interface follows roleALPHA's corporate design after the rebranding of 10/2026 (Figma styleguide "roleALPHA-Brand", implemented the same way in rA-app): Tiefgrün and Creme as text and surface, Anthrazit as the dark surface, Mint as the only accent, the styleguide's function colours for success, warning and error, IBM Plex Sans and Mono with Manrope for headings, and the flat roleALPHA signet. `client/brand.css` holds the brand values and nothing else; `client/style.css` derives every colour, surface and border from them. `tests/brand.test.ts` and an ESLint rule reject raw colour values elsewhere.
 
 - **Fonts ship in the package.** The eight `.woff2` files (about 170 KB) are emitted as separate files into ClientSideAssets and served from the tenant; no font service is contacted. Browsers ignore `@font-face` inside the web part's shadow root, so the app registers these rules once on the page in a `style[data-ra-fonts]` element. It contains `@font-face` rules only, with `rA`-prefixed family names that do not collide with the page's own fonts. All other styles stay inside the shadow root.
 - **Themes.** In Teams the app follows the client theme — default, dark and high contrast — and switches when the user changes it. On SharePoint pages it stays light. Windows high-contrast mode (forced colours) is respected in every host.
-- **Icons.** The web parts carry the roleALPHA icon in the SharePoint toolbox, and `spfx/teams/` provides the colour and outline icons Microsoft uses when the package is made available in Teams.
+- **Icons.** The web parts carry the roleALPHA app icon (Creme signet on a Tiefgrün tile) in the SharePoint toolbox, and `spfx/teams/` provides the colour and outline icons Microsoft uses when the package is made available in Teams. Origin and regeneration: `client/assets/brand/README.md`.
 
 ## Governance questions: roleALPHA read contract
 

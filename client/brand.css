@@ -1,10 +1,11 @@
 /*
  * BRAND LAYER — the only place in this repository where a brand value is written down.
  *
- * Everything else derives from it (client/style.css). The values are roleALPHA's corporate design as defined in
- * rA-app (client/src/brand.css, doc/brand/roleALPHA-brand-handout.pdf); keep them identical to that source.
- * Adding a brand value belongs here; a new shade, surface or opacity step is a derivation and belongs in
- * style.css, never in a component. tests/brand.test.ts keeps this machine-checked.
+ * Everything else derives from it (client/style.css). The values are roleALPHA's corporate design after the
+ * rebranding of 10/2026: Figma "roleALPHA-Brand" (styleguide) is the source, rA-app (client/src/brand.css) the
+ * reference implementation; keep them identical. Adding a brand value belongs here; a new shade, surface or
+ * opacity step is a derivation and belongs in style.css, never in a component. tests/brand.test.ts keeps this
+ * machine-checked.
  *
  * The stylesheet lives inside the web part's shadow root, so the tokens hang off :host, not :root.
  */
@@ -18,45 +19,71 @@
    *
    *   sans     body text, labels, tables, menus -- everything ordinary
    *   mono     technical values: IDs, versions, timers, timestamps
-   *   display  the page title (h1) only; weight 400 exists, nothing else
+   *   display  headings h1-h3; Manrope is variable (200-800), titles use Medium, never Bold
    */
   --brand-font-sans: 'rA IBM Plex Sans';
   --brand-font-mono: 'rA IBM Plex Mono';
-  --brand-font-display: 'rA Instrument Serif';
+  --brand-font-display: 'rA Manrope';
 
   /*
-   * The five brand colours. Ink and Paper carry the surface. Bottle, Amber and Rust are accents and appear only
-   * where colour means something (action, status), never as decoration. Secondary text, borders, surfaces and
-   * badge backgrounds are never colours of their own but one of these five at reduced opacity (style.css).
+   * The brand colours. Distribution per the styleguide: neutral 60 %, Tiefgrün 30 %, Mint 8 %, Apricot 2 %.
+   *
+   *   Tiefgrün     the dark anchor: text, headings, logo. Text runs in Tiefgrün, not in black.
+   *   Creme        the light surface, instead of sterile white; text on dark.
+   *   Anthrazit    the dark surface.
+   *   Mint         the ONLY accent, in two steps because one does not carry on both grounds: Mint on dark only
+   *   Mint-dunkel  (≈ 1.4:1 on Creme), Mint-dunkel on light (5.1:1 on Creme). Action, link, focus, "done".
+   *   Apricot,     the warm, human complement for imagery and illustration. Never a control, link or state
+   *   Braun        (tests/brand.test.ts). rA Meetings has no imagery, so neither is in use yet.
+   *
+   * Secondary text, borders, surfaces and badge backgrounds are never colours of their own but one of these at
+   * reduced opacity (style.css).
    */
-  --brand-ink: #131715;
-  --brand-paper: #f4f7f4;
-  --brand-bottle: #16402c;
-  --brand-amber: #8f5a0e;
-  --brand-rust: #ab2c22;
+  --brand-tiefgruen: #072a26;
+  --brand-creme: #fafbf2;
+  --brand-anthrazit: #292929;
+  --brand-mint: #86eec2;
+  --brand-mint-dunkel: #0f7a55;
+  --brand-apricot: #efa784;
+  --brand-braun: #a9542f;
 
   /*
-   * Data palette, a world of its own next to the brand: categories need more distinguishable hues than five
-   * brand colours provide. Slots are assigned in order and never cycled; rA-app validated the order for colour
-   * vision deficiencies. rA Meetings uses the first three for its template categories.
+   * Function colours (styleguide p. 22): success, warning, error. Only for feedback, never as decoration, and
+   * always together with text or a symbol. Success reuses the Mint pair, so it is not declared again. Three steps
+   * each: base (text, symbol, border), light (notice background), on dark (state in the dark theme -- fixed
+   * steps, because lightening the base washes the hue out).
    */
-  --brand-data-1: #0e8e59;
+  --brand-warnung: #8f6210;
+  --brand-fehler: #b23a2b;
+  --brand-erfolg-hell: #e4faf0;
+  --brand-warnung-hell: #fbf0d6;
+  --brand-fehler-hell: #fbe6e1;
+  --brand-warnung-auf-dunkel: #f2c35b;
+  --brand-fehler-auf-dunkel: #f2907e;
+
+  /*
+   * Data palette, a world of its own next to the brand: categories need more distinguishable hues than the brand
+   * colours provide. Slots are assigned in order and never cycled; rA-app validated the order for colour vision
+   * deficiencies. No slot is green (it would sit next to the Mint accent and read as a button) and none shares a
+   * function colour's hue. rA Meetings uses the first three for its template categories.
+   */
+  --brand-data-1: #2987c8;
   --brand-data-2: #643b9a;
-  --brand-data-3: #875806;
+  --brand-data-3: #d07843;
 }
 
 :host([data-theme='dark']) {
-  /* The dark data palette is chosen, not computed: the usable lightness band on Ink is narrower. */
-  --brand-data-1: #0e8e59;
+  /* The dark data palette is chosen, not computed: the usable lightness band on Anthrazit is narrower. */
+  --brand-data-1: #1689b0;
   --brand-data-2: #a47de3;
-  --brand-data-3: #c68206;
+  --brand-data-3: #cd753f;
 }
 
 :host([data-theme='contrast']) {
   /*
-   * Teams high-contrast theme. Not part of rA-app's brand sheet: it follows Teams' own high-contrast convention
-   * (black surface, white text, yellow for what is actionable or selected), because a user who chose it needs
-   * maximum contrast more than brand colours.
+   * Teams high-contrast theme. Not part of the brand: it follows Teams' own high-contrast convention (black
+   * surface, white text, yellow for what is actionable or selected), because a user who chose it needs maximum
+   * contrast more than brand colours.
    */
   --brand-contrast-surface: #000000;
   --brand-contrast-on-surface: #ffffff;
