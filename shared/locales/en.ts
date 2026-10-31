@@ -358,6 +358,9 @@ export const en: Record<MessageId, string> = {
     'The calendar needs Microsoft Graph approvals. You can use the app without this feature at first.',
   'onboarding.calendarAccessVerifiedSuccessfully': 'Calendar access verified successfully.',
   'onboarding.testCalendarAccess': 'Test calendar access',
+  'consent.graph': 'Allow calendar and transcripts',
+  'consent.graphHint':
+    'An Entra administrator confirms the package\'s Microsoft Graph permissions once in Microsoft\'s dialog, then closes the new tab. This replaces the approval under "API access" and, like it, applies to every SharePoint Framework solution in the tenant.',
   'onboarding.teamsAdministratorMustAdd':
     'For Teams: an administrator must add the app to Teams from the app catalog and approve it. Select the same workspace when adding a tab.',
   'onboarding.openWorkspace': 'Open workspace',
@@ -657,6 +660,10 @@ export const en: Record<MessageId, string> = {
     'Choose "Delegated permissions", select {scope}, add it and confirm "Grant admin consent".',
   'connections.guide.grant4':
     'The consent applies to every SharePoint Framework solution in the tenant and can take a few minutes. Then use "Test connection".',
+  'connections.guide.grantLink':
+    'Once, as an Entra administrator: open "Grant consent" (or pass the link on), confirm {scope} for {resource} in Microsoft\'s dialog, then close the new tab.',
+  'connections.guide.grantManual':
+    'Without the link: Microsoft Entra admin center → "App registrations" → "All applications" → "SharePoint Online Client Extensibility Web Application Principal" → "API permissions" → "Add a permission" → "APIs my organization uses" → {resource} → "Delegated permissions" → {scope} → "Grant admin consent".',
   'connections.guide.rolealpha1':
     'In roleALPHA (administration): enable external applications for the tenant, register the Microsoft Entra directory and add {origin} as an allowed origin.',
   'connections.guide.rolealpha2':
@@ -664,6 +671,7 @@ export const en: Record<MessageId, string> = {
   'connections.guide.rolealpha3':
     'Everyone signs in to roleALPHA through Microsoft once. Otherwise the app reports that the account is not linked.',
   'connections.test': 'Test connection',
+  'connections.grantConsent': 'Grant consent',
   'connections.aiTestPassed': 'The AI connection works.',
   'connections.rolealphaTestPassed': 'The roleALPHA connection works and the configured tools are offered.',
   'connections.checkFields': 'Please check these entries: {fields}',

@@ -13,6 +13,7 @@ import {
   workspaceUrl,
 } from './browser/onboarding';
 import { graph } from './browser/host';
+import { adminConsentUrl, graphConsentUrl } from './browser/consent';
 import { loadConnections, saveConnections, testConnection } from './browser/connections';
 import { workspaceAccess } from '../shared/storage/sharepoint-rest';
 import { ConnectionSettings, type ConnectionsApi } from './ConnectionSettings';
@@ -232,7 +233,13 @@ export function Onboarding({
           <h2>{tr('onboarding.setUpConnections')}</h2>
           <p>{tr('onboarding.connectionsOptional')}</p>
           {owner && connections ? (
-            <ConnectionSettings api={connections} origin={new URL(selected.webUrl).origin} />
+            <ConnectionSettings
+              api={connections}
+              origin={new URL(selected.webUrl).origin}
+              consent={(resource, scopes) =>
+                adminConsentUrl(selected.consent, selected.tenantId, selected.webUrl, resource, scopes)
+              }
+            />
           ) : (
             <p className="notice">{tr('onboarding.connectionsOwnersOnly')}</p>
           )}
@@ -257,6 +264,7 @@ export function Onboarding({
           )}
           <h3>{tr('onboarding.optionalConnections')}</h3>
           <p>{tr('onboarding.calendarAccessRequiresMicrosoft')}</p>
+          <GraphConsent href={graphConsentUrl(selected.consent, selected.tenantId, selected.webUrl)} />
           <button
             className="button"
             disabled={busy}
@@ -282,5 +290,18 @@ export function Onboarding({
         </button>
       )}
     </section>
+  );
+}
+
+/** Microsoft's consent dialog for the package's Graph permissions, instead of approving them under API access. */
+export function GraphConsent({ href }: { href: string | null }) {
+  if (!href) return null;
+  return (
+    <p>
+      <a className="button" href={href} target="_blank" rel="noreferrer">
+        {tr('consent.graph')}
+      </a>{' '}
+      <span className="small muted">{tr('consent.graphHint')}</span>
+    </p>
   );
 }

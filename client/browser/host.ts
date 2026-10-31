@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { AppError, outputTypes } from '../../shared/model';
 import type { Theme } from './brand';
 import type { Language } from '../../shared/i18n';
+import type { ConsentClient } from './consent';
 const https = z
   .string()
   .url()
@@ -121,6 +122,8 @@ export type BrowserHost = {
   // Provided by SPFx: same-site SPHttpClient and AadTokenProvider. No app secrets.
   sharepoint: (path: string, init?: RequestInit) => Promise<Response>;
   token: (resource: string) => Promise<string>;
+  /** The principal `token` uses, for the admin consent links (client/browser/consent.ts). */
+  consent?: ConsentClient;
   /** Initial colour theme; the host follows changes through the handle mount() returns. */
   theme?: Theme;
   /** Bundled font file name -> URL the host serves it from (SPFx ClientSideAssets, Vite in the preview). */

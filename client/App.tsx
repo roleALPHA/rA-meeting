@@ -43,6 +43,8 @@ import { MeetingRoom } from './MeetingRoom';
 import { StorageMaintenance } from './StorageMaintenance';
 import { TeamsRecordingSettings } from './TeamsRecordingSettings';
 import { WorkspaceConnections } from './ConnectionSettings';
+import { GraphConsent } from './Onboarding';
+import { graphResource, graphScopes } from './browser/consent';
 import { BrandMark } from './BrandMark';
 
 export function App() {
@@ -560,6 +562,7 @@ export function App() {
               <p className="notice">{tr('app.configuredMeansRequiredSettings')}</p>
               {data.canManageConnections && (
                 <>
+                  <GraphConsent href={api.adminConsent(graphResource, graphScopes)} />
                   <h2>{tr('connections.title')}</h2>
                   <WorkspaceConnections saved={load} />
                 </>

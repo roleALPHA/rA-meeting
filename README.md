@@ -83,10 +83,10 @@ Microsoft 365 administrators install the package once. End users do not need dev
 
 1. Deploy `rolealpha-meetings.sppkg` in the SharePoint app catalog. Each [GitHub release](https://github.com/roleALPHA/rA-meeting/releases) carries the package together with its third-party notices and an SBOM; a local build writes it to `dist/`.
 2. Open the app and complete onboarding: select or create a SharePoint site, check access, and provision storage and starter templates.
-3. Review and publish the optional landing page. Approve calendar access, Teams availability, and optional services as needed.
+3. Review and publish the optional landing page. Approve calendar access, Teams availability, and optional services as needed; the app offers Microsoft's consent dialog as a link, so the Entra administrator does not need to find the SharePoint client principal.
 4. Verify the deployment with ordinary user accounts.
 
-Follow the **[step-by-step administrator guide](docs/customer-deployment.md)** from initial sign-in through acceptance checks. Package builders and integration operators should also read the [technical deployment guide](docs/technical-deployment.md). The [product design notes](docs/meeting-product.md) describe behavior and boundaries.
+The administrator guide begins with a [quick start](docs/customer-deployment.md#quick-start). Follow the **[step-by-step administrator guide](docs/customer-deployment.md)** from initial sign-in through acceptance checks. Package builders and integration operators should also read the [technical deployment guide](docs/technical-deployment.md). The [product design notes](docs/meeting-product.md) describe behavior and boundaries.
 
 ## Implementation status
 

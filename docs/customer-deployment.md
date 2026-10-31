@@ -6,9 +6,18 @@ roleALPHA Meetings runs within SharePoint and Microsoft Teams. Meetings, templat
 
 After package deployment, an onboarding wizard helps select the site and create storage and starter templates. With sufficient permissions, it can also create a new site. The wizard appears when opening an unconfigured workspace. You can reopen it through **Connections** using the setup wizard action.
 
-Complete steps 1–6 to use the app in SharePoint. Steps 7–9 add calendar access and Teams. Step 10 covers optional AI and roleALPHA Governance integration.
+Complete steps 1–6 to use the app in SharePoint. Steps 7–9 add calendar access and Teams. Step 10 covers optional AI and roleALPHA Governance integration. The quick start below covers the same ground in four steps; the numbered sections explain each part and serve as the reference.
 
 This guide uses English screen labels. Microsoft may change menu names. Guide date: 16 September 2026. Deployment has not yet been accepted in a real Microsoft 365 environment; complete step 11 before general release.
+
+## Quick start
+
+1. **SharePoint administrator:** in the SharePoint admin center, open **More features → Apps → Open**, upload `rolealpha-meetings.sppkg`, select **Enable this app and add it to all sites**, and add it to Teams in the same dialog (steps 3–4).
+2. **Site owner:** open the app, either as **roleALPHA Meetings** in the Teams apps area or as a web part on a page of the workspace site. The setup wizard selects or creates the site, creates storage and starter templates, and prepares a landing page (steps 5–6). If Teams users do not find the app, the Teams administrator allows it in the Teams admin center (step 8).
+3. **Entra administrator, optional:** the wizard's last screen and **Connections** offer **Allow calendar and transcripts**, and next to each configured AI or roleALPHA service, **Grant consent**. Each link opens Microsoft's own consent dialog: confirm it, then close the new tab. A site owner without the Entra role passes the link on (steps 7 and 10).
+4. Check the result with ordinary user accounts (step 11).
+
+The consent links replace the approval under **API access** and the click path in Entra. They are new and not yet verified in a real tenant. If Microsoft rejects a link, use the click path described in steps 7 and 10.
 
 ## 1. Prepare the package and administrator access
 
@@ -60,14 +69,14 @@ The **app catalog** is your organization's central location for additional Share
 1. Select **Upload**, then choose `rolealpha-meetings.sppkg`.
 2. Read the activation dialog. If the app already exists, confirm that you intend to update it; see “Install later updates” below.
 3. For this deployment, select **Enable this app and add it to all sites**. This makes the component available across the organization. It does not automatically create meeting data or share workspace data with other sites. If your organization does not allow this availability, arrange a restricted deployment with your SharePoint administrator before proceeding.
-4. Confirm with **Enable app** or **Add**. You can skip adding to Teams here; step 8 covers it.
+4. Confirm with **Enable app** or **Add**. If the dialog offers **Add to Teams**, select it: the app can then be opened from Teams, and step 8 only needs the check in the Teams admin center.
 5. Close the dialog and inspect the app entry. Its technical package name may be `rolealpha-meetings-client-side-solution`.
 
 **Check:** The package is enabled without a deployment error. A notice about additional API permissions is not itself an installation failure; step 7 addresses those permissions.
 
 ## 5. Display the app on a SharePoint page
 
-A **web part** is a component placed on a SharePoint page.
+A **web part** is a component placed on a SharePoint page. You can skip this step if you open the app as a personal app in Teams (step 8): the setup wizard prepares a page for you.
 
 1. Open the workspace site from step 2.
 2. Select **New → Page**, create a blank page, and name it **Meetings**, for example. You can instead edit an existing suitable page.
@@ -114,7 +123,7 @@ Skip this step if you initially want to create meetings manually and import tran
 
 1. Reopen the **SharePoint admin center**.
 2. Select **Advanced → API access**.
-3. Have the administrator authorized to approve Microsoft API access review these package requests:
+3. The quickest way: open the last screen of the setup wizard or **Connections** as a site owner and select **Allow calendar and transcripts**. An administrator authorized to approve Microsoft API access confirms the permissions below in Microsoft's consent dialog and closes the new tab; pass the link on if you do not hold that role. This grants the same permissions as the approval under **API access**. Otherwise, have that administrator review these package requests:
 
 | Requested permission | Purpose |
 | --- | --- |
@@ -182,7 +191,7 @@ The meeting app works without these connections. They are set up per workspace i
 3. Services must accept Microsoft Entra sign-in and direct browser requests from your SharePoint address (CORS). See the [technical guide](technical-deployment.md). A service accepting only a secret API key is not compatible. The form never asks for keys.
 4. For roleALPHA, a roleALPHA administrator enables external applications for your tenant, registers the Entra directory, and adds your SharePoint address as an allowed origin. They also give you the MCP address, the resource (application ID URI), the tenant ID, and the tool names. Each person must have signed in to roleALPHA through Microsoft once; otherwise the app reports that the account is not linked.
 5. Enter the values in the form. For roleALPHA, select which outcome types are sent as drafts and, optionally, the search tools for governance questions and own drafts.
-6. **Grant the delegated permission once per service** (Entra administrator). The package does not request these permissions, so they do not appear under API access. In the Microsoft Entra admin center, open **App registrations → All applications → SharePoint Online Client Extensibility Web Application Principal → API permissions → Add a permission → APIs my organization uses**, find the service's API, choose **Delegated permissions**, select the scope shown in the form, add it, and select **Grant admin consent**. As with the Graph permissions in step 7, this applies to every SharePoint Framework solution in the tenant.
+6. **Grant the delegated permission once per service** (Entra administrator). The package does not request these permissions, so they do not appear under API access. Select **Grant consent** next to **Test connection**: Microsoft's consent dialog asks for the scope shown in the form; confirm it and close the new tab. Without the link, in the Microsoft Entra admin center open **App registrations → All applications → SharePoint Online Client Extensibility Web Application Principal → API permissions → Add a permission → APIs my organization uses**, find the service's API, choose **Delegated permissions**, select the scope shown in the form, add it, and select **Grant admin consent**. As with the Graph permissions in step 7, this applies to every SharePoint Framework solution in the tenant.
 7. Select **Test connection** in each section. The test requests a token (a failure here means step 6 is missing or not yet effective), then makes one harmless call: a tiny AI request, or for roleALPHA the token exchange and the list of offered tools. Then **Save**.
 8. Test each enabled function using test data. Generate an AI suggestion, review it, and only then transfer an approved outcome to roleALPHA. Check in roleALPHA that the expected draft exists.
 9. For governance questions, the roleALPHA search tool and appropriate read access must be configured. Draft creation alone is insufficient. Open the governance assistant from the navigation or within a meeting. Ask about a known role or rule and start the governance check.

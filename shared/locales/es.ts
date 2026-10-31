@@ -365,6 +365,9 @@ export const es: Record<MessageId, string> = {
     'El calendario necesita aprobaciones de Microsoft Graph. Puede usar la aplicación sin esta función al principio.',
   'onboarding.calendarAccessVerifiedSuccessfully': 'Acceso al calendario verificado correctamente.',
   'onboarding.testCalendarAccess': 'Probar acceso al calendario',
+  'consent.graph': 'Permitir calendario y transcripciones',
+  'consent.graphHint':
+    'Un administrador de Entra confirma una sola vez los permisos de Microsoft Graph del paquete en el cuadro de diálogo de Microsoft y cierra después la pestaña nueva. Esto sustituye la aprobación en «Acceso a API» y, como ella, se aplica a todas las soluciones de SharePoint Framework del tenant.',
   'onboarding.teamsAdministratorMustAdd':
     'Para Teams: la administración debe añadir y autorizar la app desde el catálogo. Seleccione el mismo espacio al añadir una pestaña.',
   'onboarding.openWorkspace': 'Abrir espacio de trabajo',
@@ -668,6 +671,10 @@ export const es: Record<MessageId, string> = {
     'Elegir «Permisos delegados», marcar {scope}, agregarlo y confirmar «Conceder consentimiento de administrador».',
   'connections.guide.grant4':
     'El consentimiento se aplica a todas las soluciones de SharePoint Framework del tenant y puede tardar unos minutos. Después, usar «Probar conexión».',
+  'connections.guide.grantLink':
+    'Una sola vez, como administrador de Entra: abrir «Dar consentimiento» (o reenviar el enlace), confirmar {scope} para {resource} en el cuadro de diálogo de Microsoft y cerrar después la pestaña nueva.',
+  'connections.guide.grantManual':
+    'Sin el enlace: Centro de administración de Microsoft Entra → «Registros de aplicaciones» → «Todas las aplicaciones» → «SharePoint Online Client Extensibility Web Application Principal» → «Permisos de API» → «Agregar un permiso» → «API usadas en mi organización» → {resource} → «Permisos delegados» → {scope} → «Conceder consentimiento de administrador».',
   'connections.guide.rolealpha1':
     'En roleALPHA (administración): habilitar las aplicaciones externas para el tenant, registrar el directorio de Microsoft Entra y añadir {origin} como origen permitido.',
   'connections.guide.rolealpha2':
@@ -675,6 +682,7 @@ export const es: Record<MessageId, string> = {
   'connections.guide.rolealpha3':
     'Cada persona inicia sesión una vez en roleALPHA con Microsoft. De lo contrario, la aplicación indica que la cuenta no está vinculada.',
   'connections.test': 'Probar conexión',
+  'connections.grantConsent': 'Dar consentimiento',
   'connections.aiTestPassed': 'La conexión con la IA funciona.',
   'connections.rolealphaTestPassed':
     'La conexión con roleALPHA funciona y las herramientas indicadas están disponibles.',

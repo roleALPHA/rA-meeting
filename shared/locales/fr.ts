@@ -371,6 +371,9 @@ export const fr: Record<MessageId, string> = {
     "Le calendrier nécessite des autorisations Microsoft Graph. Vous pouvez d'abord utiliser l'application sans cette fonction.",
   'onboarding.calendarAccessVerifiedSuccessfully': 'Accès au calendrier vérifié.',
   'onboarding.testCalendarAccess': 'Tester l’accès au calendrier',
+  'consent.graph': 'Autoriser le calendrier et les transcriptions',
+  'consent.graphHint':
+    "Un administrateur Entra confirme une seule fois les autorisations Microsoft Graph du package dans la boîte de dialogue de Microsoft, puis ferme le nouvel onglet. Cela remplace l'approbation sous « Accès aux API » et s'applique, comme elle, à toutes les solutions SharePoint Framework du tenant.",
   'onboarding.teamsAdministratorMustAdd':
     'Pour Teams : l’administration doit ajouter l’app à Teams depuis le catalogue et l’autoriser. Choisissez le même espace lors de l’ajout d’un onglet.',
   'onboarding.openWorkspace': 'Ouvrir l’espace de travail',
@@ -681,6 +684,10 @@ export const fr: Record<MessageId, string> = {
     "Choisir « Autorisations déléguées », cocher {scope}, l'ajouter et confirmer « Accorder le consentement administrateur ».",
   'connections.guide.grant4':
     'Le consentement vaut pour toutes les solutions SharePoint Framework du tenant et peut prendre quelques minutes. Utiliser ensuite « Tester la connexion ».',
+  'connections.guide.grantLink':
+    "Une seule fois, en tant qu'administrateur Entra : ouvrir « Donner le consentement » (ou transmettre le lien), confirmer {scope} pour {resource} dans la boîte de dialogue de Microsoft, puis fermer le nouvel onglet.",
+  'connections.guide.grantManual':
+    "Sans le lien : centre d'administration Microsoft Entra → « Inscriptions d'applications » → « Toutes les applications » → « SharePoint Online Client Extensibility Web Application Principal » → « Autorisations d'API » → « Ajouter une autorisation » → « API utilisées par mon organisation » → {resource} → « Autorisations déléguées » → {scope} → « Accorder un consentement d'administrateur ».",
   'connections.guide.rolealpha1':
     "Dans roleALPHA (administration) : activer les applications externes pour le tenant, enregistrer l'annuaire Microsoft Entra et ajouter {origin} comme origine autorisée.",
   'connections.guide.rolealpha2':
@@ -688,6 +695,7 @@ export const fr: Record<MessageId, string> = {
   'connections.guide.rolealpha3':
     "Chaque personne se connecte une fois à roleALPHA via Microsoft. Sinon, l'application indique que le compte n'est pas lié.",
   'connections.test': 'Tester la connexion',
+  'connections.grantConsent': 'Donner le consentement',
   'connections.aiTestPassed': "La connexion à l'IA fonctionne.",
   'connections.rolealphaTestPassed': 'La connexion à roleALPHA fonctionne et les outils indiqués sont proposés.',
   'connections.checkFields': 'Veuillez vérifier ces saisies : {fields}',
