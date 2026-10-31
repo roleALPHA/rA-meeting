@@ -156,12 +156,30 @@ function Guide({ steps }: { steps: readonly Step[] }) {
   );
 }
 
-const grantSteps = (resource: string, scope: string): Step[] => [
-  ['connections.guide.grant1'],
-  ['connections.guide.grant2', { resource: resource || '…' }],
-  ['connections.guide.grant3', { scope: scope || '…' }],
-  ['connections.guide.grant4'],
-];
+/** With a consent link, Microsoft's dialog replaces the click path in Entra, which stays as the fallback. */
+const grantSteps = (resource: string, scope: string, link: boolean): Step[] =>
+  link
+    ? [
+        ['connections.guide.grantLink', { resource, scope }],
+        ['connections.guide.grantManual', { resource, scope }],
+        ['connections.guide.grant4'],
+      ]
+    : [
+        ['connections.guide.grant1'],
+        ['connections.guide.grant2', { resource: resource || '…' }],
+        ['connections.guide.grant3', { scope: scope || '…' }],
+        ['connections.guide.grant4'],
+      ];
+
+/** Opens Microsoft's admin consent dialog in a new tab; an owner without the Entra role passes the link on. */
+function ConsentLink({ href }: { href: string | null }) {
+  if (!href) return null;
+  return (
+    <a className="button" href={href} target="_blank" rel="noreferrer">
+      {tr('connections.grantConsent')}
+    </a>
+  );
+}
 
 /** Provider prerequisites before the shared Entra steps. */
 const aiSteps: Record<AiProviderName, (origin: string) => Step[]> = {
@@ -180,7 +198,15 @@ type Result = { tone: 'success' | 'error'; text: string };
  * AI and roleALPHA connections of the workspace, for site owners. Used in the setup wizard and on the Connections
  * page. Testing uses the values as entered; nothing is stored until "Save".
  */
-export function ConnectionSettings({ api, origin }: { api: ConnectionsApi; origin: string }) {
+export function ConnectionSettings({
+  api,
+  origin,
+  consent,
+}: {
+  api: ConnectionsApi;
+  origin: string;
+  consent: (resource: string, scopes: readonly string[]) => string | null;
+}) {
   const [state, setState] = useState<ConnectionsState | null>(null);
   const [ai, setAi] = useState<AiDraft>(aiDraft(null));
   const [roleAlpha, setRoleAlpha] = useState<RoleAlphaDraft>(roleAlphaDraft(null));
@@ -249,6 +275,8 @@ export function ConnectionSettings({ api, origin }: { api: ConnectionsApi; origi
   };
   if (!state) return resultLine('save') || <p role="status">{tr('connections.loading')}</p>;
   const entitiesOn = outputTypes.filter(type => roleAlpha.entities[type]);
+  const aiConsent = consent(ai.resource, [ai.scope]);
+  const roleAlphaConsent = consent(roleAlpha.resource, [roleAlpha.scope]);
   return (
     <div className="connection-settings">
       <p className="notice">{tr('connections.ownersDecide')}</p>
@@ -330,10 +358,13 @@ export function ConnectionSettings({ api, origin }: { api: ConnectionsApi; origi
                   onChange={fallbackModel => changeAi({ fallbackModel })}
                 />
               )}
-              <Guide steps={[...aiSteps[ai.provider](origin), ...grantSteps(ai.resource, ai.scope)]} />
-              <Button disabled={busy} onClick={() => void test('ai')}>
-                {tr('connections.test')}
-              </Button>
+              <Guide steps={[...aiSteps[ai.provider](origin), ...grantSteps(ai.resource, ai.scope, !!aiConsent)]} />
+              <div className="row">
+                <ConsentLink href={aiConsent} />
+                <Button disabled={busy} onClick={() => void test('ai')}>
+                  {tr('connections.test')}
+                </Button>
+              </div>
               {resultLine('ai')}
             </>
           )}
@@ -461,13 +492,16 @@ export function ConnectionSettings({ api, origin }: { api: ConnectionsApi; origi
                 steps={[
                   ['connections.guide.rolealpha1', { origin }],
                   ['connections.guide.rolealpha2'],
-                  ...grantSteps(roleAlpha.resource, roleAlpha.scope),
+                  ...grantSteps(roleAlpha.resource, roleAlpha.scope, !!roleAlphaConsent),
                   ['connections.guide.rolealpha3'],
                 ]}
               />
-              <Button disabled={busy} onClick={() => void test('roleAlpha')}>
-                {tr('connections.test')}
-              </Button>
+              <div className="row">
+                <ConsentLink href={roleAlphaConsent} />
+                <Button disabled={busy} onClick={() => void test('roleAlpha')}>
+                  {tr('connections.test')}
+                </Button>
+              </div>
               {resultLine('roleAlpha')}
             </>
           )}
@@ -483,7 +517,7 @@ export function ConnectionSettings({ api, origin }: { api: ConnectionsApi; origi
 
 /** The Connections page's variant: the same form through the app's routes. `saved` reloads the page data. */
 export function WorkspaceConnections({ saved }: { saved: () => Promise<unknown> }) {
-  const { request } = useApi();
+  const { request, adminConsent } = useApi();
   const reload = useRef(saved);
   reload.current = saved;
   const api = useMemo<ConnectionsApi>(
@@ -500,5 +534,5 @@ export function WorkspaceConnections({ saved }: { saved: () => Promise<unknown> 
     [request],
   );
   // The page and every service the app calls share the SharePoint origin, also inside Teams.
-  return <ConnectionSettings api={api} origin={window.location.origin} />;
+  return <ConnectionSettings api={api} origin={window.location.origin} consent={adminConsent} />;
 }

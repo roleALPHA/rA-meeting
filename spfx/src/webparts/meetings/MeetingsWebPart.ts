@@ -79,6 +79,11 @@ export default class MeetingsWebPart extends BaseClientSideWebPart<Properties> {
       this.domElement.textContent = 'Microsoft 365 sign-in is required.';
       return;
     }
+    // The principal SPFx requests third-party tokens with (sp-loader's root scope reads the same fields).
+    const legacy = this.context.pageContext.legacyPageContext as {
+      aadInstanceUrl?: string;
+      spfx3rdPartyServicePrincipalId?: string;
+    };
     this.disposeApp = mount(this.domElement, {
       tenantId: aad.tenantId.toString(),
       userId: aad.userId.toString(),
@@ -96,6 +101,10 @@ export default class MeetingsWebPart extends BaseClientSideWebPart<Properties> {
         const provider = await this.context.aadTokenProviderFactory.getTokenProvider();
         return provider.getToken(resource);
       },
+      consent:
+        legacy.aadInstanceUrl && legacy.spfx3rdPartyServicePrincipalId
+          ? { authority: legacy.aadInstanceUrl, clientId: legacy.spfx3rdPartyServicePrincipalId }
+          : undefined,
       sharepointAt,
       sharepoint: (path: string, init?: RequestInit): Promise<Response> => sharepointAt(webUrl, path, init),
     });

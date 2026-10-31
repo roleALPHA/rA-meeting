@@ -374,6 +374,9 @@ export const de = {
     'Der Kalender benötigt Microsoft-Graph-Freigaben. Sie können die App zunächst ohne diese Funktion verwenden.',
   'onboarding.calendarAccessVerifiedSuccessfully': 'Kalenderzugriff erfolgreich geprüft.',
   'onboarding.testCalendarAccess': 'Kalenderzugriff testen',
+  'consent.graph': 'Kalender und Transkripte freigeben',
+  'consent.graphHint':
+    'Ein Entra-Administrator bestätigt die Microsoft-Graph-Berechtigungen des Pakets einmal im Dialog von Microsoft und schließt danach den neuen Tab. Das ersetzt die Freigabe unter „API-Zugriff“ und gilt wie diese für alle SharePoint-Framework-Lösungen im Tenant.',
   'onboarding.teamsAdministratorMustAdd':
     'Für Teams: Die Administration muss die App im App-Katalog zu Teams hinzufügen und freigeben. Beim Hinzufügen einer Registerkarte denselben Arbeitsbereich wählen.',
   'onboarding.openWorkspace': 'Arbeitsbereich öffnen',
@@ -679,6 +682,10 @@ export const de = {
     '„Delegierte Berechtigungen“ wählen, {scope} ankreuzen, hinzufügen und „Administratorzustimmung erteilen“ bestätigen.',
   'connections.guide.grant4':
     'Die Zustimmung gilt für alle SharePoint-Framework-Lösungen im Tenant und kann einige Minuten brauchen. Danach „Verbindung testen“.',
+  'connections.guide.grantLink':
+    'Einmalig als Entra-Administrator: „Zustimmung erteilen“ öffnen (oder den Link weitergeben), {scope} für {resource} im Dialog von Microsoft bestätigen und den neuen Tab danach schließen.',
+  'connections.guide.grantManual':
+    'Ohne Link: Microsoft Entra Admin Center → „App-Registrierungen“ → „Alle Anwendungen“ → „SharePoint Online Client Extensibility Web Application Principal“ → „API-Berechtigungen“ → „Berechtigung hinzufügen“ → „Von meiner Organisation verwendete APIs“ → {resource} → „Delegierte Berechtigungen“ → {scope} → „Administratorzustimmung erteilen“.',
   'connections.guide.rolealpha1':
     'In roleALPHA (Administration): externe Anwendungen für den Tenant freischalten, das Microsoft-Entra-Verzeichnis registrieren und {origin} als erlaubten Ursprung eintragen.',
   'connections.guide.rolealpha2':
@@ -686,6 +693,7 @@ export const de = {
   'connections.guide.rolealpha3':
     'Jede Person meldet sich einmal über Microsoft bei roleALPHA an. Sonst meldet die App, dass das Konto nicht verknüpft ist.',
   'connections.test': 'Verbindung testen',
+  'connections.grantConsent': 'Zustimmung erteilen',
   'connections.aiTestPassed': 'Die KI-Verbindung funktioniert.',
   'connections.rolealphaTestPassed':
     'Die roleALPHA-Verbindung funktioniert, die eingetragenen Werkzeuge sind vorhanden.',

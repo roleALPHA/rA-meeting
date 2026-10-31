@@ -13,12 +13,15 @@ import { exportActions } from './routes/export';
 import { maintenanceRoutes } from './routes/maintenance';
 import { settingsRoutes } from './routes/settings';
 import { applyConnections } from './connections';
+import { adminConsentUrl } from './consent';
 
 export type AppApi = {
   openSetup?: () => void;
   initialMeeting?: string;
   initializeTeams: () => Promise<boolean>;
   request: <T>(path: string, body?: unknown, method?: string) => Promise<T>;
+  /** Admin consent link for delegated scopes of one resource, or null where the host has no consent client. */
+  adminConsent: (resource: string, scopes: readonly string[]) => string | null;
 };
 
 const requestBody = z.record(z.string(), z.unknown());
@@ -90,6 +93,7 @@ export function browserApi(host: BrowserHost, store: Repository, actor: Actor): 
   return {
     initialMeeting: host.initialMeeting,
     initializeTeams: async () => host.isTeams,
+    adminConsent: (resource, scopes) => adminConsentUrl(host.consent, host.tenantId, host.webUrl, resource, scopes),
     request: async <T>(path: string, body?: unknown, method?: string) => {
       try {
         return (await dispatch(path, body, method)) as T;
