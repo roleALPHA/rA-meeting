@@ -21,6 +21,14 @@ Permissive, no attribution required.
 
 - tslib
 
+## Apache-2.0
+
+Permissive with a patent grant. The NOTICE file, where a package has one, travels in --notices.
+
+- @anthropic-ai/foundry-sdk
+- @anthropic-ai/sdk
+- @opentelemetry/api
+
 ## BSD-2-Clause
 
 Permissive.
@@ -51,8 +59,6 @@ Permissive, functionally MIT.
 
 Permissive. Requires the notice to travel with the code -- see --notices.
 
-- @anthropic-ai/foundry-sdk
-- @anthropic-ai/sdk
 - @babel/runtime
 - @hono/node-server
 - @modelcontextprotocol/sdk

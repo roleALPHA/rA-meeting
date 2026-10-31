@@ -1,6 +1,6 @@
 {
   "name": "@rolealpha/meeting",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "private": true,
   "type": "module",
   "engines": {
@@ -24,8 +24,8 @@
     "spfx:install": "npm ci --prefix spfx --cache .npm-cache --no-audit --no-fund"
   },
   "dependencies": {
-    "@anthropic-ai/foundry-sdk": "^0.4.7",
-    "@anthropic-ai/sdk": "^0.126.0",
+    "@anthropic-ai/foundry-sdk": "^1.1.0",
+    "@anthropic-ai/sdk": "^1.3.0",
     "@modelcontextprotocol/sdk": "^1.32.2",
     "@noble/hashes": "^2.4.0",
     "lucide-react": "^1.66.0",

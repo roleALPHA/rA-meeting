@@ -1,6 +1,6 @@
 {
   "name": "rolealpha-meetings-spfx",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "private": true,
   "engines": {
     "node": ">=22.14.0 <23"
@@ -15,7 +15,7 @@
     "@microsoft/sp-webpart-base": "1.23.2",
     "@microsoft/sp-http": "1.23.2",
     "@microsoft/sp-page-context": "1.23.2",
-    "tslib": "2.3.1",
+    "tslib": "2.8.1",
     "react": "17.0.1",
     "react-dom": "17.0.1"
   },
@@ -31,7 +31,7 @@
     "eslint": "9.37.0",
     "typescript": "~5.8.0",
     "css-loader": "~7.1.2",
-    "node": "22.22.1"
+    "node": "22.23.4"
   },
   "license": "SEE LICENSE IN ../LICENSE.md",
   "overrides": {

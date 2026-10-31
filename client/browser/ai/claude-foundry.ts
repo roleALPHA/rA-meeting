@@ -18,6 +18,8 @@ export async function claudeFoundryComplete(host: BrowserHost, ai: Settings, tas
     fetch: endpointFetch(host, ai, 'prefix'),
     // Foundry has no server-side fallbacks; the SDK middleware retries declined requests on the fallback deployment.
     middleware: ai.fallbackModel ? [betaRefusalFallbackMiddleware([{ model: ai.fallbackModel }])] : [],
+    // No trace context leaves the tenant, whatever else on the page registers an OpenTelemetry propagator.
+    openTelemetry: false,
   });
   const params = {
     model: ai.model,
