@@ -3,7 +3,7 @@ export const languages = ['de', 'en', 'fr', 'es'] as const;
 export const assistanceInput = z
   .object({
     mode: z.enum(['proposal', 'integration']),
-    agendaId: z.string().uuid(),
+    agendaId: z.guid(),
     proposal: z.string().trim().max(12000).default(''),
     context: z.string().trim().max(12000).default(''),
     objections: z.string().trim().max(12000).default(''),

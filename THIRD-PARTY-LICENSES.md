@@ -58,6 +58,9 @@ Permissive. Requires the notice to travel with the code -- see --notices.
 - @modelcontextprotocol/sdk
 - @noble/hashes
 - @stablelib/base64
+- @types/prop-types
+- @types/react
+- @types/scheduler
 - accepts
 - ajv
 - ajv-formats
@@ -71,6 +74,7 @@ Permissive. Requires the notice to travel with the code -- see --notices.
 - cookie-signature
 - cors
 - cross-spawn
+- csstype
 - debug
 - depd
 - dunder-proto

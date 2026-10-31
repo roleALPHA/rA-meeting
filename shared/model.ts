@@ -41,7 +41,7 @@ const text = z.string().trim().min(1).max(200);
 export const terminologies = ['tensions', 'agenda'] as const;
 export type Terminology = (typeof terminologies)[number];
 export const stepSchema = z.object({
-  id: z.string().uuid(),
+  id: z.guid(),
   kind: z.enum(stepKinds),
   title: text,
   description: z.string().max(4000).default(''),
@@ -72,8 +72,8 @@ export const terminologyOf = (template: Pick<Template, 'terminology'>): Terminol
 export type Actor = { id: string; name: string; tenantId: string; workspace: 'read' | 'write' };
 export type Segment = { id: string; start: string; end: string; speaker: string; text: string };
 export const outcomeInput = z.object({
-  stepId: z.string().uuid(),
-  agendaId: z.string().uuid().nullable().default(null),
+  stepId: z.guid(),
+  agendaId: z.guid().nullable().default(null),
   type: z.enum(outputTypes),
   title: text,
   description: z.string().max(12000).default(''),
@@ -83,8 +83,8 @@ export const outcomeInput = z.object({
     .regex(/^\d{4}-\d{2}-\d{2}$/)
     .nullable()
     .default(null),
-  targetId: z.string().uuid().nullable().default(null),
-  data: z.record(z.unknown()).default({}),
+  targetId: z.guid().nullable().default(null),
+  data: z.record(z.string(), z.unknown()).default({}),
   evidence: z.array(z.string()).max(100).default([]),
 });
 export type OutcomeInput = z.infer<typeof outcomeInput>;

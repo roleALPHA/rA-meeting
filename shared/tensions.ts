@@ -15,8 +15,8 @@ const draftLink = z
 const input = z.object({
   title: z.string().trim().min(1).max(200),
   description: z.string().max(12000).default(''),
-  meetingId: z.string().uuid().nullable().default(null),
-  stepId: z.string().uuid().nullable().default(null),
+  meetingId: z.guid().nullable().default(null),
+  stepId: z.guid().nullable().default(null),
   draft: draftLink.nullable().default(null),
   status: z.enum(['open', 'resolved']).default('open'),
 });
@@ -62,7 +62,8 @@ export async function saveTension(
   if (meeting) {
     const agendaSteps = meeting.template.steps.filter(s => s.kind === 'agenda');
     assert(agendaSteps.length, 'error.tensions.meetingHasNoAgendaStep');
-    stepId = data.stepId ?? (moved ? null : (old?.stepId ?? null)) ?? agendaSteps[0].id;
+    const keptStepId = moved ? null : (old?.stepId ?? null);
+    stepId = data.stepId ?? keptStepId ?? agendaSteps[0].id;
     assert(
       agendaSteps.some(s => s.id === stepId),
       'error.domain.agendaStep',

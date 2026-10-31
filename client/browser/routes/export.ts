@@ -8,9 +8,7 @@ import type { MeetingAction } from './types';
 const send =
   (entity: boolean): MeetingAction =>
   async ({ host, actor, get, save }, { body }, m, id) => {
-    const ids = entity
-      ? [z.string().uuid().parse(body.outcomeId)]
-      : z.array(z.string().uuid()).min(1).max(100).parse(body.ids);
+    const ids = entity ? [z.guid().parse(body.outcomeId)] : z.array(z.guid()).min(1).max(100).parse(body.ids);
     assert(new Set(ids).size === ids.length, 'error.export.duplicateOutcomeIds');
     const outputs = m.outcomes.filter(o => ids.includes(o.id));
     assert(outputs.length === ids.length, 'error.export.outcomeMissing');
@@ -62,7 +60,7 @@ export const exportActions: Record<string, MeetingAction> = {
   export: send(false),
   'export-entity': send(true),
   'export-reconcile': async ({ actor, save }, { body }, m) => {
-    const ids = z.array(z.string().uuid()).min(1).parse(body.ids);
+    const ids = z.array(z.guid()).min(1).parse(body.ids);
     const note = z.string().trim().min(10).max(1000).parse(body.note);
     const resolution = z.enum(['created', 'not-created']).parse(body.resolution);
     const outputs = m.outcomes.filter(o => ids.includes(o.id));

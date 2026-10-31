@@ -34,10 +34,10 @@ export async function saveTemplate(store: Store, actor: Actor, body: unknown, id
   return t;
 }
 export const createMeetingInput = z.object({
-  templateId: z.string().uuid(),
+  templateId: z.guid(),
   title: z.string().trim().min(1).max(200),
   circle: z.string().trim().min(1).max(200),
-  circleId: z.string().uuid().nullable().default(null),
+  circleId: z.guid().nullable().default(null),
   scheduledAt: z.string().datetime().nullable().default(null),
 });
 export async function createMeeting(store: Store, actor: Actor, body: unknown) {

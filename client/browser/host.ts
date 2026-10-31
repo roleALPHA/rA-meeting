@@ -66,7 +66,7 @@ export const connectionSettingsSchema = z
     roleAlpha: endpoint
       .extend({
         scope: z.string().trim().min(1).default('access_as_user'),
-        tenant: z.string().uuid(),
+        tenant: z.guid(),
         governance: z
           .object({ searchTool: z.string().regex(/^search_[a-z0-9_]+$/) })
           .strict()
@@ -89,7 +89,7 @@ export const connectionSettingsSchema = z
           .default('create_entity_draft'),
         /** Which roleALPHA entity type an approved outcome becomes; the meeting record itself uses `meeting`. */
         entities: z
-          .record(
+          .partialRecord(
             z.enum(outputTypes),
             z.object({ entityType: z.string().regex(/^[a-z][a-z0-9_]*$/), label: z.string().min(1) }).strict(),
           )

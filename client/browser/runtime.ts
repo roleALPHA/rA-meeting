@@ -21,7 +21,7 @@ export type AppApi = {
   request: <T>(path: string, body?: unknown, method?: string) => Promise<T>;
 };
 
-const requestBody = z.record(z.unknown());
+const requestBody = z.record(z.string(), z.unknown());
 const actions: Record<string, MeetingAction> = { ...meetingActions, ...calendarActions, ...exportActions };
 
 /** Meeting reads and meeting actions. Actions load the meeting for writing and require a matching revision. */
@@ -58,7 +58,7 @@ const routes: Route[] = [
 export async function createBrowserApi(host: BrowserHost): Promise<AppApi> {
   const access = await workspaceAccess(host.sharepoint);
   const actor: Actor = {
-    id: z.string().uuid().parse(host.userId),
+    id: z.guid().parse(host.userId),
     name: host.userName,
     tenantId: host.tenantId,
     workspace: access.write ? 'write' : 'read',
