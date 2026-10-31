@@ -64,7 +64,7 @@ A manual run builds the same files without publishing anything.
 - **`concurrency` in every workflow.** `ci.yml` puts the event name into the group, so a nightly run and a push to `main` do not cancel each other. The release is never cancelled.
 - **Values reach scripts through `env:`**, never as `${{ }}` inside `run:`.
 - **SPFx toolchain updates move together.** Dependabot groups `@microsoft/*` and `@rushstack/*` and ignores their minor and major versions; an SPFx upgrade is a deliberate change with a full build and a tenant test.
-- **`overrides` close advisories the parents have not picked up yet.** `package.json` forces `minimatch`, `spfx/package.json` forces `qs` and `uuid` to a patched version within an API-compatible range. Remove an entry once its parents ship the fix.
+- **`overrides` close advisories the parents have not picked up yet.** `package.json` forces `minimatch`, `spfx/package.json` forces `@modelcontextprotocol/sdk`, `qs`, `serialize-javascript` and `uuid` to a patched version within an API-compatible range (SPFx's own template overrides `qs` and `uuid` the same way). Remove an entry once its parents ship the fix.
 - **Job names are required checks.** Renaming a job removes it from the ruleset without any error; update the ruleset in the same change.
 
 ## Repository settings

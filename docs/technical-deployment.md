@@ -156,7 +156,7 @@ npm test
 npm run build
 ```
 
-Root tools use Node.js 24. SPFx 1.23.2 builds with the separate project-local Node.js 22 installation. These are development tools, not a server runtime required for installation. React is pinned to SPFx-supported version 17.0.1. Increase the version in `spfx/package.json` before distributing an update; the build derives package and solution versions from it.
+Root tools use Node.js 24. SPFx 1.24.0 builds with the separate project-local Node.js 22 installation. These are development tools, not a server runtime required for installation. React is pinned to SPFx-supported version 17.0.1. Increase the version in `spfx/package.json` before distributing an update; the build derives package and solution versions from it.
 
 Output: `dist/rolealpha-meetings.sppkg`. `includeClientSideAssets` packages the code, fonts and icons for app catalog hosting. A build check excludes server modules and test/demo code from the browser package.
 
