@@ -46,9 +46,8 @@ updates:
     ignore:
       - dependency-name: '@microsoft/*'
         update-types: ['version-update:semver-major', 'version-update:semver-minor']
-      # @microsoft/spfx-web-build-rig pins the heft version its plugins are built for.
+      # @microsoft/spfx-web-build-rig pins the exact heft version its plugins are built for; heft moves with the rig.
       - dependency-name: '@rushstack/*'
-        update-types: ['version-update:semver-major', 'version-update:semver-minor']
       - dependency-name: 'react'
       - dependency-name: 'react-dom'
       # The project-local Node.js the SPFx toolchain runs on; SPFx 1.24 supports 22, 24 and 26; this repository uses 22.
