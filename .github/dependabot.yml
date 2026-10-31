@@ -22,7 +22,7 @@ updates:
         dependency-type: production
         update-types: [minor, patch]
     ignore:
-      # React is pinned to exactly the version SPFx 1.23 supports (docs/technical-deployment.md).
+      # React is pinned to exactly the version this release builds and tests with (docs/technical-deployment.md).
       - dependency-name: 'react'
       - dependency-name: 'react-dom'
       - dependency-name: '@types/react*'
@@ -51,6 +51,6 @@ updates:
         update-types: ['version-update:semver-major', 'version-update:semver-minor']
       - dependency-name: 'react'
       - dependency-name: 'react-dom'
-      # The project-local Node.js the SPFx toolchain runs on; SPFx 1.23 requires 22.
+      # The project-local Node.js the SPFx toolchain runs on; SPFx 1.24 supports 22, 24 and 26; this repository uses 22.
       - dependency-name: 'node'
         update-types: ['version-update:semver-major']
