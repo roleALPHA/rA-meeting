@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readdirSync } from 'node:fs';
 import { BUNDLED, closure, merge, readRows, renderIndex, renderSbom, violations } from './licenses.mjs';
 
 /** A lockfile trimmed to what the script reads. */
@@ -105,4 +106,12 @@ test('bundled fonts are part of the closure, allowed, and carry their own licenc
     assert.equal(row.notice, font.notice);
   }
   assert.deepEqual(violations(rows), []);
+});
+
+test('every bundled font names a licence text that is in the package, and every licence text is named', () => {
+  // The release reads these files for the notices; a stale entry only fails there, after the tag.
+  const shipped = readdirSync('client/assets/fonts')
+    .filter(name => name.startsWith('OFL-'))
+    .map(name => `client/assets/fonts/${name}`);
+  assert.deepEqual(BUNDLED.map(font => font.notice).sort(), shipped.sort());
 });

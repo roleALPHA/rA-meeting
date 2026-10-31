@@ -161,8 +161,8 @@ Permissive. Requires the notice to travel with the code -- see --notices.
 Font licence. Fonts may be bundled with software under any terms as long as they are not sold on their own and the licence text travels with them.
 
 - @fontsource-variable/ibm-plex-sans
+- @fontsource-variable/manrope
 - @fontsource/ibm-plex-mono
-- @fontsource/instrument-serif
 
 ## Unlicense
 
