@@ -44,7 +44,12 @@ test('browser export requires approval, uses delegated roleALPHA contract and co
           'create_entity_draft',
           {
             inputSchema: compatible
-              ? { entity_type: z.string(), name: z.string(), custom_id: z.string(), data: z.record(z.unknown()) }
+              ? {
+                  entity_type: z.string(),
+                  name: z.string(),
+                  custom_id: z.string(),
+                  data: z.record(z.string(), z.unknown()),
+                }
               : { name: z.string() },
           },
           async (args: Record<string, unknown>) => {

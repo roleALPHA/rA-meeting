@@ -97,6 +97,7 @@ test('linking applies the setting as organizer and records why it was not applie
 
   await api.request('/settings', { teamsRecording: 'allow-transcription', version: 1 }, 'PUT');
   m = await link('allow');
+  assert.equal(m.calendar?.teamsRecording?.result, 'applied');
   assert.deepEqual(patches.at(-1), { allowTranscription: true, recordAutomatically: false });
 
   organizer = other;

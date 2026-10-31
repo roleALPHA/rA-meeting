@@ -20,7 +20,7 @@ export const maintenanceRoutes: Route[] = [
     verb: 'POST',
     path: /^\/maintenance\/orphans$/,
     handle: async (ctx, { body }) => {
-      const ids = z.array(z.string().uuid()).min(1).max(5000).parse(body.ids);
+      const ids = z.array(z.guid()).min(1).max(5000).parse(body.ids);
       return { recycled: await (await ownerStore(ctx)).recycleOrphans(ctx.actor.tenantId, ids) };
     },
   },
