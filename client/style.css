@@ -5,21 +5,25 @@
  * the theme blocks swap those two, and every derivation below follows. Two kinds of mix:
  *   ..., var(--surface))   opaque, for surfaces (card, dialog) that must not let content show through
  *   ..., transparent)      alpha, for lines and secondary text that sit on any background
- * The percentages come from the brand sheet (secondary text Ink 65 %, divider 12 %, surface 6 %) and form a
- * ladder: move the whole ladder, never one step.
+ * The percentages come from the styleguide (secondary text Tiefgrün 65 %, divider 12 %, surface 6 %, field border
+ * 50 %) and form a ladder: move the whole ladder, never one step.
  *
  * No raw colour values in this file. tests/brand.test.ts rejects them.
  */
 
 :host {
-  --surface: var(--brand-paper);
-  --on-surface: var(--brand-ink);
-  --action: var(--brand-bottle);
-  --on-action: var(--brand-paper);
+  --surface: var(--brand-creme);
+  --on-surface: var(--brand-tiefgruen);
+  --action: var(--brand-mint-dunkel);
+  --on-action: var(--brand-creme);
 
-  --status-good: var(--brand-bottle);
-  --status-warning: var(--brand-amber);
-  --status-critical: var(--brand-rust);
+  --status-good: var(--brand-mint-dunkel);
+  --status-warning: var(--brand-warnung);
+  --status-critical: var(--brand-fehler);
+  /* Notice backgrounds are fixed steps of their own: a status colour mixed thin into a tinted surface turns grey. */
+  --status-good-surface: var(--brand-erfolg-hell);
+  --status-warning-surface: var(--brand-warnung-hell);
+  --status-critical-surface: var(--brand-fehler-hell);
 
   --background: var(--surface);
   --foreground: var(--on-surface);
@@ -34,7 +38,7 @@
   --secondary: color-mix(in oklab, var(--on-surface) 14%, var(--surface));
   --border: color-mix(in srgb, var(--on-surface) 16%, transparent);
   /* A field border is a control, not a divider: WCAG 1.4.11 asks for 3:1 against the surface. */
-  --input: color-mix(in srgb, var(--on-surface) 48%, transparent);
+  --input: color-mix(in srgb, var(--on-surface) 50%, transparent);
   --muted-foreground: color-mix(in srgb, var(--on-surface) 65%, transparent);
 
   --primary: var(--action);
@@ -44,10 +48,10 @@
   --destructive: var(--status-critical);
   --destructive-foreground: var(--surface);
   --destructive-border: color-mix(in oklab, var(--destructive) 88%, var(--on-surface));
-  /* "Draft" is not an accent but muted Ink, at the level of secondary text so a badge stays readable. */
+  /* "Draft" is not an accent but muted Tiefgrün, at the level of secondary text so a badge stays readable. */
   --status-neutral: color-mix(in srgb, var(--on-surface) 65%, transparent);
 
-  /* Selected is a tool state, not a statement about the thing: Ink (Paper in dark), never a status colour. */
+  /* Selected is a tool state, not a statement about the thing: Tiefgrün (Creme in dark), never a status colour. */
   --selection: color-mix(in srgb, var(--on-surface) 70%, transparent);
   --selection-fill: color-mix(in srgb, var(--on-surface) 8%, transparent);
 
@@ -60,9 +64,14 @@
   --category-1: var(--brand-data-1);
   --category-2: var(--brand-data-2);
   --category-3: var(--brand-data-3);
+  /* A category glyph on its tinted tile needs 3:1 (WCAG 1.4.11), and the palette is tuned for marks on the bare
+     surface. A fifth of --on-surface keeps the hue and lifts every slot above 3.3:1 on a card, in both themes. */
+  --category-1-ink: color-mix(in oklab, var(--category-1) 80%, var(--on-surface));
+  --category-2-ink: color-mix(in oklab, var(--category-2) 80%, var(--on-surface));
+  --category-3-ink: color-mix(in oklab, var(--category-3) 80%, var(--on-surface));
 
   --font-sans: var(--brand-font-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--brand-font-display), Georgia, serif;
+  --font-display: var(--brand-font-display), var(--brand-font-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--brand-font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
 
   --radius-sm: 3px;
@@ -84,17 +93,20 @@
   -webkit-font-smoothing: antialiased;
 }
 
-/* Dark swaps surface and foreground. Bottle and Rust are too dark on Ink; only their lightness is lifted, so the
-   brand hue stays recognisable. */
+/* Dark swaps surface and foreground; the accent moves to the light Mint, the status colours to their fixed
+   "on dark" steps. Notice backgrounds are mixed from the status colour, because the brand has no dark notice step. */
 :host([data-theme='dark']) {
   color-scheme: dark;
-  --surface: var(--brand-ink);
-  --on-surface: var(--brand-paper);
-  --action: var(--brand-paper);
-  --on-action: var(--brand-ink);
-  --status-good: oklch(from var(--brand-bottle) 0.68 c h);
-  --status-warning: oklch(from var(--brand-amber) 0.68 c h);
-  --status-critical: oklch(from var(--brand-rust) 0.68 c h);
+  --surface: var(--brand-anthrazit);
+  --on-surface: var(--brand-creme);
+  --action: var(--brand-mint);
+  --on-action: var(--brand-tiefgruen);
+  --status-good: var(--brand-mint);
+  --status-warning: var(--brand-warnung-auf-dunkel);
+  --status-critical: var(--brand-fehler-auf-dunkel);
+  --status-good-surface: color-mix(in oklab, var(--status-good) 16%, var(--surface));
+  --status-warning-surface: color-mix(in oklab, var(--status-warning) 16%, var(--surface));
+  --status-critical-surface: color-mix(in oklab, var(--status-critical) 16%, var(--surface));
 }
 
 /* High contrast: full-strength lines and text, yellow for what is actionable or selected. */
@@ -104,9 +116,12 @@
   --on-surface: var(--brand-contrast-on-surface);
   --action: var(--brand-contrast-action);
   --on-action: var(--brand-contrast-surface);
-  --status-good: oklch(from var(--brand-bottle) 0.82 c h);
-  --status-warning: oklch(from var(--brand-amber) 0.86 c h);
-  --status-critical: oklch(from var(--brand-rust) 0.8 c h);
+  --status-good: var(--brand-mint);
+  --status-warning: var(--brand-warnung-auf-dunkel);
+  --status-critical: var(--brand-fehler-auf-dunkel);
+  --status-good-surface: var(--surface);
+  --status-warning-surface: var(--surface);
+  --status-critical-surface: var(--surface);
   --card: var(--surface);
   --sidebar: var(--surface);
   --popover: var(--surface);
@@ -158,20 +173,24 @@ h4,
 p {
   margin-top: 0;
 }
-/* The page title, and only it, is set in the display serif. It exists in weight 400 only; without
-   font-synthesis-weight the browser would fake a bold with smeared serifs. */
+/* Headings h1-h3 are set in the display face, in sentence case. Titles are Medium, never Bold: the variable
+   Manrope shows a stray bold at once. h4 is a label and stays in the body face. */
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+}
 h1 {
-  font-family: var(--font-serif);
-  font-weight: 400;
-  font-synthesis-weight: none;
+  font-weight: 500;
   font-size: 2rem;
   line-height: 1.15;
-  letter-spacing: 0;
+  letter-spacing: -0.02em;
   margin-bottom: 12px;
 }
 h2 {
   font-size: 1.125rem;
-  font-weight: 600;
+  font-weight: 500;
+  letter-spacing: -0.02em;
   line-height: 1.35;
   margin-bottom: 12px;
 }
@@ -624,7 +643,7 @@ select {
   justify-content: space-between;
   gap: 12px;
   border: 1px solid color-mix(in srgb, var(--status-warning) 30%, transparent);
-  background: color-mix(in srgb, var(--status-warning) 10%, var(--background));
+  background: var(--status-warning-surface);
   color: var(--foreground);
   border-radius: var(--radius-lg);
   padding: 12px 16px;
@@ -633,12 +652,12 @@ select {
   line-height: 1.6;
 }
 .error {
-  background: color-mix(in srgb, var(--status-critical) 10%, var(--background));
+  background: var(--status-critical-surface);
   border-color: color-mix(in srgb, var(--status-critical) 50%, transparent);
   color: var(--status-critical);
 }
 .notice.success {
-  background: color-mix(in srgb, var(--status-good) 10%, var(--background));
+  background: var(--status-good-surface);
   border-color: color-mix(in srgb, var(--status-good) 30%, transparent);
 }
 
@@ -738,7 +757,7 @@ select {
 .meeting-icon,
 .template-icon {
   background: color-mix(in srgb, var(--category-1) 15%, transparent);
-  color: var(--category-1);
+  color: var(--category-1-ink);
   display: grid;
   place-items: center;
   border-radius: var(--radius-md);
@@ -748,12 +767,12 @@ select {
 .meeting-icon.governance,
 .template-icon.governance {
   background: color-mix(in srgb, var(--category-2) 15%, transparent);
-  color: var(--category-2);
+  color: var(--category-2-ink);
 }
 .meeting-icon.custom,
 .template-icon.custom {
   background: color-mix(in srgb, var(--category-3) 15%, transparent);
-  color: var(--category-3);
+  color: var(--category-3-ink);
 }
 :host([data-theme='contrast']) .meeting-icon,
 :host([data-theme='contrast']) .template-icon {
@@ -1395,7 +1414,7 @@ dialog.wide {
 }
 /* ::backdrop does not inherit custom properties in every browser; the keyword is the fallback. */
 dialog::backdrop {
-  background: color-mix(in srgb, var(--brand-ink, black) 80%, transparent);
+  background: color-mix(in srgb, var(--brand-tiefgruen, black) 80%, transparent);
 }
 .modal-head {
   display: flex;
