@@ -368,6 +368,9 @@ export const en: Record<MessageId, string> = {
   'onboarding.teamsAdministratorMustAdd':
     'For Teams: an administrator must add the app to Teams from the app catalog and approve it. Select the same workspace when adding a tab.',
   'onboarding.openWorkspace': 'Open workspace',
+  'onboarding.raWorkspace': 'rA workspace',
+  'onboarding.findingSites': 'Looking for SharePoint sites …',
+  'onboarding.yourSites': 'Your SharePoint sites',
   'onboarding.setUpAgainKeepsContent': 'You can run setup again to add missing parts. Existing content is kept.',
   'onboarding.workspaceAlreadySetUp': 'This site is already set up as a workspace.',
   'outcomes.editOutcome': 'Edit outcome',

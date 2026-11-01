@@ -1,5 +1,5 @@
 import { AppError } from '../shared/model';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Preferences } from './Preferences';
 import { errorText, language, t as tr, usePreferences } from './i18n';
 import type { MessageId } from '../shared/i18n';
@@ -8,10 +8,12 @@ import {
   checkCalendar,
   createWorkspaceSite,
   hostForWorkspace,
+  listSites,
   newSiteStatus,
   selectWorkspace,
   setupWorkspace,
   workspaceUrl,
+  type SiteChoice,
 } from './browser/onboarding';
 import { adminConsentUrl, graphConsentUrl } from './browser/consent';
 import { loadConnections, saveConnections, testConnection } from './browser/connections';
@@ -35,6 +37,19 @@ export function Onboarding({
   const [title, setTitle] = useState('rA Meetings');
   const [selected, setSelected] = useState<BrowserHost | null>(null);
   const [site, setSite] = useState({ ready: false, canSetUp: true });
+  const [sites, setSites] = useState<SiteChoice[] | null>(null);
+  useEffect(() => {
+    let alive = true;
+    // Search is a help, not a requirement: without it the address is entered by hand.
+    listSites(host)
+      .catch(() => [])
+      .then(found => {
+        if (alive) setSites(found);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [host]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [pending, setPending] = useState(false);
@@ -130,6 +145,34 @@ export function Onboarding({
           </label>
           {mode === 'existing' ? (
             <>
+              {sites === null ? (
+                <p className="small muted">{tr('onboarding.findingSites')}</p>
+              ) : (
+                sites.length > 0 && (
+                  <div className="field">
+                    <span>{tr('onboarding.yourSites')}</span>
+                    <ul className="site-choices">
+                      {sites.map(choice => (
+                        <li key={choice.url}>
+                          <button
+                            type="button"
+                            className="site-choice"
+                            aria-pressed={choice.url === url}
+                            disabled={busy}
+                            onClick={() => setUrl(choice.url)}
+                          >
+                            <span className="site-choice-title">
+                              {choice.title}
+                              {choice.workspace && <span className="pill">{tr('onboarding.raWorkspace')}</span>}
+                            </span>
+                            <span className="small muted">{choice.url}</span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )
+              )}
               <label className="field">
                 <span>{tr('onboarding.sharepointSiteAddress')}</span>
                 <input type="url" value={url} disabled={busy} onChange={e => setUrl(e.target.value)} />

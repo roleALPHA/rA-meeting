@@ -381,6 +381,9 @@ export const fr: Record<MessageId, string> = {
   'onboarding.teamsAdministratorMustAdd':
     'Pour Teams : l’administration doit ajouter l’app à Teams depuis le catalogue et l’autoriser. Choisissez le même espace lors de l’ajout d’un onglet.',
   'onboarding.openWorkspace': 'Ouvrir l’espace de travail',
+  'onboarding.raWorkspace': 'Espace rA',
+  'onboarding.findingSites': 'Recherche des sites SharePoint …',
+  'onboarding.yourSites': 'Vos sites SharePoint',
   'onboarding.setUpAgainKeepsContent':
     'Vous pouvez relancer la configuration pour ajouter les éléments manquants. Le contenu existant est conservé.',
   'onboarding.workspaceAlreadySetUp': 'Ce site est déjà configuré comme espace de travail.',

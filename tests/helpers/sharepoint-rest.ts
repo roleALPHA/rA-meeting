@@ -34,6 +34,13 @@ export function fakeSharePoint() {
     assignments: [] as { PrincipalId: number; RoleDefinitionBindings: Binding[] }[],
   };
   const created = new Set<string>();
+  /** What SharePoint search finds; other origins (OneDrive) must be filtered out by the app. */
+  const searchSites = [
+    { title: 'Marketing', url: 'https://customer.sharepoint.com/sites/marketing' },
+    { title: 'Test Workspace', url: 'https://customer.sharepoint.com/sites/circle' },
+    { title: 'Personal', url: 'https://customer-my.sharepoint.com/personal/owner' },
+    { title: 'Communication', url: 'https://customer.sharepoint.com' },
+  ];
   let serial = 0;
   const json = (value: unknown, status = 200, headers: HeadersInit = {}) =>
     new Response(JSON.stringify(value), { status, headers });
@@ -108,6 +115,22 @@ export function fakeSharePoint() {
         Low: String((state.write ? 14 : 0) + (state.provision ? 2048 : 0) + (state.owner ? 0x2000000 : 0)),
       });
     if (method !== 'GET' && !state.write) return json({}, 403);
+    if (path.startsWith('/search/query?')) {
+      // SharePoint search: site collections, and the record list wherever a workspace exists.
+      const query = new URLSearchParams(path.slice(path.indexOf('?') + 1)).get('querytext') ?? '';
+      const rows = query.includes('STS_Site')
+        ? searchSites.map(site => ({ Title: site.title, Path: site.url }))
+        : state.ready
+          ? [{ Title: 'rA Meetings Browser Index', SPWebUrl: 'https://customer.sharepoint.com/sites/circle' }]
+          : [];
+      return json({
+        PrimaryQueryResult: {
+          RelevantResults: {
+            Table: { Rows: rows.map(row => ({ Cells: Object.entries(row).map(([Key, Value]) => ({ Key, Value })) })) },
+          },
+        },
+      });
+    }
     const own = connectionsRequest(path, method, headers, init.body);
     if (own) return own;
     if (path === '/web?$select=Title,Url')

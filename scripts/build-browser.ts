@@ -1,6 +1,7 @@
 import { build } from 'esbuild';
 import { copyFile, readFile, rm, writeFile, mkdir } from 'node:fs/promises';
 import { graphScopes } from '../client/browser/consent';
+import { description, developer, meetingsComponentId, teamsManifest, zip } from './teams-package';
 const pkg = JSON.parse(await readFile('spfx/package.json', 'utf8')) as { version: string };
 if (!/^\d+\.\d+\.\d+$/.test(pkg.version)) throw new Error('SPFx version must have three numeric parts');
 const root = JSON.parse(await readFile('package.json', 'utf8')) as { version: string };
@@ -79,28 +80,27 @@ await writeFile(
         skipFeatureDeployment: true,
         isDomainIsolated: false,
         webApiPermissionRequests: permissions,
-        // Teams shows these on the app's details page; without them SharePoint fills in "SPFx + Teams Dev".
-        developer: {
-          name: 'roleALPHA GmbH',
-          websiteUrl: 'https://rolealpha.com',
-          privacyUrl: 'https://rolealpha.com/legal/datenschutz',
-          termsOfUseUrl: 'https://rolealpha.com/legal/agb',
-          mpnId: 'Undefined-1.24.0',
-        },
-        metadata: {
-          shortDescription: { default: 'Meetings, tensions and outcomes in SharePoint and Microsoft Teams' },
-          longDescription: {
-            default:
-              'Run meetings from shared templates, record tensions or agenda items and agree on outcomes. ' +
-              "Everything is stored in your organization's SharePoint site; there is no server outside your tenant.",
-          },
-        },
+        developer: { ...developer, mpnId: 'Undefined-1.24.0' },
+        metadata: { shortDescription: { default: description.short }, longDescription: { default: description.full } },
       },
       paths: { zippedPackage: 'solution/rolealpha-meetings.sppkg' },
     },
     null,
     2,
   ) + '\n',
+);
+// One Teams app for the whole package instead of one generated per web part (scripts/teams-package.ts).
+await writeFile(
+  'spfx/teams/TeamsSPFxApp.zip',
+  zip([
+    { name: 'manifest.json', data: Buffer.from(JSON.stringify(teamsManifest(pkg.version), null, 2)) },
+    ...(await Promise.all(
+      ['color', 'outline'].map(async kind => ({
+        name: `${meetingsComponentId}_${kind}.png`,
+        data: await readFile(`spfx/teams/${meetingsComponentId}_${kind}.png`),
+      })),
+    )),
+  ]),
 );
 await mkdir('work', { recursive: true });
 await writeFile('work/browser-bundle-inputs.json', JSON.stringify(Object.keys(result.metafile!.inputs), null, 2));
