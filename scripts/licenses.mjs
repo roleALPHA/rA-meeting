@@ -111,11 +111,11 @@ export const BUNDLED = [
     notice: 'client/assets/fonts/OFL-IBM-Plex-Mono.txt',
   },
   {
-    name: '@fontsource/instrument-serif',
+    name: '@fontsource-variable/manrope',
     version: '5.3.0',
     license: 'OFL-1.1',
     path: 'client/assets/fonts',
-    notice: 'client/assets/fonts/OFL-Instrument-Serif.txt',
+    notice: 'client/assets/fonts/OFL-Manrope.txt',
   },
 ];
 
