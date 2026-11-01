@@ -17,11 +17,10 @@ export default class MeetingsWebPart extends BaseClientSideWebPart<Properties> {
   public render(): void {
     this.disposeApp?.();
     const current = new URL(this.context.pageContext.web.absoluteUrl);
+    const chosen = new URLSearchParams(window.location.search).get('raWorkspace') || this.properties.workspaceUrl;
     let selected: URL;
     try {
-      selected = new URL(
-        new URLSearchParams(window.location.search).get('raWorkspace') || this.properties.workspaceUrl || current.href,
-      );
+      selected = new URL(chosen || current.href);
     } catch {
       this.domElement.textContent = 'Select a valid SharePoint site URL.';
       return;
@@ -90,6 +89,8 @@ export default class MeetingsWebPart extends BaseClientSideWebPart<Properties> {
       userName: this.context.pageContext.user.displayName,
       webUrl,
       isTeams: !!this.context.sdks.microsoftTeams,
+      // The Teams personal app carries no workspace address; channel tabs and pages configure one.
+      rememberWorkspace: !!this.context.sdks.microsoftTeams && !chosen,
       initialMeeting: this.properties.meetingId,
       language: this.language(),
       fonts,

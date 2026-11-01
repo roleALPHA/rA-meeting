@@ -5,14 +5,14 @@ import { errorText, language, t as tr, usePreferences } from './i18n';
 import type { MessageId } from '../shared/i18n';
 import type { BrowserHost } from './browser/host';
 import {
+  checkCalendar,
   createWorkspaceSite,
   hostForWorkspace,
-  inspectWorkspace,
   newSiteStatus,
+  selectWorkspace,
   setupWorkspace,
   workspaceUrl,
 } from './browser/onboarding';
-import { graph } from './browser/host';
 import { adminConsentUrl, graphConsentUrl } from './browser/consent';
 import { loadConnections, saveConnections, testConnection } from './browser/connections';
 import { workspaceAccess } from '../shared/storage/sharepoint-rest';
@@ -34,6 +34,7 @@ export function Onboarding({
   const [slug, setSlug] = useState('ra-meetings');
   const [title, setTitle] = useState('rA Meetings');
   const [selected, setSelected] = useState<BrowserHost | null>(null);
+  const [site, setSite] = useState({ ready: false, canSetUp: true });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [pending, setPending] = useState(false);
@@ -78,7 +79,7 @@ export function Onboarding({
           return;
         }
       }
-      await inspectWorkspace(destination);
+      setSite(await selectWorkspace(destination));
       setSelected(destination);
       setProgress('');
       setStep(1);
@@ -177,47 +178,66 @@ export function Onboarding({
         <>
           <h2>{tr('onboarding.reviewAccessSettings')}</h2>
           <p className="preserve">{selected.webUrl}</p>
-          <p className="notice">{tr('onboarding.everyoneReadAccessCan')}</p>
-          <a className="button" href={selected.webUrl + '/_layouts/15/user.aspx'} target="_blank" rel="noreferrer">
-            {tr('onboarding.openSitePermissions')}
-          </a>
-          <p>{tr('onboarding.selectedLanguageAppliesNew')}</p>
-          <label className="check">
-            <input type="checkbox" checked={page} onChange={e => setPage(e.target.checked)} />
-            {tr('onboarding.prepareDedicatedRaMeetings')}
-          </label>
-          <p className="small muted">{tr('onboarding.entryPageCreatedDraft')}</p>
-          <label className="check">
-            <input type="checkbox" checked={ack} onChange={e => setAck(e.target.checked)} />
-            {tr('onboarding.iHaveReviewedWho')}
-          </label>
-          <div className="row">
-            <button
-              className="button"
-              onClick={() => {
-                setStep(0);
-                setAck(false);
-              }}
-            >
+          {site.ready && (
+            <>
+              <p role="status">{tr('onboarding.workspaceAlreadySetUp')}</p>
+              <div className="row">
+                <button className="button primary" onClick={() => complete(selected)}>
+                  {tr('onboarding.openWorkspace')}
+                </button>
+              </div>
+              {site.canSetUp && <p className="small muted">{tr('onboarding.setUpAgainKeepsContent')}</p>}
+            </>
+          )}
+          {!site.canSetUp ? (
+            <button className="button" onClick={() => setStep(0)}>
               {tr('onboarding.back')}
             </button>
-            <button
-              className="button primary"
-              disabled={!ack}
-              onClick={() => {
-                setStep(2);
-                void run(async () => {
-                  const result = await setupWorkspace(selected, language(), page, setProgress);
-                  setOwner((await workspaceAccess(selected.sharepoint)).owner);
-                  setPageUrl(result.pageUrl || '');
-                  setProgress('');
-                  setStep(3);
-                });
-              }}
-            >
-              {tr('onboarding.setUpWorkspace')}
-            </button>
-          </div>
+          ) : (
+            <>
+              <p className="notice">{tr('onboarding.everyoneReadAccessCan')}</p>
+              <a className="button" href={selected.webUrl + '/_layouts/15/user.aspx'} target="_blank" rel="noreferrer">
+                {tr('onboarding.openSitePermissions')}
+              </a>
+              <p>{tr('onboarding.selectedLanguageAppliesNew')}</p>
+              <label className="check">
+                <input type="checkbox" checked={page} onChange={e => setPage(e.target.checked)} />
+                {tr('onboarding.prepareDedicatedRaMeetings')}
+              </label>
+              <p className="small muted">{tr('onboarding.entryPageCreatedDraft')}</p>
+              <label className="check">
+                <input type="checkbox" checked={ack} onChange={e => setAck(e.target.checked)} />
+                {tr('onboarding.iHaveReviewedWho')}
+              </label>
+              <div className="row">
+                <button
+                  className="button"
+                  onClick={() => {
+                    setStep(0);
+                    setAck(false);
+                  }}
+                >
+                  {tr('onboarding.back')}
+                </button>
+                <button
+                  className={site.ready ? 'button' : 'button primary'}
+                  disabled={!ack}
+                  onClick={() => {
+                    setStep(2);
+                    void run(async () => {
+                      const result = await setupWorkspace(selected, language(), page, setProgress);
+                      setOwner((await workspaceAccess(selected.sharepoint)).owner);
+                      setPageUrl(result.pageUrl || '');
+                      setProgress('');
+                      setStep(3);
+                    });
+                  }}
+                >
+                  {tr('onboarding.setUpWorkspace')}
+                </button>
+              </div>
+            </>
+          )}
         </>
       )}
       {step === 2 && !busy && (
@@ -270,7 +290,7 @@ export function Onboarding({
             disabled={busy}
             onClick={() =>
               run(async () => {
-                await graph(selected, '/me/calendar/events?$top=1&$select=id');
+                await checkCalendar(selected);
                 setCalendar('onboarding.calendarAccessVerifiedSuccessfully');
               })
             }

@@ -1,15 +1,18 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  checkCalendar,
   createWorkspaceSite,
   hostForWorkspace,
   newSiteStatus,
+  selectWorkspace,
   setupWorkspace,
   workspaceUrl,
   meetingsWebPartId,
 } from '../client/browser/onboarding.js';
 import { connectionSettingsSchema, type BrowserHost } from '../client/browser/host.js';
 import { fakeSharePoint, tenant, user } from './helpers/sharepoint-rest.js';
+import { rememberWorkspace, withRememberedWorkspace } from '../client/browser/workspace-memory.js';
 const url = 'https://customer.sharepoint.com/sites/circle';
 function fixture() {
   const sp = fakeSharePoint();
@@ -154,4 +157,79 @@ test('landing page resumes its own draft and never overwrites an existing page o
     setupWorkspace(second.host, 'de', true, () => {}),
     /nicht überschrieben/,
   );
+});
+
+test('the wizard opens an existing workspace for members and offers setup only to those who may run it', async () => {
+  const { sp, host } = fixture();
+  sp.state.provision = false;
+  sp.state.owner = false;
+  assert.deepEqual(await selectWorkspace(host), { ready: true, canSetUp: false });
+  sp.state.ready = false;
+  await assert.rejects(selectWorkspace(host), /Websitebesitzer/);
+  sp.state.provision = true;
+  assert.deepEqual(await selectWorkspace(host), { ready: false, canSetUp: true });
+  assert.ok(sp.calls.every(c => c.method === 'GET'));
+});
+
+test('a host without a configured site starts in the workspace this user opened last', () => {
+  const { host } = fixture();
+  const values = new Map<string, string>();
+  const storage = {
+    getItem: (k: string) => values.get(k) ?? null,
+    setItem: (k: string, v: string) => void values.set(k, v),
+    removeItem: (k: string) => void values.delete(k),
+  } as Storage;
+  const root: BrowserHost = {
+    ...host,
+    webUrl: 'https://customer.sharepoint.com',
+    rememberWorkspace: true,
+    sharepointAt: async () => new Response('{}'),
+  };
+  assert.equal(withRememberedWorkspace(root, storage), root);
+  rememberWorkspace(root, url, storage);
+  assert.equal(withRememberedWorkspace(root, storage).webUrl, url);
+  // Pages and channel tabs name their workspace and neither read nor write the memory.
+  const page = { ...root, rememberWorkspace: false };
+  assert.equal(withRememberedWorkspace(page, storage), page);
+  rememberWorkspace(page, 'https://customer.sharepoint.com/sites/other', storage);
+  assert.equal(withRememberedWorkspace(root, storage).webUrl, url);
+  // Another user in the same browser has a memory of their own.
+  assert.equal(
+    withRememberedWorkspace({ ...root, userId: '33333333-3333-4333-8333-333333333333' }, storage).webUrl,
+    root.webUrl,
+  );
+  // An address that is no longer acceptable is dropped instead of retried.
+  rememberWorkspace(root, 'https://evil.example/sites/circle', storage);
+  assert.equal(withRememberedWorkspace(root, storage), root);
+  assert.equal(values.size, 0);
+  const blocked = {
+    getItem: () => {
+      throw new Error('blocked');
+    },
+  } as unknown as Storage;
+  assert.equal(withRememberedWorkspace(root, blocked), root);
+});
+
+test('the calendar test makes the meeting view request and names a mixed-up account', async t => {
+  const { host } = fixture();
+  const calendarHost = { ...host, token: async () => 'token' };
+  let me = user;
+  let status = 200;
+  const original = globalThis.fetch;
+  t.after(() => {
+    globalThis.fetch = original;
+  });
+  const urls: string[] = [];
+  globalThis.fetch = async input => {
+    const target = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+    urls.push(target);
+    if (target.includes('/me?')) return Response.json({ id: me, userPrincipalName: 'other@customer.example' });
+    return status === 200 ? Response.json({ value: [] }) : new Response('{}', { status });
+  };
+  await checkCalendar(calendarHost);
+  assert.ok(urls.some(u => u.includes(`/users/${user}/calendarView?`)));
+  status = 404;
+  await assert.rejects(checkCalendar(calendarHost), /Exchange-Online-Postfach/);
+  me = '33333333-3333-4333-8333-333333333333';
+  await assert.rejects(checkCalendar(calendarHost), /other@customer\.example.*Owner/);
 });
