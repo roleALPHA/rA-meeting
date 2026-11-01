@@ -113,6 +113,11 @@ export type BrowserHost = {
   webUrl: string;
   isTeams: boolean;
   initialMeeting?: string;
+  /**
+   * The host opened without a configured workspace, as the Teams personal app does: start in the workspace this
+   * user last opened here (client/browser/workspace-memory.ts) instead of the site the host happens to run on.
+   */
+  rememberWorkspace?: boolean;
   /** Language for starter templates and meeting defaults; the SharePoint UI language in SPFx. */
   language?: Language;
   /** Loaded from the workspace when the app starts; see loadConnections. */
@@ -177,6 +182,7 @@ export async function graph(host: BrowserHost, path: string, init: RequestInit =
     credentials: 'omit',
     signal: AbortSignal.timeout(30_000),
   });
-  if (!r.ok) throw new AppError(502, 'error.graph.http', { status: r.status });
+  if (!r.ok)
+    throw new AppError(502, r.status === 404 ? 'error.graph.notFound' : 'error.graph.http', { status: r.status });
   return r;
 }

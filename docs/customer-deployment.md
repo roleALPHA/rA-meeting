@@ -60,7 +60,7 @@ The **app catalog** is your organization's central location for additional Share
 2. If necessary, select **Show all**, then **Admin centers → SharePoint**.
 3. Open **More features**.
 4. Under **Apps**, select **Open**.
-5. You should see **Manage apps**. If prompted to create an app catalog first, have the SharePoint administrator complete that setup and reopen this screen. Do not substitute an additional site-level app catalog.
+5. You should see **Manage apps**. If the organization has no app catalog yet, SharePoint creates it now and shows “Creating the site for storing apps”; this happens once and takes a few minutes. If you are instead prompted to create an app catalog, have the SharePoint administrator complete that setup and reopen this screen. Do not substitute an additional site-level app catalog.
 
 **Check:** The app management screen offers **Upload**. See [Microsoft's app catalog guide](https://learn.microsoft.com/en-us/sharepoint/use-app-catalog).
 
@@ -101,7 +101,7 @@ A **web part** is a component placed on a SharePoint page. You can skip this ste
 8. Wait for the workspace-ready confirmation. The app creates storage and starter templates, then performs a write/read test. If an error occurs, previously created components remain. Go back, resolve the cause, and run setup again. Do not begin troubleshooting by deleting the created lists.
 9. If you requested a landing page, open the review-and-publish link. Review the page in SharePoint and select **Publish**. Share the link with the group only afterwards. Any organizational page approval requirement still applies.
 10. On **Set up connections**, optionally set up AI and roleALPHA as described in step 10 below, or continue and do it later under **Connections**. Only site owners (Full Control) see the form.
-11. Optionally test calendar access. Complete step 7 if permissions are missing. Missing optional connections do not prevent basic meeting use. “Configured” does not replace actual AI or roleALPHA function tests.
+11. Optionally test calendar access. The test makes the same request as linking a calendar event and checks that Microsoft Graph and SharePoint use the same account; in a browser signed in to several Microsoft 365 accounts they can differ. Complete step 7 if permissions are missing. Missing optional connections do not prevent basic meeting use. “Configured” does not replace actual AI or roleALPHA function tests.
 12. Open the workspace. Under **Templates**, verify that three starter templates exist. Create a test meeting from **Meetings** and reload the page. The meeting must remain available.
 
 **Check:** Open **Settings → Site contents** on the selected site and find:
@@ -113,7 +113,7 @@ A **web part** is a component placed on a SharePoint page. You can skip this ste
 | `rA-Meetings.aspx` in the pages library, if requested | Prepared landing page containing the app |
 | `rA Meetings Connections`, once connections are saved | AI and roleALPHA settings; its own permissions let only site owners change it |
 
-Do not rename the storage areas. After switching sites, the current app URL includes the workspace selection. Prefer the published landing page for a lasting entry point. In Teams, also enter the selected site address in the tab configuration.
+Do not rename the storage areas. After switching sites, the current app URL includes the workspace selection. Prefer the published landing page for a lasting entry point. In Teams, also enter the selected site address in the tab configuration. The personal Teams app remembers the workspace each user opened last, in that browser or Teams client; on another device the user selects it once in the wizard, which recognizes an existing workspace and opens it without setting it up again. Members who are not site owners can open an existing workspace this way.
 
 ## 7. Optional: approve calendar and Teams transcript access
 

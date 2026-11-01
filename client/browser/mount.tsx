@@ -11,9 +11,11 @@ import { Preferences } from '../Preferences';
 import brandCss from '../brand.css?inline';
 import css from '../style.css?inline';
 import { installFonts, type Theme } from './brand';
+import { rememberWorkspace, withRememberedWorkspace } from './workspace-memory';
 function Start({ host: initialHost }: { host: BrowserHost }) {
   usePreferences();
-  const [host, setHost] = useState(initialHost);
+  const [start] = useState(() => withRememberedWorkspace(initialHost));
+  const [host, setHost] = useState(start);
   const [api, setApi] = useState<AppApi | null>(null);
   const [error, setError] = useState('');
   const [wizard, setWizard] = useState(false);
@@ -24,17 +26,25 @@ function Start({ host: initialHost }: { host: BrowserHost }) {
     setApi(null);
     void createBrowserApi(host)
       .then(api => {
-        if (alive) setApi(api);
+        if (!alive) return;
+        rememberWorkspace(host, host.webUrl);
+        setApi(api);
       })
       .catch((error: unknown) => {
         if (!alive) return;
+        if (host === start && start !== initialHost) {
+          // The remembered workspace is gone or no longer readable: start from the site the host opened.
+          rememberWorkspace(initialHost, null);
+          setHost(initialHost);
+          return;
+        }
         setError(errorText(error));
         if (error instanceof AppError && (error.status === 404 || error.status === 503)) setWizard(true);
       });
     return () => {
       alive = false;
     };
-  }, [host, retry]);
+  }, [host, retry, start, initialHost]);
   if (wizard)
     return (
       <Onboarding

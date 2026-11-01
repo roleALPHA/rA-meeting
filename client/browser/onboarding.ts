@@ -1,7 +1,8 @@
 import type { MessageId } from '../../shared/i18n';
 import { assert, AppError } from '../../shared/model';
 import { provisionWorkspace, SharePointRestStore, spJson, workspaceAccess } from '../../shared/storage/sharepoint-rest';
-import type { BrowserHost } from './host';
+import { graph, type BrowserHost } from './host';
+import { calendarEntries } from '../../shared/calendar';
 import type { Language } from '../../shared/i18n';
 export const meetingsWebPartId = 'd7391660-3f52-4e4b-b95f-7a71e4c5092e';
 export function workspaceUrl(value: string, current: string): string {
@@ -37,15 +38,58 @@ export function hostForWorkspace(host: BrowserHost, url: string): BrowserHost {
   };
 }
 const headers = { 'Content-Type': 'application/json;odata=nometadata' };
-export async function inspectWorkspace(host: BrowserHost) {
+/** The address must be the site itself, not a library or page below it. */
+async function siteWeb(host: BrowserHost) {
   const web = await spJson<{ Title: string; Url: string }>(host.sharepoint, '/web?$select=Title,Url');
   assert(
     workspaceUrl(web.Url, host.webUrl).toLowerCase() === host.webUrl.toLowerCase(),
     'error.onboarding.enterValidSharepointSite',
   );
+  return web;
+}
+export async function inspectWorkspace(host: BrowserHost) {
+  const web = await siteWeb(host);
   const access = await workspaceAccess(host.sharepoint);
   assert(access.provision && access.write, 'error.onboarding.siteOwnerPermissionsRequired', 403);
   return { title: web.Title, url: host.webUrl };
+}
+/** True when the site already holds the workspace storage. */
+export async function workspaceReady(host: BrowserHost) {
+  try {
+    await new SharePointRestStore(host.tenantId, host.webUrl, host.sharepoint).initialize();
+    return true;
+  } catch (e) {
+    if (e instanceof AppError && (e.status === 404 || e.status === 503)) return false;
+    throw e;
+  }
+}
+/**
+ * Checks the site the wizard selects. A site that already holds a workspace opens for everyone who can read it;
+ * setting one up, or running setup again, needs the rights inspectWorkspace checks.
+ */
+export async function selectWorkspace(host: BrowserHost) {
+  await siteWeb(host);
+  const ready = await workspaceReady(host);
+  const access = await workspaceAccess(host.sharepoint);
+  const canSetUp = access.provision && access.write;
+  assert(ready || canSetUp, 'error.onboarding.siteOwnerPermissionsRequired', 403);
+  return { ready, canSetUp };
+}
+/**
+ * The wizard's calendar test. SharePoint names the user the app stores and links for; Graph answers for whoever the
+ * token belongs to. In a browser signed in to several accounts the two can differ, so the test compares them and
+ * then makes the request the meeting view makes.
+ */
+export async function checkCalendar(host: BrowserHost) {
+  const me = (await (await graph(host, '/me?$select=id,userPrincipalName')).json()) as {
+    id?: string;
+    userPrincipalName?: string;
+  };
+  assert(me.id?.toLowerCase() === host.userId.toLowerCase(), 'error.graph.otherAccount', 409, {
+    account: me.userPrincipalName ?? '?',
+    user: host.userName,
+  });
+  await calendarEntries(host.userId, (path, init) => graph(host, path, init));
 }
 async function siteManager(host: BrowserHost, path: string, init?: RequestInit) {
   assert(host.sharepointAt, 'error.onboarding.hostDoesSupportSite');

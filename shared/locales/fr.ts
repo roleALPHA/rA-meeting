@@ -113,6 +113,10 @@ export const fr: Record<MessageId, string> = {
     'Microsoft 365 Copilot a utilisé du contenu hors des sources roleALPHA. La réponse a été écartée.',
   'error.governance.governanceAnswerContainsInvalid': 'La réponse de gouvernance contient des sources non valides.',
   'error.graph.http': 'Microsoft Graph : HTTP {status}',
+  'error.graph.otherAccount':
+    "Microsoft Graph répond pour {account}, alors que SharePoint est connecté en tant que {user}. Déconnectez le compte que vous n'utilisez pas ici et rechargez la page.",
+  'error.graph.notFound':
+    "Microsoft Graph : introuvable (HTTP {status}). L'événement ou la réunion n'existe pas pour le compte connecté, ou le compte n'a pas de boîte aux lettres Exchange Online. Si plusieurs comptes Microsoft 365 sont connectés dans ce navigateur, déconnectez ceux que vous n'utilisez pas.",
   'error.integrations.onlyConfirmedUnexportedOutcomes':
     'Seuls les résultats confirmés et non transférés peuvent être envoyés.',
   'error.integrations.adapterCreatesNewEntities':
@@ -377,6 +381,9 @@ export const fr: Record<MessageId, string> = {
   'onboarding.teamsAdministratorMustAdd':
     'Pour Teams : l’administration doit ajouter l’app à Teams depuis le catalogue et l’autoriser. Choisissez le même espace lors de l’ajout d’un onglet.',
   'onboarding.openWorkspace': 'Ouvrir l’espace de travail',
+  'onboarding.setUpAgainKeepsContent':
+    'Vous pouvez relancer la configuration pour ajouter les éléments manquants. Le contenu existant est conservé.',
+  'onboarding.workspaceAlreadySetUp': 'Ce site est déjà configuré comme espace de travail.',
   'outcomes.editOutcome': 'Modifier le résultat',
   'outcomes.outcomeType': 'Type de résultat',
   'outcomes.title': 'Titre',

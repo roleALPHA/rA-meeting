@@ -111,6 +111,10 @@ export const de = {
     'Microsoft 365 Copilot hat Inhalte außerhalb der roleALPHA-Quellen herangezogen. Die Antwort wurde verworfen.',
   'error.governance.governanceAnswerContainsInvalid': 'Die Governance-Antwort enthält keine gültigen Quellen.',
   'error.graph.http': 'Microsoft Graph: HTTP {status}',
+  'error.graph.otherAccount':
+    'Microsoft Graph antwortet für {account}, SharePoint ist als {user} angemeldet. Melden Sie im Browser das Konto ab, das Sie hier nicht verwenden, und laden Sie die Seite neu.',
+  'error.graph.notFound':
+    'Microsoft Graph: nicht gefunden (HTTP {status}). Der Termin oder die Besprechung existiert für das angemeldete Konto nicht, oder das Konto hat kein Exchange-Online-Postfach. Sind im Browser mehrere Microsoft-365-Konten angemeldet, melden Sie die nicht benötigten ab.',
   'error.integrations.onlyConfirmedUnexportedOutcomes':
     'Nur bestätigte, nicht exportierte Ergebnisse können übertragen werden.',
   'error.integrations.adapterCreatesNewEntities':
@@ -380,6 +384,9 @@ export const de = {
   'onboarding.teamsAdministratorMustAdd':
     'Für Teams: Die Administration muss die App im App-Katalog zu Teams hinzufügen und freigeben. Beim Hinzufügen einer Registerkarte denselben Arbeitsbereich wählen.',
   'onboarding.openWorkspace': 'Arbeitsbereich öffnen',
+  'onboarding.setUpAgainKeepsContent':
+    'Sie können die Einrichtung erneut ausführen, um fehlende Teile zu ergänzen. Vorhandene Inhalte bleiben erhalten.',
+  'onboarding.workspaceAlreadySetUp': 'Diese Website ist bereits als Arbeitsbereich eingerichtet.',
   'outcomes.editOutcome': 'Ergebnis bearbeiten',
   'outcomes.outcomeType': 'Ergebnistyp',
   'outcomes.title': 'Titel',

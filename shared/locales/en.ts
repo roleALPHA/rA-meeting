@@ -107,6 +107,10 @@ export const en: Record<MessageId, string> = {
     'Microsoft 365 Copilot used content beyond the roleALPHA sources. The answer was discarded.',
   'error.governance.governanceAnswerContainsInvalid': 'The governance answer contains invalid sources.',
   'error.graph.http': 'Microsoft Graph: HTTP {status}',
+  'error.graph.otherAccount':
+    'Microsoft Graph answers for {account}, while SharePoint is signed in as {user}. Sign out of the account you are not using here and reload the page.',
+  'error.graph.notFound':
+    'Microsoft Graph: not found (HTTP {status}). The event or meeting does not exist for the signed-in account, or the account has no Exchange Online mailbox. If several Microsoft 365 accounts are signed in to this browser, sign out of the ones you are not using.',
   'error.integrations.onlyConfirmedUnexportedOutcomes': 'Only confirmed, unexported outcomes can be sent.',
   'error.integrations.adapterCreatesNewEntities':
     'This adapter creates new entities; updating existing objects is not configured.',
@@ -364,6 +368,8 @@ export const en: Record<MessageId, string> = {
   'onboarding.teamsAdministratorMustAdd':
     'For Teams: an administrator must add the app to Teams from the app catalog and approve it. Select the same workspace when adding a tab.',
   'onboarding.openWorkspace': 'Open workspace',
+  'onboarding.setUpAgainKeepsContent': 'You can run setup again to add missing parts. Existing content is kept.',
+  'onboarding.workspaceAlreadySetUp': 'This site is already set up as a workspace.',
   'outcomes.editOutcome': 'Edit outcome',
   'outcomes.outcomeType': 'Outcome type',
   'outcomes.title': 'Title',
