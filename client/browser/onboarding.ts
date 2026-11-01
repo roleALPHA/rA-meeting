@@ -95,7 +95,7 @@ async function search(host: BrowserHost, query: string, properties: string) {
 export async function listSites(host: BrowserHost): Promise<SiteChoice[]> {
   const [sites, lists] = await Promise.all([
     search(host, 'contentclass:STS_Site', 'Title,Path'),
-    search(host, `contentclass:STS_List_GenericList Title:"${recordListTitle}"`, 'Title,SPWebUrl'),
+    search(host, `contentclass:STS_List_GenericList Title:"${recordListTitle}"`, 'Title,SPWebUrl,Path'),
   ]);
   const found = new Map<string, SiteChoice>();
   const add = (url: string, title: string, workspace: boolean) => {
@@ -114,7 +114,10 @@ export async function listSites(host: BrowserHost): Promise<SiteChoice[]> {
     });
   };
   for (const site of sites) add(site.Path, site.Title, false);
-  for (const list of lists) if (list.Title === recordListTitle) add(list.SPWebUrl, '', true);
+  // List results usually leave SPWebUrl empty; the site is the list's path without /Lists/<name>/<view>.aspx.
+  for (const list of lists)
+    if (list.Title === recordListTitle)
+      add(list.SPWebUrl || list.Path.replace(/\/Lists\/[^/]+\/[^/]*$/i, ''), '', true);
   return [...found.values()].sort(
     (a, b) => Number(b.workspace) - Number(a.workspace) || a.title.localeCompare(b.title),
   );
