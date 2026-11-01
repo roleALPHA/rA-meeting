@@ -93,6 +93,13 @@
   -webkit-font-smoothing: antialiased;
 }
 
+/* Teams gives the host a fixed height; the root grows with the content, so long pages keep their surface. */
+.root {
+  display: flow-root;
+  min-height: 100%;
+  background: var(--background);
+}
+
 /* Dark swaps surface and foreground; the accent moves to the light Mint, the status colours to their fixed
    "on dark" steps. Notice backgrounds are mixed from the status colour, because the brand has no dark notice step. */
 :host([data-theme='dark']) {
@@ -1623,6 +1630,46 @@ dialog::backdrop {
 }
 .onboarding a {
   overflow-wrap: anywhere;
+}
+.site-choices {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+  max-height: 288px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.site-choices li + li {
+  border-top: 1px solid var(--border);
+}
+.site-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  background: none;
+  color: var(--foreground);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.site-choice:hover {
+  background: var(--secondary);
+}
+.site-choice[aria-pressed='true'] {
+  border-color: var(--selection);
+  background: var(--selection-fill);
+}
+.site-choice-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
 }
 
 /* ── Responsive ────────────────────────────────────────────────────────── */

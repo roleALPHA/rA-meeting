@@ -1,6 +1,12 @@
 import type { MessageId } from '../../shared/i18n';
 import { assert, AppError } from '../../shared/model';
-import { provisionWorkspace, SharePointRestStore, spJson, workspaceAccess } from '../../shared/storage/sharepoint-rest';
+import {
+  provisionWorkspace,
+  recordListTitle,
+  SharePointRestStore,
+  spJson,
+  workspaceAccess,
+} from '../../shared/storage/sharepoint-rest';
 import { graph, type BrowserHost } from './host';
 import { calendarEntries } from '../../shared/calendar';
 import type { Language } from '../../shared/i18n';
@@ -62,6 +68,56 @@ export async function workspaceReady(host: BrowserHost) {
     if (e instanceof AppError && (e.status === 404 || e.status === 503)) return false;
     throw e;
   }
+}
+export type SiteChoice = { url: string; title: string; workspace: boolean };
+type SearchResult = {
+  PrimaryQueryResult?: {
+    RelevantResults?: { Table?: { Rows?: { Cells: { Key: string; Value: string | null }[] }[] } };
+  };
+};
+async function search(host: BrowserHost, query: string, properties: string) {
+  const params = new URLSearchParams({
+    querytext: `'${query}'`,
+    selectproperties: `'${properties}'`,
+    rowlimit: '200',
+    trimduplicates: 'false',
+  });
+  const result = await spJson<SearchResult>(host.sharepoint, `/search/query?${params}`);
+  return (result.PrimaryQueryResult?.RelevantResults?.Table?.Rows ?? []).map(row =>
+    Object.fromEntries(row.Cells.map(cell => [cell.Key, cell.Value ?? ''])),
+  );
+}
+/**
+ * Sites the user can see, found with SharePoint search under the user's own permissions; sites that already hold a
+ * workspace come first. Search lags behind by a few minutes, so a new workspace may be missing; the address can
+ * always be entered by hand.
+ */
+export async function listSites(host: BrowserHost): Promise<SiteChoice[]> {
+  const [sites, lists] = await Promise.all([
+    search(host, 'contentclass:STS_Site', 'Title,Path'),
+    search(host, `contentclass:STS_List_GenericList Title:"${recordListTitle}"`, 'Title,SPWebUrl'),
+  ]);
+  const found = new Map<string, SiteChoice>();
+  const add = (url: string, title: string, workspace: boolean) => {
+    let normalized: string;
+    try {
+      normalized = workspaceUrl(url, host.webUrl);
+    } catch {
+      return;
+    }
+    const key = normalized.toLowerCase();
+    const known = found.get(key);
+    found.set(key, {
+      url: normalized,
+      title: known?.title || title || normalized,
+      workspace: workspace || !!known?.workspace,
+    });
+  };
+  for (const site of sites) add(site.Path, site.Title, false);
+  for (const list of lists) if (list.Title === recordListTitle) add(list.SPWebUrl, '', true);
+  return [...found.values()].sort(
+    (a, b) => Number(b.workspace) - Number(a.workspace) || a.title.localeCompare(b.title),
+  );
 }
 /**
  * Checks the site the wizard selects. A site that already holds a workspace opens for everyone who can read it;

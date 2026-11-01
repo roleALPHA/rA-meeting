@@ -375,6 +375,9 @@ export const es: Record<MessageId, string> = {
   'onboarding.teamsAdministratorMustAdd':
     'Para Teams: la administración debe añadir y autorizar la app desde el catálogo. Seleccione el mismo espacio al añadir una pestaña.',
   'onboarding.openWorkspace': 'Abrir espacio de trabajo',
+  'onboarding.raWorkspace': 'Espacio rA',
+  'onboarding.findingSites': 'Buscando sitios de SharePoint …',
+  'onboarding.yourSites': 'Sus sitios de SharePoint',
   'onboarding.setUpAgainKeepsContent':
     'Puede volver a ejecutar la configuración para añadir lo que falte. El contenido existente se conserva.',
   'onboarding.workspaceAlreadySetUp': 'Este sitio ya está configurado como espacio de trabajo.',

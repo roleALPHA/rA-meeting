@@ -4,6 +4,7 @@ import {
   checkCalendar,
   createWorkspaceSite,
   hostForWorkspace,
+  listSites,
   newSiteStatus,
   selectWorkspace,
   setupWorkspace,
@@ -232,4 +233,20 @@ test('the calendar test makes the meeting view request and names a mixed-up acco
   await assert.rejects(checkCalendar(calendarHost), /Exchange-Online-Postfach/);
   me = '33333333-3333-4333-8333-333333333333';
   await assert.rejects(checkCalendar(calendarHost), /other@customer\.example.*Owner/);
+});
+
+test('the wizard lists the sites search finds, workspaces first, and only on this SharePoint host', async () => {
+  const { sp, host } = fixture();
+  const sites = await listSites(host);
+  assert.deepEqual(
+    sites.map(s => [s.title, s.url, s.workspace]),
+    [
+      ['Test Workspace', 'https://customer.sharepoint.com/sites/circle', true],
+      ['Communication', 'https://customer.sharepoint.com', false],
+      ['Marketing', 'https://customer.sharepoint.com/sites/marketing', false],
+    ],
+  );
+  sp.state.ready = false;
+  assert.ok((await listSites(host)).every(s => !s.workspace));
+  assert.ok(sp.calls.every(c => c.method === 'GET'));
 });

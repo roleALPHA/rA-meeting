@@ -105,6 +105,7 @@ export function mount(element: HTMLElement, hostInput: Omit<BrowserHost, 'settin
   const style = document.createElement('style');
   style.textContent = brandCss + '\n' + css;
   const root = document.createElement('div');
+  root.className = 'root';
   shadow.append(style, root);
   ReactDOM.render(<Start host={host} />, root);
   const dispose = () => {

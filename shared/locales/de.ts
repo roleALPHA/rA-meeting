@@ -384,6 +384,9 @@ export const de = {
   'onboarding.teamsAdministratorMustAdd':
     'Für Teams: Die Administration muss die App im App-Katalog zu Teams hinzufügen und freigeben. Beim Hinzufügen einer Registerkarte denselben Arbeitsbereich wählen.',
   'onboarding.openWorkspace': 'Arbeitsbereich öffnen',
+  'onboarding.raWorkspace': 'rA-Arbeitsbereich',
+  'onboarding.findingSites': 'SharePoint-Websites werden gesucht …',
+  'onboarding.yourSites': 'Ihre SharePoint-Websites',
   'onboarding.setUpAgainKeepsContent':
     'Sie können die Einrichtung erneut ausführen, um fehlende Teile zu ergänzen. Vorhandene Inhalte bleiben erhalten.',
   'onboarding.workspaceAlreadySetUp': 'Diese Website ist bereits als Arbeitsbereich eingerichtet.',

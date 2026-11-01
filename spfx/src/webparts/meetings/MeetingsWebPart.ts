@@ -50,7 +50,9 @@ export default class MeetingsWebPart extends BaseClientSideWebPart<Properties> {
       )
         throw new Error('Invalid SharePoint site');
       if (
-        !/^\/(web(?:[/?(]|$)|sitepages\/pages(?:[(/]|$)|SPSiteManager\/(?:create$|status\?))/.test(path) ||
+        !/^\/(web(?:[/?(]|$)|sitepages\/pages(?:[(/]|$)|SPSiteManager\/(?:create$|status\?)|search\/query\?)/.test(
+          path,
+        ) ||
         path.includes('\\') ||
         path.includes('..')
       )

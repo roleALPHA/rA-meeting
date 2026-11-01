@@ -81,7 +81,7 @@ A **web part** is a component placed on a SharePoint page. You can skip this ste
 1. Open the workspace site from step 2.
 2. Select **New → Page**, create a blank page, and name it **Meetings**, for example. You can instead edit an existing suitable page.
 3. In the page content, select the **plus sign** to add a web part.
-4. Search for and select **roleALPHA Meetings**. Use the plural “Meetings” for the workspace overview. The similarly named “roleALPHA Meeting” component is intended for an individual meeting tab.
+4. Search for and select **roleALPHA Meetings**. Use the plural “Meetings” for the workspace overview. The similarly named “roleALPHA Meeting” web part shows a single meeting on a SharePoint page.
 5. Open the web part's properties using its edit icon.
 6. Leave **SharePoint site URL** empty to use the current site. To use another site, enter its full address. It must use the same SharePoint host, such as `yourorganization.sharepoint.com`.
 7. Leave **Meeting** set to **All meetings**.
@@ -92,7 +92,7 @@ A **web part** is a component placed on a SharePoint page. You can skip this ste
 ## 6. Complete onboarding
 
 1. Open the app as a site owner. An unconfigured workspace displays the welcome screen. For an existing workspace, open **Connections** and choose the setup wizard action.
-2. Choose the option to use an existing SharePoint site. Enter the address from step 2 and select the site-check action. The app checks reachability and permissions before creating content.
+2. Choose the option to use an existing SharePoint site. The wizard lists the sites you can access, existing workspaces first; select one or enter the address from step 2, then select the site-check action. The list comes from SharePoint search, so a site created minutes ago may be missing; enter its address instead. The app checks reachability and permissions before creating content.
 3. If you need a new workspace instead, choose the option to create a SharePoint site. Enter a name and a short address name containing letters, numbers, and hyphens. Review the displayed address and create the site. If creation remains in progress, check its status again shortly. This creates a standalone team site, not a Microsoft Team. Your signed-in account becomes the owner. Organizational policies still apply. Ask your SharePoint administrator to investigate if creation fails.
 4. On the access/settings review screen, open the site-permissions link in a new tab. Review people and groups. Make any required changes in SharePoint, then return to the wizard. The wizard does not change access rights itself.
 5. At the top of the app, choose the language for new starter templates. Existing templates are not translated or overwritten. The language is a personal browser preference. Whether a meeting processes **Tensions** or **Agenda items** is set per template under **Templates**.
@@ -150,10 +150,10 @@ These approvals apply to the shared SharePoint authentication component, not exc
 1. Return to **Manage apps** in the SharePoint app catalog.
 2. Select the roleALPHA package.
 3. Select **Add to Teams**, called **Sync to Teams** in older interfaces.
-4. Wait for confirmation. Microsoft generates the Teams app entries; do not upload the `.sppkg` directly to Teams.
+4. Wait for confirmation. The package carries its own Teams app, **roleALPHA Meetings**, which SharePoint deploys to the Teams store; do not upload the `.sppkg` directly to Teams. The app works as a personal app, as a tab in channels and group chats, and in Teams meetings.
 5. Open the [Teams admin center](https://admin.teams.microsoft.com/).
-6. Under **Teams apps → Manage apps**, find **roleALPHA Meetings** and **roleALPHA Meeting**.
-7. Check that both apps are allowed and available to your test users. Depending on your organization's management model, assignment may be configured directly on the app or through app permission policies. Have the Teams administrator configure this where necessary.
+6. Under **Teams apps → Manage apps**, find **roleALPHA Meetings**. Versions before 0.1.13 also created a second app, **roleALPHA Meeting**; it is no longer updated and fails as a channel tab. Block or delete it there.
+7. Check that the app is allowed and available to your test users. Depending on your organization's management model, assignment may be configured directly on the app or through app permission policies. Have the Teams administrator configure this where necessary.
 8. Reopen Teams with a test account and search for **roleALPHA** in its apps area.
 
 **Check:** The approved apps are visible to the test user. Publication and policy propagation may take time. See [Microsoft's Teams deployment guide](https://learn.microsoft.com/en-us/sharepoint/dev/spfx/deployment-spfx-teams-solutions).
@@ -174,7 +174,7 @@ These approvals apply to the shared SharePoint authentication component, not exc
 
 1. First create the desired meeting in roleALPHA Meetings.
 2. Open a scheduled Teams event that you may edit. If newly created, save and reopen it first.
-3. Add **roleALPHA Meeting** using the event's add-app or add-tab action. Availability depends on the meeting type and Teams policies.
+3. Add **roleALPHA Meetings** using the event's add-app or add-tab action. Availability depends on the meeting type and Teams policies.
 4. Enter the same **SharePoint site URL**.
 5. In **Meeting**, select the previously created meeting by name. If the list is empty, wait for the workspace to load and reopen the configuration panel.
 6. Save and test the tab with another authorized person.
