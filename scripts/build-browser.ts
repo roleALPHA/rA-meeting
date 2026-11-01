@@ -79,6 +79,22 @@ await writeFile(
         skipFeatureDeployment: true,
         isDomainIsolated: false,
         webApiPermissionRequests: permissions,
+        // Teams shows these on the app's details page; without them SharePoint fills in "SPFx + Teams Dev".
+        developer: {
+          name: 'roleALPHA GmbH',
+          websiteUrl: 'https://rolealpha.com',
+          privacyUrl: 'https://rolealpha.com/legal/datenschutz',
+          termsOfUseUrl: 'https://rolealpha.com/legal/agb',
+          mpnId: 'Undefined-1.24.0',
+        },
+        metadata: {
+          shortDescription: { default: 'Meetings, tensions and outcomes in SharePoint and Microsoft Teams' },
+          longDescription: {
+            default:
+              'Run meetings from shared templates, record tensions or agenda items and agree on outcomes. ' +
+              "Everything is stored in your organization's SharePoint site; there is no server outside your tenant.",
+          },
+        },
       },
       paths: { zippedPackage: 'solution/rolealpha-meetings.sppkg' },
     },

@@ -3,7 +3,7 @@
   "solution": {
     "name": "rolealpha-meetings-client-side-solution",
     "id": "b905596d-a4a5-4dfe-8571-5d1e0631b43d",
-    "version": "0.1.11.0",
+    "version": "0.1.12.0",
     "includeClientSideAssets": true,
     "skipFeatureDeployment": true,
     "isDomainIsolated": false,
@@ -20,7 +20,22 @@
         "resource": "Microsoft Graph",
         "scope": "OnlineMeetingTranscript.Read.All"
       }
-    ]
+    ],
+    "developer": {
+      "name": "roleALPHA GmbH",
+      "websiteUrl": "https://rolealpha.com",
+      "privacyUrl": "https://rolealpha.com/legal/datenschutz",
+      "termsOfUseUrl": "https://rolealpha.com/legal/agb",
+      "mpnId": "Undefined-1.24.0"
+    },
+    "metadata": {
+      "shortDescription": {
+        "default": "Meetings, tensions and outcomes in SharePoint and Microsoft Teams"
+      },
+      "longDescription": {
+        "default": "Run meetings from shared templates, record tensions or agenda items and agree on outcomes. Everything is stored in your organization's SharePoint site; there is no server outside your tenant."
+      }
+    }
   },
   "paths": {
     "zippedPackage": "solution/rolealpha-meetings.sppkg"
