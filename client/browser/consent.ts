@@ -9,7 +9,14 @@ export const graphScopes = ['Calendars.Read', 'OnlineMeetings.ReadWrite', 'Onlin
  */
 export type ConsentClient = { authority: string; clientId: string };
 
-const consentClient = z.object({ authority: z.url({ protocol: /^https$/ }), clientId: z.guid() });
+/**
+ * Since Microsoft moved SPFx to its own "SharePoint Online Web Client Extensibility" app (2025), the page context
+ * reports the empty GUID here; a link with it fails with AADSTS700038, so there is no link then.
+ */
+const consentClient = z.object({
+  authority: z.url({ protocol: /^https$/ }),
+  clientId: z.guid().refine(id => id !== '00000000-0000-0000-0000-000000000000'),
+});
 
 /** Turns `api://x` + `access_as_user` into the scope URI Entra expects; a full scope URI stays as it is. */
 function scopeUri(resource: string, scope: string) {

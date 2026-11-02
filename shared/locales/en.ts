@@ -679,7 +679,7 @@ export const en: Record<MessageId, string> = {
   'connections.guide.grantManual':
     'Without the link: Microsoft Entra admin center → "App registrations" → "All applications" → "SharePoint Online Client Extensibility Web Application Principal" → "API permissions" → "Add a permission" → "APIs my organization uses" → {resource} → "Delegated permissions" → {scope} → "Grant admin consent".',
   'connections.guide.rolealphaApiAccess':
-    'Once, as a SharePoint administrator: in the SharePoint admin center, open "Advanced" → "API access" and approve the request "roleALPHA" / {scope}. Alternatively, an Entra administrator confirms "Grant consent".',
+    'Once, as a SharePoint administrator: in the SharePoint admin center, open "Advanced" → "API access" and approve the request "roleALPHA" / {scope}.',
   'connections.guide.rolealphaExternal':
     'In roleALPHA (administration): Settings → AI → External applications, turn on "External AI applications" and, under "Microsoft 365 integrations", enter the directory ID {directory} and the allowed addresses {origin} and https://teams.microsoft.com.',
   'connections.guide.rolealphaSignIn':
