@@ -691,7 +691,7 @@ export const es: Record<MessageId, string> = {
   'connections.guide.grantManual':
     'Sin el enlace: Centro de administración de Microsoft Entra → «Registros de aplicaciones» → «Todas las aplicaciones» → «SharePoint Online Client Extensibility Web Application Principal» → «Permisos de API» → «Agregar un permiso» → «API usadas en mi organización» → {resource} → «Permisos delegados» → {scope} → «Conceder consentimiento de administrador».',
   'connections.guide.rolealphaApiAccess':
-    'Una vez, como administrador de SharePoint: en el centro de administración de SharePoint, abrir «Avanzado» → «Acceso a API» y aprobar la solicitud «roleALPHA» / {scope}. Como alternativa, un administrador de Entra confirma «Dar consentimiento».',
+    'Una vez, como administrador de SharePoint: en el centro de administración de SharePoint, abrir «Avanzado» → «Acceso a API» y aprobar la solicitud «roleALPHA» / {scope}.',
   'connections.guide.rolealphaExternal':
     'En roleALPHA (administración): Configuración → IA → Aplicaciones externas, activar «Aplicaciones de IA externas» y, en «Integraciones de Microsoft 365», introducir el id. de directorio {directory} y las direcciones permitidas {origin} y https://teams.microsoft.com.',
   'connections.guide.rolealphaSignIn':

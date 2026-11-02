@@ -702,7 +702,7 @@ export const de = {
   'connections.guide.grantManual':
     'Ohne Link: Microsoft Entra Admin Center → „App-Registrierungen“ → „Alle Anwendungen“ → „SharePoint Online Client Extensibility Web Application Principal“ → „API-Berechtigungen“ → „Berechtigung hinzufügen“ → „Von meiner Organisation verwendete APIs“ → {resource} → „Delegierte Berechtigungen“ → {scope} → „Administratorzustimmung erteilen“.',
   'connections.guide.rolealphaApiAccess':
-    'Einmalig als SharePoint-Administrator: SharePoint Admin Center → „Erweitert“ → „API-Zugriff“ und die Anforderung „roleALPHA“ / {scope} genehmigen. Alternativ bestätigt ein Entra-Administrator „Zustimmung erteilen“.',
+    'Einmalig als SharePoint-Administrator: SharePoint Admin Center → „Erweitert“ → „API-Zugriff“ und die Anforderung „roleALPHA“ / {scope} genehmigen.',
   'connections.guide.rolealphaExternal':
     'In roleALPHA (Administration): Einstellungen → KI → Externe Anwendungen, den Schalter „Externe KI-Anwendungen“ einschalten und unter „Microsoft-365-Integrationen“ die Verzeichnis-ID {directory} sowie die erlaubten Adressen {origin} und https://teams.microsoft.com eintragen.',
   'connections.guide.rolealphaSignIn':

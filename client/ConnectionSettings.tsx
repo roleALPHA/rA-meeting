@@ -314,7 +314,6 @@ export function ConnectionSettings({
   };
   if (!state) return resultLine('save') || <p role="status">{tr('connections.loading')}</p>;
   const aiConsent = consent(ai.resource, [ai.scope]);
-  const roleAlphaConsent = consent(roleAlpha.resource, [roleAlpha.scope]);
   return (
     <div className="connection-settings">
       <p className="notice">{tr('connections.ownersDecide')}</p>
@@ -459,12 +458,9 @@ export function ConnectionSettings({
                   <p className="small muted">{tr('connections.tenantHint')}</p>
                 </>
               )}
-              <div className="row">
-                <ConsentLink href={roleAlphaConsent} />
-                <Button className="primary" disabled={busy} onClick={() => void connect()}>
-                  {tr('connections.rolealphaConnect')}
-                </Button>
-              </div>
+              <Button className="primary" disabled={busy} onClick={() => void connect()}>
+                {tr('connections.rolealphaConnect')}
+              </Button>
               {resultLine('roleAlpha')}
               <label className="check">
                 <input

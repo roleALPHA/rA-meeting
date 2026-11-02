@@ -704,7 +704,7 @@ export const fr: Record<MessageId, string> = {
   'connections.guide.grantManual':
     "Sans le lien : centre d'administration Microsoft Entra → « Inscriptions d'applications » → « Toutes les applications » → « SharePoint Online Client Extensibility Web Application Principal » → « Autorisations d'API » → « Ajouter une autorisation » → « API utilisées par mon organisation » → {resource} → « Autorisations déléguées » → {scope} → « Accorder un consentement d'administrateur ».",
   'connections.guide.rolealphaApiAccess':
-    'Une fois, en tant qu’administrateur SharePoint : dans le centre d’administration SharePoint, ouvrir « Avancé » → « Accès à l’API » et approuver la demande « roleALPHA » / {scope}. Sinon, un administrateur Entra confirme « Donner le consentement ».',
+    'Une fois, en tant qu’administrateur SharePoint : dans le centre d’administration SharePoint, ouvrir « Avancé » → « Accès à l’API » et approuver la demande « roleALPHA » / {scope}.',
   'connections.guide.rolealphaExternal':
     'Dans roleALPHA (administration) : Paramètres → IA → Applications externes, activer « Applications d’IA externes » et, sous « Intégrations Microsoft 365 », saisir l’ID d’annuaire {directory} ainsi que les adresses autorisées {origin} et https://teams.microsoft.com.',
   'connections.guide.rolealphaSignIn':

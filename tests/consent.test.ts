@@ -32,6 +32,9 @@ test('no consent link without a valid principal or complete values', () => {
     null,
   );
   assert.equal(adminConsentUrl({ ...client, clientId: 'nope' }, tenant, webUrl, 'api://x', ['a']), null);
+  // The page context of tenants on Microsoft's SPFx app carries the empty GUID (AADSTS700038).
+  const empty = { ...client, clientId: '00000000-0000-0000-0000-000000000000' };
+  assert.equal(adminConsentUrl(empty, tenant, webUrl, 'api://x', ['a']), null);
   assert.equal(adminConsentUrl(client, tenant, webUrl, ' ', ['access_as_user']), null);
   assert.equal(adminConsentUrl(client, tenant, webUrl, 'api://x', ['']), null);
   assert.equal(adminConsentUrl(client, tenant, webUrl, 'api://x', ['a b']), null);
