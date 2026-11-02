@@ -4,19 +4,16 @@ import { z } from 'zod';
 export const graphScopes = ['Calendars.Read', 'OnlineMeetings.ReadWrite', 'OnlineMeetingTranscript.Read.All'] as const;
 
 /**
- * The SharePoint client principal SPFx requests third-party tokens with, from the page context. Absent outside
- * SharePoint, for example in the local preview.
+ * Microsoft's "SharePoint Online Web Client Extensibility" app, which SPFx requests third-party tokens with since 2025.
+ * It is a first-party app with the same ID in every tenant; the page context's `spfx3rdPartyServicePrincipalId` is
+ * the empty GUID there and would make Entra reject the link (AADSTS700038).
  */
-export type ConsentClient = { authority: string; clientId: string };
+export const spfxClientId = '08e18876-6177-487e-b8b5-cf950c1e598c';
 
-/**
- * Since Microsoft moved SPFx to its own "SharePoint Online Web Client Extensibility" app (2025), the page context
- * reports the empty GUID here; a link with it fails with AADSTS700038, so there is no link then.
- */
-const consentClient = z.object({
-  authority: z.url({ protocol: /^https$/ }),
-  clientId: z.guid().refine(id => id !== '00000000-0000-0000-0000-000000000000'),
-});
+/** The sign-in authority from the page context. Absent outside SharePoint, for example in the local preview. */
+export type ConsentClient = { authority: string };
+
+const consentClient = z.object({ authority: z.url({ protocol: /^https$/ }) });
 
 /** Turns `api://x` + `access_as_user` into the scope URI Entra expects; a full scope URI stays as it is. */
 function scopeUri(resource: string, scope: string) {
@@ -24,7 +21,7 @@ function scopeUri(resource: string, scope: string) {
 }
 
 /**
- * Microsoft's admin consent dialog for delegated permissions of the SharePoint client principal. An Entra
+ * Microsoft's admin consent dialog for delegated permissions of the SPFx app. An Entra
  * administrator opens the link, confirms the permissions, and Microsoft returns to the SPFx reply page, which is
  * then closed. Nothing comes back to the app; "Test connection" shows whether the grant is in place. Like approvals
  * under API access, the grant applies to every SharePoint Framework solution in the tenant.
@@ -40,7 +37,7 @@ export function adminConsentUrl(
   if (!valid.success || !z.guid().safeParse(tenantId).success) return null;
   if (!resource.trim() || !scopes.length || scopes.some(scope => !scope.trim() || /\s/.test(scope.trim()))) return null;
   const url = new URL(`${valid.data.authority.replace(/\/+$/, '')}/${encodeURIComponent(tenantId)}/v2.0/adminconsent`);
-  url.searchParams.set('client_id', valid.data.clientId);
+  url.searchParams.set('client_id', spfxClientId);
   url.searchParams.set('scope', scopes.map(scope => scopeUri(resource, scope)).join(' '));
   url.searchParams.set('redirect_uri', `${new URL(webUrl).origin}/_forms/spfxsinglesignon.aspx`);
   // Scopes are space-separated; encode the space as %20 like Microsoft's examples, not as the form-style '+'.

@@ -691,20 +691,14 @@ export const fr: Record<MessageId, string> = {
     "Saisir comme adresse https://<ressource>.services.ai.azure.com/anthropic. La ressource et l'autorisation sont préremplies.",
   'connections.guide.openai1':
     'Le point de terminaison doit proposer Chat Completions, accepter les jetons Microsoft Entra des utilisateurs (pas de clés API) et autoriser les requêtes du navigateur depuis {origin} (CORS).',
-  'connections.guide.grant1':
-    "Une seule fois, en tant qu'administrateur : dans le centre d'administration Microsoft Entra, ouvrir « Inscriptions d'applications » → « Toutes les applications » et choisir « SharePoint Online Client Extensibility Web Application Principal ».",
-  'connections.guide.grant2':
-    "« Autorisations de l'API » → « Ajouter une autorisation » → « API utilisées par mon organisation », puis rechercher l'API de la ressource {resource} (par nom ou ID d'application).",
-  'connections.guide.grant3':
-    "Choisir « Autorisations déléguées », cocher {scope}, l'ajouter et confirmer « Accorder le consentement administrateur ».",
   'connections.guide.grant4':
     'Le consentement vaut pour toutes les solutions SharePoint Framework du tenant et peut prendre quelques minutes. Utiliser ensuite « Tester la connexion ».',
   'connections.guide.grantLink':
     "Une seule fois, en tant qu'administrateur Entra : ouvrir « Donner le consentement » (ou transmettre le lien), confirmer {scope} pour {resource} dans la boîte de dialogue de Microsoft, puis fermer le nouvel onglet.",
-  'connections.guide.grantManual':
-    "Sans le lien : centre d'administration Microsoft Entra → « Inscriptions d'applications » → « Toutes les applications » → « SharePoint Online Client Extensibility Web Application Principal » → « Autorisations d'API » → « Ajouter une autorisation » → « API utilisées par mon organisation » → {resource} → « Autorisations déléguées » → {scope} → « Accorder un consentement d'administrateur ».",
+  'connections.guide.grantPowerShell':
+    "Avec PowerShell, une seule fois, en tant qu'administrateur Entra : accorder à l'application Microsoft « SharePoint Online Web Client Extensibility » (ID d'application 08e18876-6177-487e-b8b5-cf950c1e598c) l'autorisation déléguée {scope} pour {resource}. Le script figure dans le guide de déploiement (section 10) ; le centre d'administration Entra ne propose pas d'écran pour cela.",
   'connections.guide.rolealphaApiAccess':
-    'Une fois, en tant qu’administrateur SharePoint : dans le centre d’administration SharePoint, ouvrir « Avancé » → « Accès à l’API » et approuver la demande « roleALPHA » / {scope}.',
+    'Une fois, en tant qu’administrateur SharePoint : dans le centre d’administration SharePoint, ouvrir « Avancé » → « Accès à l’API » et approuver la demande « roleALPHA » / {scope}. Sinon, un administrateur Entra confirme « Donner le consentement ».',
   'connections.guide.rolealphaExternal':
     'Dans roleALPHA (administration) : Paramètres → IA → Applications externes, activer « Applications d’IA externes » et, sous « Intégrations Microsoft 365 », saisir l’ID d’annuaire {directory} ainsi que les adresses autorisées {origin} et https://teams.microsoft.com.',
   'connections.guide.rolealphaSignIn':

@@ -165,20 +165,12 @@ function Guide({ steps }: { steps: readonly Step[] }) {
   );
 }
 
-/** With a consent link, Microsoft's dialog replaces the click path in Entra, which stays as the fallback. */
-const grantSteps = (resource: string, scope: string, link: boolean): Step[] =>
-  link
-    ? [
-        ['connections.guide.grantLink', { resource, scope }],
-        ['connections.guide.grantManual', { resource, scope }],
-        ['connections.guide.grant4'],
-      ]
-    : [
-        ['connections.guide.grant1'],
-        ['connections.guide.grant2', { resource: resource || '…' }],
-        ['connections.guide.grant3', { scope: scope || '…' }],
-        ['connections.guide.grant4'],
-      ];
+/** Microsoft's consent dialog where there is a link; PowerShell otherwise, as Entra has no click path for the SPFx app. */
+const grantSteps = (resource: string, scope: string, link: boolean): Step[] => [
+  ...(link ? ([['connections.guide.grantLink', { resource, scope }]] as const) : []),
+  ['connections.guide.grantPowerShell', { resource: resource || '…', scope: scope || '…' }],
+  ['connections.guide.grant4'],
+];
 
 /** Opens Microsoft's admin consent dialog in a new tab; an owner without the Entra role passes the link on. */
 function ConsentLink({ href }: { href: string | null }) {
@@ -314,6 +306,7 @@ export function ConnectionSettings({
   };
   if (!state) return resultLine('save') || <p role="status">{tr('connections.loading')}</p>;
   const aiConsent = consent(ai.resource, [ai.scope]);
+  const roleAlphaConsent = consent(roleAlpha.resource, [roleAlpha.scope]);
   return (
     <div className="connection-settings">
       <p className="notice">{tr('connections.ownersDecide')}</p>
@@ -458,9 +451,12 @@ export function ConnectionSettings({
                   <p className="small muted">{tr('connections.tenantHint')}</p>
                 </>
               )}
-              <Button className="primary" disabled={busy} onClick={() => void connect()}>
-                {tr('connections.rolealphaConnect')}
-              </Button>
+              <div className="row">
+                <ConsentLink href={roleAlphaConsent} />
+                <Button className="primary" disabled={busy} onClick={() => void connect()}>
+                  {tr('connections.rolealphaConnect')}
+                </Button>
+              </div>
               {resultLine('roleAlpha')}
               <label className="check">
                 <input
