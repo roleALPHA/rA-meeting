@@ -689,20 +689,14 @@ export const de = {
     'Als Adresse https://<ressource>.services.ai.azure.com/anthropic eintragen. Ressource und Berechtigung sind vorausgefüllt.',
   'connections.guide.openai1':
     'Der Endpunkt muss Chat Completions anbieten, Microsoft-Entra-Tokens der Nutzenden annehmen (keine API-Schlüssel) und Browseranfragen von {origin} erlauben (CORS).',
-  'connections.guide.grant1':
-    'Einmalig als Administrator: Im Microsoft Entra Admin Center „App-Registrierungen“ → „Alle Anwendungen“ öffnen und „SharePoint Online Client Extensibility Web Application Principal“ wählen.',
-  'connections.guide.grant2':
-    '„API-Berechtigungen“ → „Berechtigung hinzufügen“ → „Von meiner Organisation verwendete APIs“ und die API mit der Ressource {resource} suchen (nach Name oder Anwendungs-ID).',
-  'connections.guide.grant3':
-    '„Delegierte Berechtigungen“ wählen, {scope} ankreuzen, hinzufügen und „Administratorzustimmung erteilen“ bestätigen.',
   'connections.guide.grant4':
     'Die Zustimmung gilt für alle SharePoint-Framework-Lösungen im Tenant und kann einige Minuten brauchen. Danach „Verbindung testen“.',
   'connections.guide.grantLink':
     'Einmalig als Entra-Administrator: „Zustimmung erteilen“ öffnen (oder den Link weitergeben), {scope} für {resource} im Dialog von Microsoft bestätigen und den neuen Tab danach schließen.',
-  'connections.guide.grantManual':
-    'Ohne Link: Microsoft Entra Admin Center → „App-Registrierungen“ → „Alle Anwendungen“ → „SharePoint Online Client Extensibility Web Application Principal“ → „API-Berechtigungen“ → „Berechtigung hinzufügen“ → „Von meiner Organisation verwendete APIs“ → {resource} → „Delegierte Berechtigungen“ → {scope} → „Administratorzustimmung erteilen“.',
+  'connections.guide.grantPowerShell':
+    'Per PowerShell, einmalig als Entra-Administrator: der Microsoft-App „SharePoint Online Web Client Extensibility“ (App-ID 08e18876-6177-487e-b8b5-cf950c1e598c) die delegierte Berechtigung {scope} für {resource} erteilen. Das Skript steht in der Bereitstellungsanleitung (Abschnitt 10); im Entra Admin Center gibt es dafür keine Oberfläche.',
   'connections.guide.rolealphaApiAccess':
-    'Einmalig als SharePoint-Administrator: SharePoint Admin Center → „Erweitert“ → „API-Zugriff“ und die Anforderung „roleALPHA“ / {scope} genehmigen.',
+    'Einmalig als SharePoint-Administrator: SharePoint Admin Center → „Erweitert“ → „API-Zugriff“ und die Anforderung „roleALPHA“ / {scope} genehmigen. Alternativ bestätigt ein Entra-Administrator „Zustimmung erteilen“.',
   'connections.guide.rolealphaExternal':
     'In roleALPHA (Administration): Einstellungen → KI → Externe Anwendungen, den Schalter „Externe KI-Anwendungen“ einschalten und unter „Microsoft-365-Integrationen“ die Verzeichnis-ID {directory} sowie die erlaubten Adressen {origin} und https://teams.microsoft.com eintragen.',
   'connections.guide.rolealphaSignIn':

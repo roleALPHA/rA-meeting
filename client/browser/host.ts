@@ -19,7 +19,7 @@ const https = z
   }, 'HTTPS endpoint without credentials required');
 /**
  * A service the browser calls with the signed-in user's delegated token. `resource` is the token audience; `scope` is
- * the delegated permission an administrator grants to the SharePoint Online Client Extensibility principal.
+ * the delegated permission an administrator grants to the SPFx app (client/browser/consent.ts).
  */
 const endpoint = z.object({ url: https, resource: z.string().trim().min(1), scope: z.string().trim().min(1) }).strict();
 /** Microsoft 365 Copilot Chat API (Work IQ) with the signed-in user's delegated permission. */
@@ -138,7 +138,7 @@ export type BrowserHost = {
   // Provided by SPFx: same-site SPHttpClient and AadTokenProvider. No app secrets.
   sharepoint: (path: string, init?: RequestInit) => Promise<Response>;
   token: (resource: string) => Promise<string>;
-  /** The principal `token` uses, for the admin consent links (client/browser/consent.ts). */
+  /** Sign-in authority for the admin consent links (client/browser/consent.ts). */
   consent?: ConsentClient;
   /** Initial colour theme; the host follows changes through the handle mount() returns. */
   theme?: Theme;

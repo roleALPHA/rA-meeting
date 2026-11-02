@@ -32,7 +32,7 @@ const handle = mount(root, {
   token: async () => {
     throw new Error('In der lokalen Demo sind keine Microsoft- oder KI-Dienste verbunden.');
   },
-  // Shows the consent links; the client ID is not a real principal, so Microsoft rejects the link.
-  consent: { authority: 'https://login.microsoftonline.com', clientId: '11111111-1111-1111-1111-111111111111' },
+  // Shows the consent links; the preview tenant does not exist, so Microsoft rejects them.
+  consent: { authority: 'https://login.microsoftonline.com' },
 });
 if (!requested) scheme.addEventListener('change', event => handle.setTheme(event.matches ? 'dark' : 'light'));
