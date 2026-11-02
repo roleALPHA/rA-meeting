@@ -16,7 +16,7 @@ import {
   type SiteChoice,
 } from './browser/onboarding';
 import { adminConsentUrl, graphConsentUrl } from './browser/consent';
-import { loadConnections, saveConnections, testConnection } from './browser/connections';
+import { connectRoleAlphaSetup, loadConnections, saveConnections, testConnection } from './browser/connections';
 import { workspaceAccess } from '../shared/storage/sharepoint-rest';
 import { ConnectionSettings, type ConnectionsApi } from './ConnectionSettings';
 
@@ -65,6 +65,7 @@ export function Onboarding({
         load: () => loadConnections(selected.sharepoint),
         save: (settings, version) => saveConnections(selected, { settings, version }, selected.userId),
         test: (part, settings) => testConnection(selected, part, settings),
+        connectRoleAlpha: input => connectRoleAlphaSetup(selected, input),
       },
     [selected],
   );
@@ -299,6 +300,7 @@ export function Onboarding({
             <ConnectionSettings
               api={connections}
               origin={new URL(selected.webUrl).origin}
+              directory={selected.tenantId}
               consent={(resource, scopes) =>
                 adminConsentUrl(selected.consent, selected.tenantId, selected.webUrl, resource, scopes)
               }

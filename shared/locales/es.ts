@@ -631,9 +631,14 @@ export const es: Record<MessageId, string> = {
   'error.integrations.rolealphaTokenExchangeFailed':
     'El inicio de sesión en roleALPHA ha fallado. Revisa los ajustes de conexión e inténtalo de nuevo.',
   'error.integrations.rolealphaAccountNotLinked':
-    'Esta cuenta no está vinculada a Microsoft en roleALPHA. Inicia sesión una vez en roleALPHA con Microsoft y vuelve a intentarlo.',
+    'Esta cuenta no está vinculada a Microsoft en roleALPHA o está inactiva. Elige una vez «Iniciar sesión con Microsoft» en rolealpha.app y vuelve a intentarlo.',
   'error.integrations.rolealphaAccessNotEnabled':
-    'roleALPHA no ha habilitado el acceso para esta aplicación, o se ha revocado. Un administrador de roleALPHA puede concederlo.',
+    'roleALPHA no admite esta aplicación: el interruptor «Aplicaciones de IA externas» está desactivado o el acceso de Microsoft se revocó en «Aplicaciones conectadas». Un administrador de roleALPHA puede habilitarlo.',
+  'error.integrations.rolealphaInvalidTarget':
+    'roleALPHA no reconoce la dirección MCP introducida. Restablece la dirección predeterminada en «Avanzado».',
+  'error.integrations.rolealphaTenantRequired': 'roleALPHA necesita el id. de tenant de la organización.',
+  'error.integrations.rolealphaOrganisationsUnreadable':
+    'roleALPHA no devolvió las organizaciones en la forma esperada.',
   'connections.title': 'Configurar IA y roleALPHA',
   'connections.loading': 'Cargando conexiones …',
   'connections.ownersDecide':
@@ -685,12 +690,23 @@ export const es: Record<MessageId, string> = {
     'Una sola vez, como administrador de Entra: abrir «Dar consentimiento» (o reenviar el enlace), confirmar {scope} para {resource} en el cuadro de diálogo de Microsoft y cerrar después la pestaña nueva.',
   'connections.guide.grantManual':
     'Sin el enlace: Centro de administración de Microsoft Entra → «Registros de aplicaciones» → «Todas las aplicaciones» → «SharePoint Online Client Extensibility Web Application Principal» → «Permisos de API» → «Agregar un permiso» → «API usadas en mi organización» → {resource} → «Permisos delegados» → {scope} → «Conceder consentimiento de administrador».',
-  'connections.guide.rolealpha1':
-    'En roleALPHA (administración): habilitar las aplicaciones externas para el tenant, registrar el directorio de Microsoft Entra y añadir {origin} como origen permitido.',
-  'connections.guide.rolealpha2':
-    'Tomar de la administración de roleALPHA la dirección MCP, el recurso (URI de id. de aplicación), el id. de tenant y los nombres de las herramientas.',
-  'connections.guide.rolealpha3':
-    'Cada persona inicia sesión una vez en roleALPHA con Microsoft. De lo contrario, la aplicación indica que la cuenta no está vinculada.',
+  'connections.guide.rolealphaApiAccess':
+    'Una vez, como administrador de SharePoint: en el centro de administración de SharePoint, abrir «Avanzado» → «Acceso a API» y aprobar la solicitud «roleALPHA» / {scope}. Como alternativa, un administrador de Entra confirma «Dar consentimiento».',
+  'connections.guide.rolealphaExternal':
+    'En roleALPHA (administración): Configuración → IA → Aplicaciones externas, activar «Aplicaciones de IA externas» y, en «Integraciones de Microsoft 365», introducir el id. de directorio {directory} y las direcciones permitidas {origin} y https://teams.microsoft.com.',
+  'connections.guide.rolealphaSignIn':
+    'Cada persona inicia sesión una vez en rolealpha.app con «Iniciar sesión con Microsoft». De lo contrario, la aplicación indica que la cuenta no está vinculada.',
+  'connections.organisation': 'Organización de roleALPHA',
+  'connections.tenantHint':
+    'roleALPHA muestra el id. de tenant en Configuración → IA → Aplicaciones externas, en la tarjeta «Integraciones de Microsoft 365».',
+  'connections.rolealphaConnect': 'Conectar con roleALPHA',
+  'connections.rolealphaEnterTenant': 'Introduce el id. de tenant de roleALPHA y vuelve a conectar.',
+  'connections.rolealphaChooseOrganisation': 'Elige la organización con la que trabaja este espacio de trabajo.',
+  'connections.rolealphaConnected':
+    'Conectado con {organisation}. Las herramientas están rellenadas; guarda para aplicar.',
+  'connections.rolealphaDraftsOnly':
+    'rA Meetings solo crea borradores en roleALPHA. Surten efecto cuando se aprueban en roleALPHA.',
+  'connections.advanced': 'Avanzado',
   'connections.test': 'Probar conexión',
   'connections.grantConsent': 'Dar consentimiento',
   'connections.aiTestPassed': 'La conexión con la IA funciona.',

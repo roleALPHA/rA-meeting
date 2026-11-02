@@ -22,6 +22,8 @@ export type AppApi = {
   request: <T>(path: string, body?: unknown, method?: string) => Promise<T>;
   /** Admin consent link for delegated scopes of one resource, or null where the host has no consent client. */
   adminConsent: (resource: string, scopes: readonly string[]) => string | null;
+  /** The signed-in user's Microsoft Entra directory, for setup instructions. */
+  tenantId: string;
 };
 
 const requestBody = z.record(z.string(), z.unknown());
@@ -94,6 +96,7 @@ export function browserApi(host: BrowserHost, store: Repository, actor: Actor): 
     initialMeeting: host.initialMeeting,
     initializeTeams: async () => host.isTeams,
     adminConsent: (resource, scopes) => adminConsentUrl(host.consent, host.tenantId, host.webUrl, resource, scopes),
+    tenantId: host.tenantId,
     request: async <T>(path: string, body?: unknown, method?: string) => {
       try {
         return (await dispatch(path, body, method)) as T;

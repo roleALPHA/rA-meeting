@@ -10,9 +10,15 @@ import {
   workspaceAccess,
   type SPRequest,
 } from '../../shared/storage/sharepoint-rest';
-import { connectionSettingsSchema, noConnections, type BrowserHost, type ConnectionSettings } from './host';
+import {
+  connectionSettingsSchema,
+  noConnections,
+  roleAlphaEndpoint,
+  type BrowserHost,
+  type ConnectionSettings,
+} from './host';
 import { completeTask } from './ai/provider';
-import { connectRoleAlpha, findTool } from './rolealpha';
+import { connectRoleAlpha, findTool, setupRoleAlpha, type RoleAlphaSetup } from './rolealpha';
 
 /**
  * AI and roleALPHA connections of a workspace.
@@ -298,4 +304,16 @@ export async function testConnection(host: BrowserHost, part: ConnectionPart, ra
     await client.close().catch(() => {});
   }
   return 'connections.rolealphaTestPassed';
+}
+
+const roleAlphaSetupInput = roleAlphaEndpoint.extend({ tenant: z.guid().optional() }).strict();
+
+/**
+ * "Connect roleALPHA": the shipped address and Entra app unless the owner changed them, the organisation from
+ * roleALPHA (or the tenant ID the owner entered), and the tools its endpoint offers. Nothing is saved here.
+ */
+export async function connectRoleAlphaSetup(host: BrowserHost, raw: unknown): Promise<RoleAlphaSetup> {
+  const input = roleAlphaSetupInput.parse(raw ?? {});
+  await delegatedToken(host, input.resource);
+  return reachable(() => setupRoleAlpha(host, input, input.tenant));
 }

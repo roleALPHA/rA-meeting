@@ -55,12 +55,26 @@ The app is delivered as a **SharePoint Framework (SPFx)** package. Microsoft 365
 | Imported transcripts | SharePoint workspace; the original recording is not downloaded by the app |
 | Calendar and transcript retrieval | Direct Microsoft Graph requests with the signed-in user's permissions |
 | Optional AI | Direct requests to the configured AI service: Microsoft 365 Copilot (default), Claude via Microsoft Foundry, or an OpenAI-compatible endpoint |
-| Optional governance connection | Direct MCP requests to the configured roleALPHA endpoint |
+| Optional governance connection | Direct MCP requests to roleALPHA (`https://rolealpha.app/api/mcp`) |
 | Language | Personal browser preference |
 
 No central roleALPHA proxy, additional application runtime, or Power Automate flow is required. No automatic processing runs after the app closes. Users explicitly start analysis and transfers.
 
-The package contains no AI or roleALPHA endpoints. Site owners set them up per workspace in the app (setup wizard or **Connections**); an Entra administrator grants each service's delegated permission once. Optional services must support Microsoft Entra sign-in and direct browser access. The app never stores API keys.
+The package contains no AI endpoints; site owners set them up per workspace in the app (setup wizard or **Connections**), and an Entra administrator grants each service's delegated permission once. Optional services must support Microsoft Entra sign-in and direct browser access. The app never stores API keys.
+
+### roleALPHA connection
+
+roleALPHA's address and Entra app are the same for every customer, so the package ships them (`client/browser/rolealpha-environment.ts`; another installation such as QA gets its own entry there):
+
+| Value | Production |
+| --- | --- |
+| MCP endpoint (Streamable HTTP) | `https://rolealpha.app/api/mcp` |
+| Token endpoint (RFC 8693 exchange, same origin) | `https://rolealpha.app/api/auth/oauth/token` |
+| Entra resource (audience) | `api://4bd22250-d811-4905-97a4-cb2bf69f98fa` |
+| Client ID of the roleALPHA API | `4bd22250-d811-4905-97a4-cb2bf69f98fa` |
+| Delegated scope | `access_as_user` |
+
+The package requests `roleALPHA / access_as_user` with this `appId` and the reply address `https://rolealpha.app/`, so a SharePoint administrator approves it under **API access** like the Graph permissions, and SharePoint creates the app in the customer's directory. A site owner then selects **Connect to roleALPHA** under **Connections**: the app exchanges the user's Entra token, takes the organisation from roleALPHA (or asks for the roleALPHA tenant ID while roleALPHA cannot yet look it up), and fills in the tools from `tools/list`. Writing tools only create drafts in roleALPHA. The contract is roleALPHA's `doc/ENTRA-TAUSCH.md`.
 
 **Optional services determine additional data flows.** To keep content entirely within your organization's controlled environment, deploy AI and roleALPHA accordingly. A centrally operated service would receive content sent to it. MCP is the protocol for the roleALPHA connection; the app does not offer arbitrary MCP providers.
 
@@ -108,7 +122,7 @@ npm run build
 
 `npm run check` runs TypeScript, ESLint and Prettier. Commits are signed off (`git commit -s`); see [CONTRIBUTING.md](CONTRIBUTING.md). CI, the licence policy and the release process are described in [docs/ci-conventions.md](docs/ci-conventions.md).
 
-The package is written to `dist/rolealpha-meetings.sppkg`. It is the same for every customer; AI and roleALPHA are set up in the app.
+The package is written to `dist/rolealpha-meetings.sppkg`. It is the same for every customer; AI and the roleALPHA organisation are set up in the app.
 
 ```sh
 npm run dev
