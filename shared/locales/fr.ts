@@ -644,9 +644,14 @@ export const fr: Record<MessageId, string> = {
   'error.integrations.rolealphaTokenExchangeFailed':
     'La connexion à roleALPHA a échoué. Vérifiez les paramètres de connexion et réessayez.',
   'error.integrations.rolealphaAccountNotLinked':
-    'Ce compte n’est pas lié à Microsoft dans roleALPHA. Connectez-vous une fois à roleALPHA via Microsoft, puis réessayez.',
+    'Ce compte n’est pas lié à Microsoft dans roleALPHA, ou il est inactif. Choisissez une fois « Se connecter avec Microsoft » sur rolealpha.app, puis réessayez.',
   'error.integrations.rolealphaAccessNotEnabled':
-    'roleALPHA n’a pas autorisé l’accès pour cette application, ou il a été révoqué. Un administrateur roleALPHA peut l’accorder.',
+    'roleALPHA n’admet pas cette application : l’option « Applications d’IA externes » est désactivée, ou l’accès Microsoft a été révoqué sous « Applications connectées ». Un administrateur roleALPHA peut l’activer.',
+  'error.integrations.rolealphaInvalidTarget':
+    'roleALPHA ne reconnaît pas l’adresse MCP saisie. Rétablissez l’adresse par défaut sous « Avancé ».',
+  'error.integrations.rolealphaTenantRequired': 'roleALPHA a besoin de l’ID de tenant de l’organisation.',
+  'error.integrations.rolealphaOrganisationsUnreadable':
+    'roleALPHA n’a pas renvoyé les organisations sous la forme attendue.',
   'connections.title': "Configurer l'IA et roleALPHA",
   'connections.loading': 'Chargement des connexions …',
   'connections.ownersDecide':
@@ -698,12 +703,23 @@ export const fr: Record<MessageId, string> = {
     "Une seule fois, en tant qu'administrateur Entra : ouvrir « Donner le consentement » (ou transmettre le lien), confirmer {scope} pour {resource} dans la boîte de dialogue de Microsoft, puis fermer le nouvel onglet.",
   'connections.guide.grantManual':
     "Sans le lien : centre d'administration Microsoft Entra → « Inscriptions d'applications » → « Toutes les applications » → « SharePoint Online Client Extensibility Web Application Principal » → « Autorisations d'API » → « Ajouter une autorisation » → « API utilisées par mon organisation » → {resource} → « Autorisations déléguées » → {scope} → « Accorder un consentement d'administrateur ».",
-  'connections.guide.rolealpha1':
-    "Dans roleALPHA (administration) : activer les applications externes pour le tenant, enregistrer l'annuaire Microsoft Entra et ajouter {origin} comme origine autorisée.",
-  'connections.guide.rolealpha2':
-    "Reprendre l'adresse MCP, la ressource (URI d'ID d'application), l'ID de tenant et les noms des outils auprès de l'administration roleALPHA.",
-  'connections.guide.rolealpha3':
-    "Chaque personne se connecte une fois à roleALPHA via Microsoft. Sinon, l'application indique que le compte n'est pas lié.",
+  'connections.guide.rolealphaApiAccess':
+    'Une fois, en tant qu’administrateur SharePoint : dans le centre d’administration SharePoint, ouvrir « Avancé » → « Accès à l’API » et approuver la demande « roleALPHA » / {scope}. Sinon, un administrateur Entra confirme « Donner le consentement ».',
+  'connections.guide.rolealphaExternal':
+    'Dans roleALPHA (administration) : Paramètres → IA → Applications externes, activer « Applications d’IA externes » et, sous « Intégrations Microsoft 365 », saisir l’ID d’annuaire {directory} ainsi que les adresses autorisées {origin} et https://teams.microsoft.com.',
+  'connections.guide.rolealphaSignIn':
+    'Chaque personne se connecte une fois sur rolealpha.app avec « Se connecter avec Microsoft ». Sinon, l’application indique que le compte n’est pas lié.',
+  'connections.organisation': 'Organisation roleALPHA',
+  'connections.tenantHint':
+    'roleALPHA affiche l’ID de tenant sous Paramètres → IA → Applications externes, dans la carte « Intégrations Microsoft 365 ».',
+  'connections.rolealphaConnect': 'Se connecter à roleALPHA',
+  'connections.rolealphaEnterTenant': 'Saisissez l’ID de tenant roleALPHA et connectez-vous à nouveau.',
+  'connections.rolealphaChooseOrganisation': 'Choisissez l’organisation avec laquelle cet espace de travail travaille.',
+  'connections.rolealphaConnected':
+    'Connecté à {organisation}. Les outils sont renseignés ; enregistrez pour appliquer.',
+  'connections.rolealphaDraftsOnly':
+    'rA Meetings ne crée que des brouillons dans roleALPHA. Ils prennent effet une fois approuvés dans roleALPHA.',
+  'connections.advanced': 'Avancé',
   'connections.test': 'Tester la connexion',
   'connections.grantConsent': 'Donner le consentement',
   'connections.aiTestPassed': "La connexion à l'IA fonctionne.",

@@ -8,7 +8,7 @@ import {
 } from '../../../shared/model';
 import { workspaceAccess } from '../../../shared/storage/sharepoint-rest';
 import { rev, type Route, type RouteContext } from './types';
-import { loadConnections, saveConnections, testConnection } from '../connections';
+import { connectRoleAlphaSetup, loadConnections, saveConnections, testConnection } from '../connections';
 
 async function ownersOnly({ host }: RouteContext) {
   assert((await workspaceAccess(host.sharepoint)).owner, 'error.connections.ownersOnly', 403);
@@ -69,6 +69,14 @@ export const settingsRoutes: Route[] = [
     handle: async (ctx, { body }) => {
       await ownersOnly(ctx);
       return { result: await testConnection(ctx.host, z.enum(['ai', 'roleAlpha']).parse(body.part), body.settings) };
+    },
+  },
+  {
+    verb: 'POST',
+    path: /^\/connections\/rolealpha$/,
+    handle: async (ctx, { body }) => {
+      await ownersOnly(ctx);
+      return connectRoleAlphaSetup(ctx.host, body);
     },
   },
 ];

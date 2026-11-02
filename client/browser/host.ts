@@ -3,6 +3,7 @@ import { AppError, outputTypes } from '../../shared/model';
 import type { Theme } from './brand';
 import type { Language } from '../../shared/i18n';
 import type { ConsentClient } from './consent';
+import { roleAlphaEnvironment } from './rolealpha-environment';
 const https = z
   .string()
   .url()
@@ -50,6 +51,14 @@ const openAiCompatibleSettings = endpoint
     model: z.string().min(1),
   })
   .strict();
+/** roleALPHA's address and Entra app; the shipped installation unless an owner changes them under "Advanced". */
+export const roleAlphaEndpoint = endpoint
+  .extend({
+    url: https.default(roleAlphaEnvironment.mcpUrl),
+    resource: z.string().trim().min(1).default(roleAlphaEnvironment.resource),
+    scope: z.string().trim().min(1).default(roleAlphaEnvironment.scope),
+  })
+  .strict();
 /** Connection settings site owners maintain per workspace (client/browser/connections.ts). */
 export const connectionSettingsSchema = z
   .object({
@@ -64,9 +73,8 @@ export const connectionSettingsSchema = z
       )
       .nullable()
       .default(null),
-    roleAlpha: endpoint
+    roleAlpha: roleAlphaEndpoint
       .extend({
-        scope: z.string().trim().min(1).default('access_as_user'),
         tenant: z.guid(),
         governance: z
           .object({ searchTool: z.string().regex(/^search_[a-z0-9_]+$/) })
@@ -78,7 +86,10 @@ export const connectionSettingsSchema = z
          * roleALPHA web application; only draft links on its origin are stored.
          */
         drafts: z
-          .object({ searchTool: z.string().regex(/^search_[a-z0-9_]+$/), appUrl: https })
+          .object({
+            searchTool: z.string().regex(/^search_[a-z0-9_]+$/),
+            appUrl: https.default(roleAlphaEnvironment.appUrl),
+          })
           .strict()
           .nullable()
           .default(null),

@@ -642,9 +642,14 @@ export const de = {
   'error.integrations.rolealphaTokenExchangeFailed':
     'Die Anmeldung bei roleALPHA ist fehlgeschlagen. Prüfe die Verbindungseinstellungen und versuche es erneut.',
   'error.integrations.rolealphaAccountNotLinked':
-    'Dieses Konto ist in roleALPHA nicht mit Microsoft verknüpft. Einmal über Microsoft bei roleALPHA anmelden, dann erneut versuchen.',
+    'Dieses Konto ist in roleALPHA nicht mit Microsoft verknüpft oder nicht aktiv. Einmal auf rolealpha.app „Mit Microsoft anmelden“ wählen, dann erneut versuchen.',
   'error.integrations.rolealphaAccessNotEnabled':
-    'roleALPHA hat den Zugang für diese Anwendung nicht freigeschaltet oder widerrufen. Die roleALPHA-Administration kann ihn freigeben.',
+    'roleALPHA lässt diese Anwendung nicht zu: Der Schalter „Externe KI-Anwendungen“ ist aus, oder der Microsoft-Zugang wurde unter „Verbundene Anwendungen“ widerrufen. Die roleALPHA-Administration kann ihn freigeben.',
+  'error.integrations.rolealphaInvalidTarget':
+    'roleALPHA kennt die eingetragene MCP-Adresse nicht. Unter „Erweitert“ die vorgegebene Adresse wiederherstellen.',
+  'error.integrations.rolealphaTenantRequired': 'roleALPHA braucht die Tenant-ID der Organisation.',
+  'error.integrations.rolealphaOrganisationsUnreadable':
+    'roleALPHA hat die Organisationen nicht in der erwarteten Form geliefert.',
   'connections.title': 'KI und roleALPHA einrichten',
   'connections.loading': 'Verbindungen werden geladen …',
   'connections.ownersDecide':
@@ -696,12 +701,23 @@ export const de = {
     'Einmalig als Entra-Administrator: „Zustimmung erteilen“ öffnen (oder den Link weitergeben), {scope} für {resource} im Dialog von Microsoft bestätigen und den neuen Tab danach schließen.',
   'connections.guide.grantManual':
     'Ohne Link: Microsoft Entra Admin Center → „App-Registrierungen“ → „Alle Anwendungen“ → „SharePoint Online Client Extensibility Web Application Principal“ → „API-Berechtigungen“ → „Berechtigung hinzufügen“ → „Von meiner Organisation verwendete APIs“ → {resource} → „Delegierte Berechtigungen“ → {scope} → „Administratorzustimmung erteilen“.',
-  'connections.guide.rolealpha1':
-    'In roleALPHA (Administration): externe Anwendungen für den Tenant freischalten, das Microsoft-Entra-Verzeichnis registrieren und {origin} als erlaubten Ursprung eintragen.',
-  'connections.guide.rolealpha2':
-    'MCP-Adresse, Ressource (Anwendungs-ID-URI), Tenant-ID und die Namen der Werkzeuge von der roleALPHA-Administration übernehmen.',
-  'connections.guide.rolealpha3':
-    'Jede Person meldet sich einmal über Microsoft bei roleALPHA an. Sonst meldet die App, dass das Konto nicht verknüpft ist.',
+  'connections.guide.rolealphaApiAccess':
+    'Einmalig als SharePoint-Administrator: SharePoint Admin Center → „Erweitert“ → „API-Zugriff“ und die Anforderung „roleALPHA“ / {scope} genehmigen. Alternativ bestätigt ein Entra-Administrator „Zustimmung erteilen“.',
+  'connections.guide.rolealphaExternal':
+    'In roleALPHA (Administration): Einstellungen → KI → Externe Anwendungen, den Schalter „Externe KI-Anwendungen“ einschalten und unter „Microsoft-365-Integrationen“ die Verzeichnis-ID {directory} sowie die erlaubten Adressen {origin} und https://teams.microsoft.com eintragen.',
+  'connections.guide.rolealphaSignIn':
+    'Jede Person meldet sich einmal auf rolealpha.app mit „Mit Microsoft anmelden“ an. Sonst meldet die App, dass das Konto nicht verknüpft ist.',
+  'connections.organisation': 'roleALPHA-Organisation',
+  'connections.tenantHint':
+    'Die Tenant-ID steht in roleALPHA unter Einstellungen → KI → Externe Anwendungen in der Karte „Microsoft-365-Integrationen“.',
+  'connections.rolealphaConnect': 'Mit roleALPHA verbinden',
+  'connections.rolealphaEnterTenant': 'Bitte die roleALPHA-Tenant-ID eintragen und erneut verbinden.',
+  'connections.rolealphaChooseOrganisation': 'Bitte die Organisation wählen, mit der dieser Arbeitsbereich arbeitet.',
+  'connections.rolealphaConnected':
+    'Verbunden mit {organisation}. Die Werkzeuge sind eingetragen; zum Übernehmen speichern.',
+  'connections.rolealphaDraftsOnly':
+    'rA Meetings legt in roleALPHA nur Entwürfe an. Wirksam werden sie erst, wenn sie in roleALPHA freigegeben sind.',
+  'connections.advanced': 'Erweitert',
   'connections.test': 'Verbindung testen',
   'connections.grantConsent': 'Zustimmung erteilen',
   'connections.aiTestPassed': 'Die KI-Verbindung funktioniert.',
