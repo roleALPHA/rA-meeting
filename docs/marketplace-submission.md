@@ -25,12 +25,17 @@ Sources, checked on 3 November 2026: [Publish SharePoint Framework applications 
 
 ### 1. Partner ID and publisher verification
 
-roleALPHA GmbH has a Partner Center account. The `mpnId` field still holds the placeholder `Undefined-1.24.0`; Microsoft does not require it, but recommends it.
+roleALPHA GmbH has a Partner Center account. **Account settings → Identifiers** lists two Partner IDs, and each has its own place:
+
+| Partner ID | Type | Used for |
+| --- | --- | --- |
+| 7187751 | PartnerLocation (roleALPHA, AT) | `mpnId` in the package (`scripts/build-browser.ts`) |
+| global account ID | PartnerGlobal | Publisher verification in Entra only |
+
+Partner Center asks never to share the global Partner ID except with Microsoft support. The package and this repository are public, so they carry the location ID. Publisher verification accepts only the global ID and keeps it in roleALPHA's own directory.
 
 1. In Partner Center, check that the account is enrolled in the **Microsoft Marketplace** program (**Settings → Account settings → Programs**). A free listing needs no tax or payout profile.
-2. Copy the Partner ID of the partner global account (PGA) from **Account settings → Identifiers** or **Legal info → Partner ID → View Partner IDs**. Not the location Partner ID under **Business locations**: publisher verification rejects location IDs, and one ID for both keeps the package and the Entra app consistent.
-3. Replace `mpnId: 'Undefined-1.24.0'` in `scripts/build-browser.ts` with that ID. The build regenerates `spfx/config/package-solution.json` from it. Run `npm run build` and commit both files.
-4. Verify the publisher of roleALPHA's Entra app (`4bd22250-d811-4905-97a4-cb2bf69f98fa`, `client/browser/rolealpha-environment.ts`): in the Entra admin center of roleALPHA's directory, **App registrations → roleALPHA → Branding & properties → Publisher verification**, enter the same Partner ID. Customers then see roleALPHA GmbH as a verified publisher when they approve the package's `access_as_user` request.
+2. Verify the publisher of roleALPHA's Entra app (`4bd22250-d811-4905-97a4-cb2bf69f98fa`, `client/browser/rolealpha-environment.ts`): in the Entra admin center of roleALPHA's directory, **App registrations → roleALPHA → Branding & properties → Publisher verification**, enter the global Partner ID. Customers then see roleALPHA GmbH as a verified publisher when they approve the package's `access_as_user` request. Prerequisites: the app's tenant is associated with the global account, the app has a publisher domain other than `*.onmicrosoft.com`, and the person verifying is Application Administrator or Cloud Application Administrator in Entra and Account Admin or CPP Partner Admin in Partner Center, signed in with MFA.
 
 The package requests that scope for a multi-tenant app. Microsoft states that client IDs managed through Partner Center offers may be used in production only once the offer is published.
 

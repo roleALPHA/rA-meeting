@@ -90,7 +90,7 @@ await writeFile(
         skipFeatureDeployment: true,
         isDomainIsolated: false,
         webApiPermissionRequests: permissions,
-        developer: { ...developer, mpnId: 'Undefined-1.24.0' },
+        developer: { ...developer, mpnId: '7187751' },
         metadata: { shortDescription: { default: description.short }, longDescription: { default: description.full } },
       },
       paths: { zippedPackage: 'solution/rolealpha-meetings.sppkg' },
