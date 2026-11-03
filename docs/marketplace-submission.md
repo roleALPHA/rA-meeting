@@ -28,7 +28,7 @@ Sources, checked on 3 November 2026: [Publish SharePoint Framework applications 
 roleALPHA GmbH has a Partner Center account. The `mpnId` field still holds the placeholder `Undefined-1.24.0`; Microsoft does not require it, but recommends it.
 
 1. In Partner Center, check that the account is enrolled in the **Microsoft Marketplace** program (**Settings → Account settings → Programs**). A free listing needs no tax or payout profile.
-2. Copy the Partner ID (formerly MPN ID) from **Account settings → Identifiers**. Use the ID of the location that publishes the offer.
+2. Copy the Partner ID of the partner global account (PGA) from **Account settings → Identifiers** or **Legal info → Partner ID → View Partner IDs**. Not the location Partner ID under **Business locations**: publisher verification rejects location IDs, and one ID for both keeps the package and the Entra app consistent.
 3. Replace `mpnId: 'Undefined-1.24.0'` in `scripts/build-browser.ts` with that ID. The build regenerates `spfx/config/package-solution.json` from it. Run `npm run build` and commit both files.
 4. Verify the publisher of roleALPHA's Entra app (`4bd22250-d811-4905-97a4-cb2bf69f98fa`, `client/browser/rolealpha-environment.ts`): in the Entra admin center of roleALPHA's directory, **App registrations → roleALPHA → Branding & properties → Publisher verification**, enter the same Partner ID. Customers then see roleALPHA GmbH as a verified publisher when they approve the package's `access_as_user` request.
 
