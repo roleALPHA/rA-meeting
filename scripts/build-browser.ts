@@ -1,6 +1,7 @@
 import { build } from 'esbuild';
 import { copyFile, readFile, rm, writeFile, mkdir } from 'node:fs/promises';
 import { graphScopes } from '../client/browser/consent';
+import { roleAlphaEnvironment } from '../client/browser/rolealpha-environment';
 import { description, developer, meetingsComponentId, teamsManifest, zip } from './teams-package';
 const pkg = JSON.parse(await readFile('spfx/package.json', 'utf8')) as { version: string };
 if (!/^\d+\.\d+\.\d+$/.test(pkg.version)) throw new Error('SPFx version must have three numeric parts');
@@ -48,7 +49,7 @@ const unsafe = Object.keys(result.metafile!.inputs).filter(
 if (unsafe.length) throw new Error('Server dependency in browser package: ' + unsafe.join(', '));
 await writeFile(
   'spfx/src/generated/app.d.ts',
-  `export type Theme = 'light' | 'dark' | 'contrast';\nexport declare function teamsTheme(value: string | undefined): Theme;\nexport declare function mount(element: HTMLElement, host: { tenantId: string; userId: string; userName: string; webUrl: string; isTeams: boolean; initialMeeting?: string; rememberWorkspace?: boolean; language?: 'de' | 'en' | 'fr' | 'es'; sharepointAt?: (webUrl: string, path: string, init?: RequestInit) => Promise<Response>; onMeetingsChanged?: (meetings: { id: string; title: string }[]) => void; sharepoint: (path: string, init?: RequestInit) => Promise<Response>; token: (resource: string) => Promise<string>; consent?: { authority: string; clientId: string }; theme?: Theme; fonts?: Record<string, string> }): (() => void) & { setTheme: (theme: Theme) => void };\n`,
+  `export type Theme = 'light' | 'dark' | 'contrast';\nexport declare function teamsTheme(value: string | undefined): Theme;\nexport declare function mount(element: HTMLElement, host: { tenantId: string; userId: string; userName: string; webUrl: string; isTeams: boolean; initialMeeting?: string; rememberWorkspace?: boolean; language?: 'de' | 'en' | 'fr' | 'es'; sharepointAt?: (webUrl: string, path: string, init?: RequestInit) => Promise<Response>; onMeetingsChanged?: (meetings: { id: string; title: string }[]) => void; sharepoint: (path: string, init?: RequestInit) => Promise<Response>; token: (resource: string) => Promise<string>; consent?: { authority: string }; theme?: Theme; fonts?: Record<string, string> }): (() => void) & { setTheme: (theme: Theme) => void };\n`,
 );
 // Brand fonts ship as separate files in the package's ClientSideAssets, served from the tenant. The SPFx webpack
 // configuration emits every required .woff2 as an asset and returns its URL; see docs/technical-deployment.md.
@@ -64,9 +65,18 @@ await writeFile(
 );
 // Entry was used only for esbuild; keep the SPFx compiler inside its own project.
 await writeFile('spfx/src/generated/entry.ts', 'export {};\n');
-// AI and roleALPHA are set up per workspace at runtime; their delegated scopes are granted to the SharePoint Online
-// Client Extensibility principal in Entra (see docs/technical-deployment.md), not requested by the package.
-const permissions = graphScopes.map(scope => ({ resource: 'Microsoft Graph', scope }));
+// roleALPHA's Entra app is the same for every customer, so the package requests its scope; with appId and replyUrl
+// (SPFx 1.15.2 and later) SharePoint creates the app in the customer's directory when API access is approved. AI
+// services are set up per workspace at runtime; their scopes are granted in Entra (docs/technical-deployment.md).
+const permissions = [
+  ...graphScopes.map(scope => ({ resource: 'Microsoft Graph', scope })),
+  {
+    resource: 'roleALPHA',
+    scope: roleAlphaEnvironment.scope,
+    appId: roleAlphaEnvironment.clientId,
+    replyUrl: roleAlphaEnvironment.replyUrl,
+  },
+];
 await writeFile(
   'spfx/config/package-solution.json',
   JSON.stringify(

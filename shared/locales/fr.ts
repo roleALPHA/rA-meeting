@@ -646,9 +646,14 @@ export const fr: Record<MessageId, string> = {
   'error.integrations.rolealphaTokenExchangeFailed':
     'La connexion à roleALPHA a échoué. Vérifiez les paramètres de connexion et réessayez.',
   'error.integrations.rolealphaAccountNotLinked':
-    'Ce compte n’est pas lié à Microsoft dans roleALPHA. Connectez-vous une fois à roleALPHA via Microsoft, puis réessayez.',
+    'Ce compte n’est pas lié à Microsoft dans roleALPHA, ou il est inactif. Choisissez une fois « Se connecter avec Microsoft » sur rolealpha.app, puis réessayez.',
   'error.integrations.rolealphaAccessNotEnabled':
-    'roleALPHA n’a pas autorisé l’accès pour cette application, ou il a été révoqué. Un administrateur roleALPHA peut l’accorder.',
+    'roleALPHA n’admet pas cette application : l’option « Applications d’IA externes » est désactivée, ou l’accès Microsoft a été révoqué sous « Applications connectées ». Un administrateur roleALPHA peut l’activer.',
+  'error.integrations.rolealphaInvalidTarget':
+    'roleALPHA ne reconnaît pas l’adresse MCP saisie. Rétablissez l’adresse par défaut sous « Avancé ».',
+  'error.integrations.rolealphaTenantRequired': 'roleALPHA a besoin de l’ID de tenant de l’organisation.',
+  'error.integrations.rolealphaOrganisationsUnreadable':
+    'roleALPHA n’a pas renvoyé les organisations sous la forme attendue.',
   'connections.title': "Configurer l'IA et roleALPHA",
   'connections.loading': 'Chargement des connexions …',
   'connections.ownersDecide':
@@ -688,24 +693,29 @@ export const fr: Record<MessageId, string> = {
     "Saisir comme adresse https://<ressource>.services.ai.azure.com/anthropic. La ressource et l'autorisation sont préremplies.",
   'connections.guide.openai1':
     'Le point de terminaison doit proposer Chat Completions, accepter les jetons Microsoft Entra des utilisateurs (pas de clés API) et autoriser les requêtes du navigateur depuis {origin} (CORS).',
-  'connections.guide.grant1':
-    "Une seule fois, en tant qu'administrateur : dans le centre d'administration Microsoft Entra, ouvrir « Inscriptions d'applications » → « Toutes les applications » et choisir « SharePoint Online Client Extensibility Web Application Principal ».",
-  'connections.guide.grant2':
-    "« Autorisations de l'API » → « Ajouter une autorisation » → « API utilisées par mon organisation », puis rechercher l'API de la ressource {resource} (par nom ou ID d'application).",
-  'connections.guide.grant3':
-    "Choisir « Autorisations déléguées », cocher {scope}, l'ajouter et confirmer « Accorder le consentement administrateur ».",
   'connections.guide.grant4':
     'Le consentement vaut pour toutes les solutions SharePoint Framework du tenant et peut prendre quelques minutes. Utiliser ensuite « Tester la connexion ».',
   'connections.guide.grantLink':
     "Une seule fois, en tant qu'administrateur Entra : ouvrir « Donner le consentement » (ou transmettre le lien), confirmer {scope} pour {resource} dans la boîte de dialogue de Microsoft, puis fermer le nouvel onglet.",
-  'connections.guide.grantManual':
-    "Sans le lien : centre d'administration Microsoft Entra → « Inscriptions d'applications » → « Toutes les applications » → « SharePoint Online Client Extensibility Web Application Principal » → « Autorisations d'API » → « Ajouter une autorisation » → « API utilisées par mon organisation » → {resource} → « Autorisations déléguées » → {scope} → « Accorder un consentement d'administrateur ».",
-  'connections.guide.rolealpha1':
-    "Dans roleALPHA (administration) : activer les applications externes pour le tenant, enregistrer l'annuaire Microsoft Entra et ajouter {origin} comme origine autorisée.",
-  'connections.guide.rolealpha2':
-    "Reprendre l'adresse MCP, la ressource (URI d'ID d'application), l'ID de tenant et les noms des outils auprès de l'administration roleALPHA.",
-  'connections.guide.rolealpha3':
-    "Chaque personne se connecte une fois à roleALPHA via Microsoft. Sinon, l'application indique que le compte n'est pas lié.",
+  'connections.guide.grantPowerShell':
+    "Avec PowerShell, une seule fois, en tant qu'administrateur Entra : accorder à l'application Microsoft « SharePoint Online Web Client Extensibility » (ID d'application 08e18876-6177-487e-b8b5-cf950c1e598c) l'autorisation déléguée {scope} pour {resource}. Le script figure dans le guide de déploiement (section 10) ; le centre d'administration Entra ne propose pas d'écran pour cela.",
+  'connections.guide.rolealphaApiAccess':
+    'Une fois, en tant qu’administrateur SharePoint : dans le centre d’administration SharePoint, ouvrir « Avancé » → « Accès à l’API » et approuver la demande « roleALPHA » / {scope}. Sinon, un administrateur Entra confirme « Donner le consentement ».',
+  'connections.guide.rolealphaExternal':
+    'Dans roleALPHA (administration) : Paramètres → IA → Applications externes, activer « Applications d’IA externes » et, sous « Intégrations Microsoft 365 », saisir l’ID d’annuaire {directory} ainsi que les adresses autorisées {origin} et https://teams.microsoft.com.',
+  'connections.guide.rolealphaSignIn':
+    'Chaque personne se connecte une fois sur rolealpha.app avec « Se connecter avec Microsoft ». Sinon, l’application indique que le compte n’est pas lié.',
+  'connections.organisation': 'Organisation roleALPHA',
+  'connections.tenantHint':
+    'roleALPHA affiche l’ID de tenant sous Paramètres → IA → Applications externes, dans la carte « Intégrations Microsoft 365 ».',
+  'connections.rolealphaConnect': 'Se connecter à roleALPHA',
+  'connections.rolealphaEnterTenant': 'Saisissez l’ID de tenant roleALPHA et connectez-vous à nouveau.',
+  'connections.rolealphaChooseOrganisation': 'Choisissez l’organisation avec laquelle cet espace de travail travaille.',
+  'connections.rolealphaConnected':
+    'Connecté à {organisation}. Les outils sont renseignés ; enregistrez pour appliquer.',
+  'connections.rolealphaDraftsOnly':
+    'rA Meetings ne crée que des brouillons dans roleALPHA. Ils prennent effet une fois approuvés dans roleALPHA.',
+  'connections.advanced': 'Avancé',
   'connections.test': 'Tester la connexion',
   'connections.grantConsent': 'Donner le consentement',
   'connections.aiTestPassed': "La connexion à l'IA fonctionne.",

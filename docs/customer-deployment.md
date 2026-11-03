@@ -14,10 +14,10 @@ This guide uses English screen labels. Microsoft may change menu names. Guide da
 
 1. **SharePoint administrator:** in the SharePoint admin center, open **More features → Apps → Open**, upload `rolealpha-meetings.sppkg`, select **Enable this app and add it to all sites**, and add it to Teams in the same dialog (steps 3–4).
 2. **Site owner:** open the app, either as **roleALPHA Sessions** in the Teams apps area or as a web part on a page of the workspace site. The setup wizard selects or creates the site, creates storage and starter templates, and prepares a landing page (steps 5–6). If Teams users do not find the app, the Teams administrator allows it in the Teams admin center (step 8).
-3. **Entra administrator, optional:** the wizard's last screen and **Connections** offer **Allow calendar and transcripts**, and next to each configured AI or roleALPHA service, **Grant consent**. Each link opens Microsoft's own consent dialog: confirm it, then close the new tab. A site owner without the Entra role passes the link on (steps 7 and 10).
+3. **SharePoint or Entra administrator, optional:** approve the package's **roleALPHA / access_as_user** request under **API access** if roleALPHA is used (step 10). The wizard's last screen and **Connections** offer **Allow calendar and transcripts**, and next to each configured AI or roleALPHA service, **Grant consent**. Each link opens Microsoft's own consent dialog for the app *SharePoint Online Web Client Extensibility*: confirm it, then close the new tab. A site owner without the Entra role passes the link on (steps 7 and 10).
 4. Check the result with ordinary user accounts (step 11).
 
-The consent links replace the approval under **API access** and the click path in Entra. They are new and not yet verified in a real tenant. If Microsoft rejects a link, use the click path described in steps 7 and 10.
+The consent links replace the approval under **API access**. Microsoft's dialog opens for them in a real tenant; the complete grant has not yet been verified there. Without a link, approve the package's requests under **API access** (steps 7 and 10) and grant AI services with the PowerShell script in step 10.
 
 ## 1. Prepare the package and administrator access
 
@@ -25,12 +25,12 @@ The consent links replace the approval under **API access** and the click path i
 2. Have your Microsoft 365 administrator account ready. Use your organization's work account.
 3. Identify who has permission for each task below. Different people may perform different steps.
 
-| Task                               | Required access                                                           |
-| ---------------------------------- | ------------------------------------------------------------------------- |
-| Deploy the SharePoint package      | SharePoint administration and access to the organization-wide app catalog |
-| Provision storage in a site        | Site owner with permission to manage lists                                |
-| Approve Microsoft Graph access     | Global administration for Microsoft API approval                          |
-| Make apps available to Teams users | Teams administration                                                      |
+| Task | Required access |
+| --- | --- |
+| Deploy the SharePoint package | SharePoint administration and access to the organization-wide app catalog |
+| Provision storage in a site | Site owner with permission to manage lists |
+| Approve Microsoft Graph access | Global administration for Microsoft API approval |
+| Make apps available to Teams users | Teams administration |
 
 4. Arrange an initial test with a small group. Test accounts need SharePoint access and, for the Teams steps, Teams access.
 5. Record who will manage site permissions and data retention.
@@ -71,6 +71,7 @@ The **app catalog** is your organization's central location for additional Share
 3. For this deployment, select **Enable this app and add it to all sites**. This makes the component available across the organization. It does not automatically create meeting data or share workspace data with other sites. If your organization does not allow this availability, arrange a restricted deployment with your SharePoint administrator before proceeding.
 4. Confirm with **Enable app** or **Add**. If the dialog offers **Add to Teams**, select it: the app can then be opened from Teams, and step 8 only needs the check in the Teams admin center.
 5. Close the dialog and inspect the app entry. Its technical package name may be `rolealpha-meetings-client-side-solution`.
+6. The package requests API access: the Microsoft Graph permissions for calendar and transcripts (step 7) and **roleALPHA / access_as_user** for the optional roleALPHA connection (step 10). They appear as pending requests under **SharePoint admin center → Advanced → API access**; approve them there when you enable those functions.
 
 **Check:** The package is enabled without a deployment error. A notice about additional API permissions is not itself an installation failure; step 7 addresses those permissions.
 
@@ -81,7 +82,7 @@ A **web part** is a component placed on a SharePoint page. You can skip this ste
 1. Open the workspace site from step 2.
 2. Select **New → Page**, create a blank page, and name it **Meetings**, for example. You can instead edit an existing suitable page.
 3. In the page content, select the **plus sign** to add a web part.
-4. Search for and select **roleALPHA Sessions**. Use the plural “Sessions” for the workspace overview. The similarly named “roleALPHA Session” web part shows a single meeting on a SharePoint page. Up to version 0.1.13 the web parts were called “roleALPHA Meetings” and “roleALPHA Meeting”.
+4. Search for and select **roleALPHA Sessions**. Use the plural “Sessions” for the workspace overview. The similarly named “roleALPHA Session” web part shows a single meeting on a SharePoint page. Up to version 0.1.17 the web parts were called “roleALPHA Meetings” and “roleALPHA Meeting”.
 5. Open the web part's properties using its edit icon.
 6. Leave **SharePoint site URL** empty to use the current site. To use another site, enter its full address. It must use the same SharePoint host, such as `yourorganization.sharepoint.com`.
 7. Leave **Meeting** set to **All meetings**.
@@ -106,11 +107,11 @@ A **web part** is a component placed on a SharePoint page. You can skip this ste
 
 **Check:** Open **Settings → Site contents** on the selected site and find:
 
-| Name                                                  | Purpose                                                                       |
-| ----------------------------------------------------- | ----------------------------------------------------------------------------- |
-| `rA Meetings Browser Index`                           | Index of stored records                                                       |
-| `rA Meetings Browser Data`                            | Content and historical versions                                               |
-| `rA-Meetings.aspx` in the pages library, if requested | Prepared landing page containing the app                                      |
+| Name | Purpose |
+| --- | --- |
+| `rA Meetings Browser Index` | Index of stored records |
+| `rA Meetings Browser Data` | Content and historical versions |
+| `rA-Meetings.aspx` in the pages library, if requested | Prepared landing page containing the app |
 | `rA Meetings Connections`, once connections are saved | AI and roleALPHA settings; its own permissions let only site owners change it |
 
 Do not rename the storage areas. After switching sites, the current app URL includes the workspace selection. Prefer the published landing page for a lasting entry point. In Teams, also enter the selected site address in the tab configuration. The personal Teams app remembers the workspace each user opened last, in that browser or Teams client; on another device the user selects it once in the wizard, which recognizes an existing workspace and opens it without setting it up again. Members who are not site owners can open an existing workspace this way.
@@ -125,11 +126,11 @@ Skip this step if you initially want to create meetings manually and import tran
 2. Select **Advanced → API access**.
 3. The quickest way: open the last screen of the setup wizard or **Connections** as a site owner and select **Allow calendar and transcripts**. An administrator authorized to approve Microsoft API access confirms the permissions below in Microsoft's consent dialog and closes the new tab; pass the link on if you do not hold that role. This grants the same permissions as the approval under **API access**. Otherwise, have that administrator review these package requests:
 
-| Requested permission               | Purpose                                                                                                                                               |
-| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Calendars.Read`                   | Display and link the user's own calendar events                                                                                                       |
-| `OnlineMeetings.ReadWrite`         | Locate the linked Teams meeting and, if enabled under **Connections → Teams recording and transcription**, set its transcription and recording option |
-| `OnlineMeetingTranscript.Read.All` | Read available transcripts accessible to the user                                                                                                     |
+| Requested permission | Purpose |
+| --- | --- |
+| `Calendars.Read` | Display and link the user's own calendar events |
+| `OnlineMeetings.ReadWrite` | Locate the linked Teams meeting and, if enabled under **Connections → Teams recording and transcription**, set its transcription and recording option |
+| `OnlineMeetingTranscript.Read.All` | Read available transcripts accessible to the user |
 
 4. Approve required requests individually. Already approved entries do not require approval again.
 5. Reopen the app with an ordinary test account. Link an rA meeting to one of that account's nonrecurring Teams events.
@@ -139,7 +140,7 @@ Skip this step if you initially want to create meetings manually and import tran
 
 These approvals apply to the shared SharePoint authentication component, not exclusively to this web part. See [Microsoft's API approval guidance](https://learn.microsoft.com/en-us/sharepoint/dev/spfx/use-aadhttpclient).
 
-**Tenant-wide effect:** SharePoint grants approved permissions to the shared _SharePoint Online Client Extensibility Web Application Principal_. Every SharePoint Framework solution in the tenant can then request tokens with these permissions for the signed-in user, including `OnlineMeetingTranscript.Read.All` and any approved AI or roleALPHA scopes. Before approving:
+**Tenant-wide effect:** SharePoint grants approved permissions to Microsoft's shared app *SharePoint Online Web Client Extensibility* (app ID `08e18876-6177-487e-b8b5-cf950c1e598c`, the same in every tenant; before 2025 the tenant's own *SharePoint Online Client Extensibility Web Application Principal*). Every SharePoint Framework solution in the tenant can then request tokens with these permissions for the signed-in user, including `OnlineMeetingTranscript.Read.All` and any approved AI or roleALPHA scopes. Before approving:
 
 - Restrict who can add solutions to the app catalog and review which solutions are deployed.
 - Approve only the permissions of features you use.
@@ -152,7 +153,7 @@ These approvals apply to the shared SharePoint authentication component, not exc
 3. Select **Add to Teams**, called **Sync to Teams** in older interfaces.
 4. Wait for confirmation. The package carries its own Teams app, **roleALPHA Sessions**, which SharePoint deploys to the Teams store; do not upload the `.sppkg` directly to Teams. The app works as a personal app, as a tab in channels and group chats, and in Teams meetings.
 5. Open the [Teams admin center](https://admin.teams.microsoft.com/).
-6. Under **Teams apps → Manage apps**, find **roleALPHA Sessions** (called roleALPHA Meetings up to version 0.1.13; the update renames it). Versions before 0.1.13 also created a second app, **roleALPHA Meeting**; it is no longer updated and fails as a channel tab. Block or delete it there.
+6. Under **Teams apps → Manage apps**, find **roleALPHA Sessions** (called roleALPHA Meetings up to version 0.1.17; the update renames it). Versions before 0.1.13 also created a second app, **roleALPHA Meeting**; it is no longer updated and fails as a channel tab. Block or delete it there.
 7. Check that the app is allowed and available to your test users. Depending on your organization's management model, assignment may be configured directly on the app or through app permission policies. Have the Teams administrator configure this where necessary.
 8. Reopen Teams with a test account and search for **roleALPHA** in its apps area.
 
@@ -183,16 +184,34 @@ These approvals apply to the shared SharePoint authentication component, not exc
 
 ## 10. Optional: enable AI and roleALPHA Governance
 
-The meeting app works without these connections. They are set up per workspace in the app, by a site owner (Full Control), either in the setup wizard or later under **Connections → Set up AI and roleALPHA**. No new package is needed. Each section of the form has an **Instructions** panel with these steps and the values you entered.
+The meeting app works without these connections. They are set up per workspace in the app, by a site owner (Full Control), either in the setup wizard or later under **Connections → Set up AI and roleALPHA**. No new package is needed. Each section of the form has an **Instructions** panel with these steps and the values that apply. For roleALPHA, the short path is: approve the API access request, enable external applications in roleALPHA, then **Connect to roleALPHA** and choose the organisation.
 
 1. Decide whether to use AI assistance, transfers to roleALPHA Governance, or both.
    For AI, choose one provider: **Microsoft 365 Copilot** (requires Work IQ and Copilot usage billing), **Claude via Microsoft Foundry** (requires a Foundry resource, a Claude deployment, and the Foundry User role for app users), or an organization-operated **OpenAI-compatible** endpoint. The [technical guide](technical-deployment.md#ai-providers) lists prerequisites and limits.
-2. Confirm which services will receive data and where they process it. Whoever sets these addresses decides where transcripts and meeting content go; only site owners can change them. If content must never pass through roleALPHA-operated infrastructure, a centrally operated roleALPHA service is not an appropriate endpoint; the organization-controlled deployment must meet that requirement.
-3. Services must accept Microsoft Entra sign-in and direct browser requests from your SharePoint address (CORS). See the [technical guide](technical-deployment.md). A service accepting only a secret API key is not compatible. The form never asks for keys.
-4. For roleALPHA, a roleALPHA administrator enables external applications for your tenant, registers the Entra directory, and adds your SharePoint address as an allowed origin. They also give you the MCP address, the resource (application ID URI), the tenant ID, and the tool names. Each person must have signed in to roleALPHA through Microsoft once; otherwise the app reports that the account is not linked.
-5. Enter the values in the form. For roleALPHA, select which outcome types are sent as drafts and, optionally, the search tools for governance questions and own drafts.
-6. **Grant the delegated permission once per service** (Entra administrator). The package does not request these permissions, so they do not appear under API access. Select **Grant consent** next to **Test connection**: Microsoft's consent dialog asks for the scope shown in the form; confirm it and close the new tab. Without the link, in the Microsoft Entra admin center open **App registrations → All applications → SharePoint Online Client Extensibility Web Application Principal → API permissions → Add a permission → APIs my organization uses**, find the service's API, choose **Delegated permissions**, select the scope shown in the form, add it, and select **Grant admin consent**. As with the Graph permissions in step 7, this applies to every SharePoint Framework solution in the tenant.
-7. Select **Test connection** in each section. The test requests a token (a failure here means step 6 is missing or not yet effective), then makes one harmless call: a tiny AI request, or for roleALPHA the token exchange and the list of offered tools. Then **Save**.
+2. Confirm which services will receive data and where they process it. Whoever sets these addresses decides where transcripts and meeting content go; only site owners can change them. roleALPHA is reached at its central installation, `https://rolealpha.app`; if content must never pass through roleALPHA-operated infrastructure, do not enable the roleALPHA connection.
+3. **roleALPHA, once per organisation:**
+   1. **SharePoint administrator:** in the SharePoint admin center, open **Advanced → API access** and approve the pending request **roleALPHA / access_as_user** from this package. This also creates the roleALPHA app in your directory. Alternatively, an Entra administrator selects **Grant consent** in the form.
+   2. **roleALPHA administrator:** in roleALPHA, open **Settings → AI → External applications**, turn on **External AI applications**, and under **Microsoft 365 integrations** enter your directory ID and the allowed addresses: your SharePoint address (for example `https://yourorganization.sharepoint.com`) and `https://teams.microsoft.com`. The form's **Instructions** panel shows both values.
+   3. **Each person** who uses roleALPHA from the app signs in once on rolealpha.app with **Sign in with Microsoft**. Otherwise the app reports that the account is not linked.
+4. **roleALPHA, per workspace (site owner):** select **Connect roleALPHA**, then **Connect to roleALPHA**. If roleALPHA offers several organisations, choose one. If the app asks for the **roleALPHA tenant ID** (roleALPHA releases before the organisation lookup), copy it from roleALPHA's **Microsoft 365 integrations** card and connect again. The app fills in the tools roleALPHA offers. Select which outcome types are sent as drafts and whether the meeting record is sent, then **Save**. roleALPHA only receives drafts; they take effect after approval in roleALPHA. Address, resource, tenant and tool names can be changed under **Advanced**; the defaults fit every customer.
+5. AI services must accept Microsoft Entra sign-in and direct browser requests from your SharePoint address (CORS). See the [technical guide](technical-deployment.md). A service accepting only a secret API key is not compatible. The form never asks for keys.
+6. **Grant the AI service's delegated permission once** (Entra administrator). The package does not request it, so it does not appear under API access. Select **Grant consent** next to **Test connection**: Microsoft's consent dialog asks for the scope shown in the form; confirm it and close the new tab. Without the link, use Microsoft Graph PowerShell: the Entra admin center has no screen for permissions of Microsoft's SPFx app. Replace the two values with the resource and scope shown in the form; the API's app must already exist in your directory (otherwise create it first with `New-MgServicePrincipal -AppId <its application ID>`). As with the Graph permissions in step 7, this applies to every SharePoint Framework solution in the tenant.
+
+   ```powershell
+   $resource = 'api://your-ai-service'   # "Resource" in the form
+   $scope = 'access_as_user'             # "Scope" in the form
+   Connect-MgGraph -Scopes 'Application.Read.All', 'DelegatedPermissionGrant.ReadWrite.All'
+   $spfx = Get-MgServicePrincipal -Filter "appId eq '08e18876-6177-487e-b8b5-cf950c1e598c'"
+   $api = Get-MgServicePrincipal -Filter "servicePrincipalNames/any(n:n eq '$resource')"
+   $grant = Get-MgOauth2PermissionGrant -Filter "clientId eq '$($spfx.Id)' and resourceId eq '$($api.Id)' and consentType eq 'AllPrincipals'"
+   if ($grant) {
+     $scopes = (@($grant.Scope -split ' ') + $scope | Where-Object { $_ } | Select-Object -Unique) -join ' '
+     Update-MgOauth2PermissionGrant -OAuth2PermissionGrantId $grant.Id -Scope $scopes
+   } else {
+     New-MgOauth2PermissionGrant -ClientId $spfx.Id -ConsentType AllPrincipals -ResourceId $api.Id -Scope $scope
+   }
+   ```
+7. Select **Test connection** for AI (for roleALPHA, **Connect to roleALPHA** already tested the connection; **Test connection** is under **Advanced**). The test requests a token (a failure here means the permission is missing or not yet effective), then makes one harmless call: a tiny AI request, or for roleALPHA the token exchange and the list of offered tools. Then **Save**.
 8. Test each enabled function using test data. Generate an AI suggestion, review it, and only then transfer an approved outcome to roleALPHA. Check in roleALPHA that the expected draft exists.
 9. For governance questions, the roleALPHA search tool and appropriate read access must be configured. Draft creation alone is insufficient. Open the governance assistant from the navigation or within a meeting. Ask about a known role or rule and start the governance check.
 10. Compare the answer and expandable original sources with roleALPHA's existing governance. Also test a question without relevant sources; the app must not present an unsupported answer as established governance.
@@ -221,18 +240,18 @@ Complete these checks before sharing the app with the full group:
 
 ## Troubleshooting
 
-| Observation                                            | Next step                                                                                                                                                                                                                                                                                 |
-| ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Apps or API access is missing                          | Check the account and administrator role; complete app catalog setup in step 3 if needed.                                                                                                                                                                                                 |
-| Web part is missing                                    | Check app activation and site availability in the catalog, then reopen the page.                                                                                                                                                                                                          |
-| Workspace setup is unavailable                         | Check the site URL and sign in as an owner who can manage lists.                                                                                                                                                                                                                          |
-| Access denied                                          | Check access to the site and both storage areas. Teams membership alone may be insufficient.                                                                                                                                                                                              |
-| Meetings appear in SharePoint but not Teams            | Compare the configured site addresses.                                                                                                                                                                                                                                                    |
-| App is missing in Teams                                | Review synchronization, app approval, and user assignment in step 8.                                                                                                                                                                                                                      |
-| Calendar or transcript is unavailable                  | Review API approval, account, meeting type, and transcript availability in step 7.                                                                                                                                                                                                        |
-| Concurrent editing causes a conflict                   | Save unsaved text elsewhere, load the latest version, and reapply the change.                                                                                                                                                                                                             |
-| AI or roleALPHA fails despite being configured         | Use **Test connection** under **Connections**. A token error means the delegated permission from step 10 is missing; an unreachable service means address, network or CORS. Otherwise give the integration administrator the time and error message. Do not send secret keys in messages. |
-| **Connections** reports that the protection is missing | Someone restored inherited permissions on `rA Meetings Connections`. AI and roleALPHA stay off until a site owner saves the connections again, which restores the protection.                                                                                                             |
+| Observation | Next step |
+| --- | --- |
+| Apps or API access is missing | Check the account and administrator role; complete app catalog setup in step 3 if needed. |
+| Web part is missing | Check app activation and site availability in the catalog, then reopen the page. |
+| Workspace setup is unavailable | Check the site URL and sign in as an owner who can manage lists. |
+| Access denied | Check access to the site and both storage areas. Teams membership alone may be insufficient. |
+| Meetings appear in SharePoint but not Teams | Compare the configured site addresses. |
+| App is missing in Teams | Review synchronization, app approval, and user assignment in step 8. |
+| Calendar or transcript is unavailable | Review API approval, account, meeting type, and transcript availability in step 7. |
+| Concurrent editing causes a conflict | Save unsaved text elsewhere, load the latest version, and reapply the change. |
+| AI or roleALPHA fails despite being configured | Use **Test connection** under **Connections**. A token error means the delegated permission from step 10 is missing; an unreachable service means address, network or CORS. Otherwise give the integration administrator the time and error message. Do not send secret keys in messages. |
+| **Connections** reports that the protection is missing | Someone restored inherited permissions on `rA Meetings Connections`. AI and roleALPHA stay off until a site owner saves the connections again, which restores the protection. |
 
 ## Ongoing operation and retention
 

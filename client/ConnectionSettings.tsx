@@ -4,6 +4,8 @@ import { AppError, outputLabels, outputTypes, type OutputType } from '../shared/
 import type { MessageId } from '../shared/i18n';
 import { connectionSettingsSchema, type AiProviderName, type ConnectionSettings } from './browser/host';
 import type { ConnectionPart, ConnectionsState } from './browser/connections';
+import type { RoleAlphaSetup } from './browser/rolealpha';
+import { roleAlphaEnvironment } from './browser/rolealpha-environment';
 import { errorText, t as tr } from './i18n';
 import { aiProviderLabels } from './labels';
 import { Button } from './ui';
@@ -13,6 +15,13 @@ export type ConnectionsApi = {
   load: () => Promise<ConnectionsState>;
   save: (settings: ConnectionSettings, version: number) => Promise<ConnectionsState>;
   test: (part: ConnectionPart, settings: ConnectionSettings) => Promise<MessageId>;
+  /** Exchange, organisation and tools for "Connect roleALPHA"; nothing is stored. */
+  connectRoleAlpha: (input: {
+    url?: string;
+    resource?: string;
+    scope?: string;
+    tenant?: string;
+  }) => Promise<RoleAlphaSetup>;
 };
 
 type AiDraft = {
@@ -70,19 +79,20 @@ function aiDraft(settings: ConnectionSettings['ai']): AiDraft {
   };
 }
 
+/** A new connection starts with the shipped roleALPHA installation (client/browser/rolealpha-environment.ts). */
 function roleAlphaDraft(settings: ConnectionSettings['roleAlpha']): RoleAlphaDraft {
   return {
     enabled: !!settings,
-    url: settings?.url ?? '',
-    resource: settings?.resource ?? '',
-    scope: settings?.scope ?? 'access_as_user',
+    url: settings?.url ?? roleAlphaEnvironment.mcpUrl,
+    resource: settings?.resource ?? roleAlphaEnvironment.resource,
+    scope: settings?.scope ?? roleAlphaEnvironment.scope,
     tenant: settings?.tenant ?? '',
     createTool: settings?.createTool ?? 'create_entity_draft',
     meeting: settings?.meeting ?? false,
     entities: settings?.entities ?? {},
     governanceTool: settings?.governance?.searchTool ?? '',
     draftsTool: settings?.drafts?.searchTool ?? '',
-    draftsAppUrl: settings?.drafts?.appUrl ?? '',
+    draftsAppUrl: settings?.drafts?.appUrl ?? roleAlphaEnvironment.appUrl,
   };
 }
 
@@ -111,10 +121,9 @@ function toSettings(ai: AiDraft, roleAlpha: RoleAlphaDraft) {
           meeting: roleAlpha.meeting,
           entities: roleAlpha.entities,
           governance: filled(roleAlpha.governanceTool) ? { searchTool: roleAlpha.governanceTool.trim() } : null,
-          drafts:
-            filled(roleAlpha.draftsTool) || filled(roleAlpha.draftsAppUrl)
-              ? { searchTool: filled(roleAlpha.draftsTool), appUrl: filled(roleAlpha.draftsAppUrl) }
-              : null,
+          drafts: filled(roleAlpha.draftsTool)
+            ? { searchTool: filled(roleAlpha.draftsTool), appUrl: filled(roleAlpha.draftsAppUrl) }
+            : null,
         }
       : null,
   });
@@ -156,20 +165,12 @@ function Guide({ steps }: { steps: readonly Step[] }) {
   );
 }
 
-/** With a consent link, Microsoft's dialog replaces the click path in Entra, which stays as the fallback. */
-const grantSteps = (resource: string, scope: string, link: boolean): Step[] =>
-  link
-    ? [
-        ['connections.guide.grantLink', { resource, scope }],
-        ['connections.guide.grantManual', { resource, scope }],
-        ['connections.guide.grant4'],
-      ]
-    : [
-        ['connections.guide.grant1'],
-        ['connections.guide.grant2', { resource: resource || '…' }],
-        ['connections.guide.grant3', { scope: scope || '…' }],
-        ['connections.guide.grant4'],
-      ];
+/** Microsoft's consent dialog where there is a link; PowerShell otherwise, as Entra has no click path for the SPFx app. */
+const grantSteps = (resource: string, scope: string, link: boolean): Step[] => [
+  ...(link ? ([['connections.guide.grantLink', { resource, scope }]] as const) : []),
+  ['connections.guide.grantPowerShell', { resource: resource || '…', scope: scope || '…' }],
+  ['connections.guide.grant4'],
+];
 
 /** Opens Microsoft's admin consent dialog in a new tab; an owner without the Entra role passes the link on. */
 function ConsentLink({ href }: { href: string | null }) {
@@ -192,7 +193,7 @@ const aiSteps: Record<AiProviderName, (origin: string) => Step[]> = {
   'openai-compatible': origin => [['connections.guide.openai1', { origin }]],
 };
 
-type Result = { tone: 'success' | 'error'; text: string };
+type Result = { tone: 'success' | 'error' | 'info'; text: string };
 
 /**
  * AI and roleALPHA connections of the workspace, for site owners. Used in the setup wizard and on the Connections
@@ -201,10 +202,13 @@ type Result = { tone: 'success' | 'error'; text: string };
 export function ConnectionSettings({
   api,
   origin,
+  directory,
   consent,
 }: {
   api: ConnectionsApi;
   origin: string;
+  /** The Microsoft Entra directory (tenant) ID, which roleALPHA's administration registers. */
+  directory: string;
   consent: (resource: string, scopes: readonly string[]) => string | null;
 }) {
   const [state, setState] = useState<ConnectionsState | null>(null);
@@ -213,6 +217,7 @@ export function ConnectionSettings({
   const [busy, setBusy] = useState(false);
   const [results, setResults] = useState<Partial<Record<ConnectionPart | 'save', Result>>>({});
   const [tested, setTested] = useState<Record<ConnectionPart, boolean>>({ ai: false, roleAlpha: false });
+  const [setup, setSetup] = useState<RoleAlphaSetup | null>(null);
   const apply = (loaded: ConnectionsState) => {
     setState(loaded);
     setAi(aiDraft(loaded.settings.ai));
@@ -256,6 +261,29 @@ export function ConnectionSettings({
       setTested(current => ({ ...current, [part]: true }));
       return { tone: 'success', text: tr(message) };
     });
+  /** Connect roleALPHA: the organisation comes from roleALPHA, or from the tenant ID once it asks for one. */
+  const connect = (tenant?: string) =>
+    act('roleAlpha', async () => {
+      const result = await api.connectRoleAlpha({
+        url: filled(roleAlpha.url),
+        resource: filled(roleAlpha.resource),
+        scope: filled(roleAlpha.scope),
+        tenant: tenant ?? filled(roleAlpha.tenant),
+      });
+      setSetup(current => (result.status === 'connected' && current?.status === 'choose' ? current : result));
+      if (result.status === 'tenantRequired') return { tone: 'info', text: tr('connections.rolealphaEnterTenant') };
+      if (result.status === 'choose') return { tone: 'info', text: tr('connections.rolealphaChooseOrganisation') };
+      const { organisation, tools } = result;
+      setRoleAlpha(current => ({
+        ...current,
+        tenant: organisation.uuid,
+        createTool: tools.createTool ?? current.createTool,
+        governanceTool: tools.governance ?? current.governanceTool,
+        draftsTool: tools.drafts ?? current.draftsTool,
+      }));
+      setTested(current => ({ ...current, roleAlpha: true }));
+      return { tone: 'success', text: tr('connections.rolealphaConnected', { organisation: organisation.name }) };
+    });
   const save = () =>
     act('save', async () => {
       const settings = parsed();
@@ -267,14 +295,16 @@ export function ConnectionSettings({
     const result = results[key];
     return (
       result && (
-        <p role={result.tone === 'error' ? 'alert' : 'status'} className={`notice ${result.tone}`}>
+        <p
+          role={result.tone === 'error' ? 'alert' : 'status'}
+          className={result.tone === 'info' ? 'notice' : `notice ${result.tone}`}
+        >
           {result.text}
         </p>
       )
     );
   };
   if (!state) return resultLine('save') || <p role="status">{tr('connections.loading')}</p>;
-  const entitiesOn = outputTypes.filter(type => roleAlpha.entities[type]);
   const aiConsent = consent(ai.resource, [ai.scope]);
   const roleAlphaConsent = consent(roleAlpha.resource, [roleAlpha.scope]);
   return (
@@ -385,33 +415,49 @@ export function ConnectionSettings({
           </label>
           {roleAlpha.enabled && (
             <>
-              <Field
-                label="connections.mcpUrl"
-                value={roleAlpha.url}
-                disabled={busy}
-                placeholder="https://…/api/mcp"
-                onChange={url => changeRoleAlpha({ url })}
+              <Guide
+                steps={[
+                  ['connections.guide.rolealphaApiAccess', { scope: roleAlpha.scope }],
+                  ['connections.guide.rolealphaExternal', { directory, origin }],
+                  ['connections.guide.rolealphaSignIn'],
+                ]}
               />
-              <Field
-                label="connections.resource"
-                value={roleAlpha.resource}
-                disabled={busy}
-                placeholder="api://…"
-                onChange={resource => changeRoleAlpha({ resource })}
-              />
-              <Field
-                label="connections.scope"
-                value={roleAlpha.scope}
-                disabled={busy}
-                onChange={scope => changeRoleAlpha({ scope })}
-              />
-              <Field
-                label="connections.tenant"
-                value={roleAlpha.tenant}
-                disabled={busy}
-                placeholder="00000000-0000-0000-0000-000000000000"
-                onChange={tenant => changeRoleAlpha({ tenant })}
-              />
+              {setup?.status === 'choose' && (
+                <fieldset className="organisations">
+                  <legend>{tr('connections.organisation')}</legend>
+                  {setup.organisations.map(organisation => (
+                    <label key={organisation.uuid} className="check">
+                      <input
+                        type="radio"
+                        name="rolealpha-organisation"
+                        checked={roleAlpha.tenant === organisation.uuid}
+                        disabled={busy}
+                        onChange={() => void connect(organisation.uuid)}
+                      />
+                      {organisation.name}
+                    </label>
+                  ))}
+                </fieldset>
+              )}
+              {setup?.status === 'tenantRequired' && (
+                <>
+                  <Field
+                    label="connections.tenant"
+                    value={roleAlpha.tenant}
+                    disabled={busy}
+                    placeholder="00000000-0000-0000-0000-000000000000"
+                    onChange={tenant => changeRoleAlpha({ tenant })}
+                  />
+                  <p className="small muted">{tr('connections.tenantHint')}</p>
+                </>
+              )}
+              <div className="row">
+                <ConsentLink href={roleAlphaConsent} />
+                <Button className="primary" disabled={busy} onClick={() => void connect()}>
+                  {tr('connections.rolealphaConnect')}
+                </Button>
+              </div>
+              {resultLine('roleAlpha')}
               <label className="check">
                 <input
                   type="checkbox"
@@ -457,52 +503,73 @@ export function ConnectionSettings({
                   );
                 })}
               </fieldset>
-              {(roleAlpha.meeting || entitiesOn.length > 0) && (
+              <p className="small muted">{tr('connections.rolealphaDraftsOnly')}</p>
+              <details className="guide">
+                <summary>{tr('connections.advanced')}</summary>
+                <Field
+                  label="connections.mcpUrl"
+                  value={roleAlpha.url}
+                  disabled={busy}
+                  placeholder={roleAlphaEnvironment.mcpUrl}
+                  onChange={url => changeRoleAlpha({ url })}
+                />
+                <Field
+                  label="connections.resource"
+                  value={roleAlpha.resource}
+                  disabled={busy}
+                  placeholder={roleAlphaEnvironment.resource}
+                  onChange={resource => changeRoleAlpha({ resource })}
+                />
+                <Field
+                  label="connections.scope"
+                  value={roleAlpha.scope}
+                  disabled={busy}
+                  onChange={scope => changeRoleAlpha({ scope })}
+                />
+                {setup?.status !== 'tenantRequired' && (
+                  <Field
+                    label="connections.tenant"
+                    value={roleAlpha.tenant}
+                    disabled={busy}
+                    placeholder="00000000-0000-0000-0000-000000000000"
+                    onChange={tenant => changeRoleAlpha({ tenant })}
+                  />
+                )}
                 <Field
                   label="connections.createTool"
                   value={roleAlpha.createTool}
                   disabled={busy}
                   onChange={createTool => changeRoleAlpha({ createTool })}
                 />
-              )}
-              <Field
-                label="connections.governanceTool"
-                value={roleAlpha.governanceTool}
-                disabled={busy}
-                placeholder="search_…"
-                onChange={governanceTool => changeRoleAlpha({ governanceTool })}
-              />
-              <Field
-                label="connections.draftsTool"
-                value={roleAlpha.draftsTool}
-                disabled={busy}
-                placeholder="search_…"
-                onChange={draftsTool => changeRoleAlpha({ draftsTool })}
-              />
-              {filled(roleAlpha.draftsTool) && (
                 <Field
-                  label="connections.draftsAppUrl"
-                  value={roleAlpha.draftsAppUrl}
+                  label="connections.governanceTool"
+                  value={roleAlpha.governanceTool}
                   disabled={busy}
-                  placeholder="https://…"
-                  onChange={draftsAppUrl => changeRoleAlpha({ draftsAppUrl })}
+                  placeholder="search_…"
+                  onChange={governanceTool => changeRoleAlpha({ governanceTool })}
                 />
-              )}
-              <Guide
-                steps={[
-                  ['connections.guide.rolealpha1', { origin }],
-                  ['connections.guide.rolealpha2'],
-                  ...grantSteps(roleAlpha.resource, roleAlpha.scope, !!roleAlphaConsent),
-                  ['connections.guide.rolealpha3'],
-                ]}
-              />
-              <div className="row">
-                <ConsentLink href={roleAlphaConsent} />
-                <Button disabled={busy} onClick={() => void test('roleAlpha')}>
-                  {tr('connections.test')}
-                </Button>
-              </div>
-              {resultLine('roleAlpha')}
+                <Field
+                  label="connections.draftsTool"
+                  value={roleAlpha.draftsTool}
+                  disabled={busy}
+                  placeholder="search_…"
+                  onChange={draftsTool => changeRoleAlpha({ draftsTool })}
+                />
+                {filled(roleAlpha.draftsTool) && (
+                  <Field
+                    label="connections.draftsAppUrl"
+                    value={roleAlpha.draftsAppUrl}
+                    disabled={busy}
+                    placeholder={roleAlphaEnvironment.appUrl}
+                    onChange={draftsAppUrl => changeRoleAlpha({ draftsAppUrl })}
+                  />
+                )}
+                <div className="row">
+                  <Button disabled={busy} onClick={() => void test('roleAlpha')}>
+                    {tr('connections.test')}
+                  </Button>
+                </div>
+              </details>
             </>
           )}
         </section>
@@ -517,7 +584,7 @@ export function ConnectionSettings({
 
 /** The Connections page's variant: the same form through the app's routes. `saved` reloads the page data. */
 export function WorkspaceConnections({ saved }: { saved: () => Promise<unknown> }) {
-  const { request, adminConsent } = useApi();
+  const { request, adminConsent, tenantId } = useApi();
   const reload = useRef(saved);
   reload.current = saved;
   const api = useMemo<ConnectionsApi>(
@@ -530,9 +597,10 @@ export function WorkspaceConnections({ saved }: { saved: () => Promise<unknown> 
       },
       test: async (part, settings) =>
         (await request<{ result: MessageId }>('/connections/test', { part, settings })).result,
+      connectRoleAlpha: input => request<RoleAlphaSetup>('/connections/rolealpha', input),
     }),
     [request],
   );
   // The page and every service the app calls share the SharePoint origin, also inside Teams.
-  return <ConnectionSettings api={api} origin={window.location.origin} consent={adminConsent} />;
+  return <ConnectionSettings api={api} origin={window.location.origin} directory={tenantId} consent={adminConsent} />;
 }

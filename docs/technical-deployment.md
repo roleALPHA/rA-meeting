@@ -6,11 +6,11 @@ This guide is for package builders and operators of optional integrations. To in
 
 Both integrations are optional. Services must support **direct browser requests with CORS** and **delegated Microsoft Entra authentication**. Services accepting only secret API keys or service-account bearer tokens need changes before they are compatible. The app provides no hidden proxy and does not ask end users for keys.
 
-Use services controlled by your organization. Verify ownership, region, and processing arrangements; a URL alone cannot establish data sovereignty. A central roleALPHA SaaS endpoint would not satisfy a requirement to keep data off roleALPHA-operated infrastructure. Use the appropriate organization-controlled roleALPHA deployment for MCP.
+Use services controlled by your organization. Verify ownership, region, and processing arrangements; a URL alone cannot establish data sovereignty. The roleALPHA connection defaults to roleALPHA's central installation at `rolealpha.app`; that does not satisfy a requirement to keep data off roleALPHA-operated infrastructure.
 
 Governance integration is specifically for roleALPHA. MCP is its protocol, not an arbitrary provider setting. One roleALPHA endpoint handles meeting records and all enabled entity types. Per-entity endpoints and generic MCP configuration are rejected. Administrators must verify the service's identity; an address alone does not prove it.
 
-**Settings live in the workspace, not in the package.** The package is the same for every customer and contains no AI or MCP targets. A site owner sets up the connections per workspace in the setup wizard or under **Connections**. The app stores them as JSON in the list `rA Meetings Connections` on the workspace site, one item, and reads them each time the app starts. Stored format, containing no real credentials:
+**Settings live in the workspace; roleALPHA's installation ships with the package.** The package is the same for every customer. It contains no AI targets, and roleALPHA's address and Entra app as defaults (`client/browser/rolealpha-environment.ts`, see the README). A site owner sets up the connections per workspace in the setup wizard or under **Connections**. The app stores them as JSON in the list `rA Meetings Connections` on the workspace site, one item, and reads them each time the app starts. Stored format, containing no real credentials:
 
 ```json
 {
@@ -26,15 +26,15 @@ Governance integration is specifically for roleALPHA. MCP is its protocol, not a
       "maxInputChars": 200000
     },
     "roleAlpha": {
-      "url": "https://rolealpha.organization.example/api/mcp",
-      "resource": "api://ORGANIZATION-ROLEALPHA-APPLICATION-ID",
+      "url": "https://rolealpha.app/api/mcp",
+      "resource": "api://4bd22250-d811-4905-97a4-cb2bf69f98fa",
       "scope": "access_as_user",
       "tenant": "11111111-1111-4111-8111-111111111111",
       "meeting": false,
       "createTool": "create_entity_draft",
       "entities": { "risk": { "entityType": "risk", "label": "Risk" } },
       "governance": null,
-      "drafts": null
+      "drafts": { "searchTool": "search_my_drafts", "appUrl": "https://rolealpha.app" }
     }
   }
 }
@@ -47,13 +47,17 @@ Governance integration is specifically for roleALPHA. MCP is its protocol, not a
 - The app reads the settings only while the list still has its own permissions. If someone restores inheritance, or the stored value does not pass validation (for example because it contains a key), AI and roleALPHA are off until an owner saves again, which restores the protection.
 - The same validation applies as before: HTTPS without credentials or key-like query parameters, no secret fields, one roleALPHA endpoint, `search_` and `create_` tool names.
 
+**Connect to roleALPHA.** The roleALPHA section needs only the organisation. **Connect to roleALPHA** (`POST /connections/rolealpha` in the browser runtime, site owners only) exchanges the user's Entra token **without** `tenant_uuid`. roleALPHA answers with a working token and the organisation's `tenant_uuid` when there is one organisation, or with a token of scope `rolealpha:organisation-select` when there are several; the app then calls `list_my_organisations`, the owner picks one, and the app exchanges again **with** that `tenant_uuid`. A roleALPHA release that still requires `tenant_uuid` refuses the first exchange with `invalid_request`; the form then asks for the roleALPHA tenant ID. With a working token the app reads `tools/list` and fills in `create_entity_draft`, `search_my_drafts` and `search_governance` where they are offered. Nothing is stored until **Save**; every later exchange sends the saved `tenant`. Address, resource, scope, tenant and tool names stay editable under **Advanced**. Contract: roleALPHA's `doc/ENTRA-TAUSCH.md`.
+
 **Connection test.** Before saving, **Test connection** tries the entered values. It requests a delegated token for `resource`; a failure there means the permission below is missing or not yet effective. It then makes one harmless call: for AI, a minimal structured request; for roleALPHA, the token exchange and `tools/list`, checking that every configured tool is offered.
 
 **Sign-in: the delegated Microsoft token is exchanged.** roleALPHA's MCP endpoint does not accept Microsoft tokens. Before each call, the app exchanges the signed-in user's delegated Entra token for a short-lived roleALPHA token (RFC 8693) at `POST <origin of url>/api/auth/oauth/token` with `grant_type=urn:ietf:params:oauth:grant-type:token-exchange`, the Entra token as `subject_token`, the configured `tenant` as `tenant_uuid`, and `url` as `resource`. The token endpoint is derived from the endpoint's origin; it is the only second address of this integration, and it is never configured separately. The token lives in memory until it expires and is never stored; roleALPHA issues no refresh token deliberately. A rejected call is retried once with a freshly exchanged token.
 
-This requires on the roleALPHA side: the Entra directory registered for the tenant, the external-application feature enabled, the SharePoint origin registered for CORS, and **each user having signed in to roleALPHA through Microsoft at least once** — the exchange identifies the person by the Microsoft object ID, and an unknown account is refused with a message saying exactly that. Access is granted and revoked per user under connected applications in roleALPHA.
+This requires on the roleALPHA side (**Settings → AI → External applications**): the **External AI applications** switch on, and under **Microsoft 365 integrations** the customer's Entra directory ID and the allowed addresses (the SharePoint origin and `https://teams.microsoft.com`); and **each user having signed in on rolealpha.app with "Sign in with Microsoft" at least once** — the exchange identifies the person by the Microsoft object ID. Access is granted and revoked per user under connected applications in roleALPHA. The app shows roleALPHA's refusals as: `400 invalid_grant` — account not linked or inactive, sign in with Microsoft on rolealpha.app once; `403 access_denied` — the switch is off or the access was revoked; `400 invalid_target` — the address under **Advanced** is not roleALPHA's MCP endpoint.
 
-`resource` is the service's Entra audience (application ID URI); `scope` is its delegated permission. Because the services are set up at runtime, the package does not request these permissions and they do not appear under **API access**. An Entra administrator grants each one once, directly to the shared SharePoint client principal: **App registrations → All applications → SharePoint Online Client Extensibility Web Application Principal → API permissions → Add a permission → APIs my organization uses →** _the service_ **→ Delegated permissions →** _scope_ **→ Grant admin consent**. The form shows these steps with the entered values and, next to **Test connection**, a **Grant consent** link: Microsoft's v2.0 `adminconsent` endpoint with `client_id` set to that principal (from the page context's `spfx3rdPartyServicePrincipalId`, the client SPFx requests third-party tokens with), the scope URI `resource/scope`, and the principal's SPFx reply page `<origin>/_forms/spfxsinglesignon.aspx` as `redirect_uri`. The wizard and **Connections** offer the same link for the package's Graph permissions. The consent is recorded by Entra; nothing returns to the app, and **Test connection** shows whether it is in place. Each service must validate audience, tenant, scope, and user permissions itself. The grant applies to every SharePoint Framework solution in the tenant, not exclusively to this web part.
+**roleALPHA's permission is requested by the package.** `webApiPermissionRequests` contains `{ "resource": "roleALPHA", "scope": "access_as_user", "appId": "4bd22250-d811-4905-97a4-cb2bf69f98fa", "replyUrl": "https://rolealpha.app/" }` (generated by `scripts/build-browser.ts`). With `appId` and `replyUrl` (SPFx 1.15.2 and later) SharePoint creates the roleALPHA app in the customer's directory when a SharePoint administrator approves the request under **SharePoint admin center → Advanced → API access**. An address changed under **Advanced** needs its own grant, as described next.
+
+`resource` is the service's Entra audience (application ID URI); `scope` is its delegated permission. Because AI services are set up at runtime, the package does not request their permissions and they do not appear under **API access**. An Entra administrator grants each one once to the app SPFx requests third-party tokens with: since 2025 Microsoft's first-party app *SharePoint Online Web Client Extensibility*, app ID `08e18876-6177-487e-b8b5-cf950c1e598c` in every tenant. The Entra admin center has no screen for its permissions, so the form offers, next to **Test connection**, a **Grant consent** link: Microsoft's v2.0 `adminconsent` endpoint with that `client_id` (`client/browser/consent.ts`), the scope URI `resource/scope`, and the SPFx reply page `<origin>/_forms/spfxsinglesignon.aspx` as `redirect_uri`; the authority comes from the page context's `aadInstanceUrl`. The page context's `spfx3rdPartyServicePrincipalId` is not used: it is the empty GUID on tenants with the new app, and Entra rejects such a link (AADSTS700038). The wizard and **Connections** offer the same link for the package's Graph permissions and roleALPHA's scope, as an alternative to **API access**. Without the link, the [administrator guide](customer-deployment.md#10-optional-enable-ai-and-rolealpha-governance) has a Microsoft Graph PowerShell script that creates or extends the `oauth2PermissionGrant` (`AllPrincipals`) from the SPFx app to the service. The consent is recorded by Entra; nothing returns to the app, and **Test connection** shows whether it is in place. Each service must validate audience, tenant, scope, and user permissions itself. The grant applies to every SharePoint Framework solution in the tenant, not exclusively to this web part.
 
 Services must allow CORS from the actual SharePoint origins. For MCP, allow `Authorization`, `Content-Type`, `Mcp-Session-Id`, `MCP-Protocol-Version`, and the required HTTP methods, and expose `Mcp-Session-Id`. Check permissions separately for guest and cross-tenant sign-ins. Missing approval, CORS, or network access produces an error; there is no fallback through the manufacturer's infrastructure.
 
@@ -69,7 +73,7 @@ SharePoint permissions are the only enforced access boundary. The app runs entir
 - The meeting view runs a consistency check and shows a notice when stored data deviates from these rules, for example after direct editing. This check can detect inconsistencies; it cannot prevent or reliably detect deliberate manipulation.
 - Enforcing such rules against editors would require a server-side component, which is deliberately not part of this product. Use separately permissioned sites and SharePoint auditing where this matters.
 
-Approved API permissions are granted to the shared SharePoint Online Client Extensibility Web Application Principal and are therefore available to every SharePoint Framework solution in the tenant (see the [administrator guide](customer-deployment.md)). The build prints the permissions a package requests.
+Approved API permissions are granted to Microsoft's shared SPFx app *SharePoint Online Web Client Extensibility* and are therefore available to every SharePoint Framework solution in the tenant (see the [administrator guide](customer-deployment.md)). The build prints the permissions a package requests.
 
 ## AI providers
 
@@ -139,8 +143,8 @@ Contract: `model`, `messages`, and `response_format: {"type":"json_object"}`; th
 The adapters are tested against simulated responses only. Before enabling a provider, verify in the target tenant from a SharePoint page:
 
 - [ ] The service accepts browser requests from the SharePoint origin (CORS).
-- [ ] **Grant consent** opens Microsoft's consent dialog for the SharePoint client principal and, after confirming, returns to the SPFx reply page; **Allow calendar and transcripts** does the same for the Graph permissions.
-- [ ] **Test connection** succeeds: the SPFx token provider issues a token for the configured `resource` after the delegated `scope` was granted to the SharePoint Online Client Extensibility principal.
+- [ ] **Grant consent** opens Microsoft's consent dialog for *SharePoint Online Web Client Extensibility* and, after confirming, returns to the SPFx reply page; **Allow calendar and transcripts** does the same for the Graph permissions.
+- [ ] **Test connection** succeeds: the SPFx token provider issues a token for the configured `resource` after the delegated `scope` was granted to the SPFx app.
 - [ ] Copilot: Work IQ is enabled, a test conversation works with web grounding disabled, and a long transcript stays within the request limits.
 - [ ] Claude: the deployment name, structured output, and the RBAC assignment work for an ordinary user.
 - [ ] Each enabled function works with test data: transcript analysis, proposal forming, and a governance question.

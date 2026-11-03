@@ -121,7 +121,13 @@ export function fakeSharePoint() {
       const rows = query.includes('STS_Site')
         ? searchSites.map(site => ({ Title: site.title, Path: site.url }))
         : state.ready
-          ? [{ Title: 'rA Meetings Browser Index', SPWebUrl: 'https://customer.sharepoint.com/sites/circle' }]
+          ? [
+              {
+                Title: 'rA Meetings Browser Index',
+                SPWebUrl: null,
+                Path: 'https://customer.sharepoint.com/sites/circle/Lists/rA Meetings Browser Index/AllItems.aspx',
+              },
+            ]
           : [];
       return json({
         PrimaryQueryResult: {

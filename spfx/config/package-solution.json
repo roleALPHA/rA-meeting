@@ -3,7 +3,7 @@
   "solution": {
     "name": "rolealpha-sessions-client-side-solution",
     "id": "b905596d-a4a5-4dfe-8571-5d1e0631b43d",
-    "version": "0.1.13.0",
+    "version": "0.1.17.0",
     "includeClientSideAssets": true,
     "skipFeatureDeployment": true,
     "isDomainIsolated": false,
@@ -19,6 +19,12 @@
       {
         "resource": "Microsoft Graph",
         "scope": "OnlineMeetingTranscript.Read.All"
+      },
+      {
+        "resource": "roleALPHA",
+        "scope": "access_as_user",
+        "appId": "4bd22250-d811-4905-97a4-cb2bf69f98fa",
+        "replyUrl": "https://rolealpha.app/"
       }
     ],
     "developer": {
