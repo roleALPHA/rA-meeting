@@ -110,6 +110,8 @@ export const de = {
   'error.governance.microsoft365CopilotUsed':
     'Microsoft 365 Copilot hat Inhalte außerhalb der roleALPHA-Quellen herangezogen. Die Antwort wurde verworfen.',
   'error.governance.governanceAnswerContainsInvalid': 'Die Governance-Antwort enthält keine gültigen Quellen.',
+  'error.governance.ralphCouldNotAnswer':
+    'rALPH konnte nicht antworten. roleALPHA nimmt höchstens 30 Fragen je Person und Stunde an und bricht nach zwei Minuten ab. Frag später erneut oder fasse die Frage enger.',
   'error.graph.http': 'Microsoft Graph: HTTP {status}',
   'error.graph.otherAccount':
     'Microsoft Graph antwortet für {account}, SharePoint ist als {user} angemeldet. Melden Sie im Browser das Konto ab, das Sie hier nicht verwenden, und laden Sie die Seite neu.',
@@ -199,9 +201,9 @@ export const de = {
   'governance.answerQuestionsAboutRoles':
     'Fragen zu Rollen, Zuständigkeiten und Regeln anhand der bestehenden Governance in roleALPHA beantworten.',
   'governance.questionSentRolealphaRetrieved':
-    'Deine Frage wird an roleALPHA gesendet. Die gefundenen Inhalte gehen mit der Frage an den freigegebenen KI-Dienst. Meeting und Transkript werden nicht automatisch mitgesendet. Antworten werden nicht gespeichert.',
-  'governance.governanceQuestionsRequireAi':
-    'Für Governance-Fragen müssen KI und roleALPHA-Lesezugriff eingerichtet sein.',
+    'Deine Frage wird an roleALPHA gesendet. Mit rALPH beantwortet roleALPHA sie selbst, mit seinem Modell und den Daten deiner Organisation; mit einem Suchwerkzeug gehen die gefundenen Inhalte mit der Frage an den freigegebenen KI-Dienst. Meeting und Transkript werden nicht automatisch mitgesendet. Antworten werden nicht gespeichert.',
+  'governance.governanceQuestionsRequireSetup':
+    'Für Governance-Fragen muss roleALPHA-Lesezugriff eingerichtet sein: rALPH (ask_ralph) oder ein Suchwerkzeug zusammen mit einem KI-Dienst.',
   'governance.couldReadGovernanceRolealpha': 'Governance konnte nicht aus roleALPHA gelesen werden.',
   'governance.governanceQuestion': 'Deine Governance-Frage',
   'governance.whichRoleResponsibleDecision': 'Welche Rolle ist für diese Entscheidung zuständig?',
@@ -213,6 +215,12 @@ export const de = {
   'governance.sufficientlySupportedAnswerFound':
     'Keine ausreichend belegte Antwort gefunden. Präzisiere die Frage oder prüfe die Governance direkt in roleALPHA.',
   'governance.retrievedGovernanceSources': 'Abgerufene Governance-Quellen',
+  'governance.ralphAnswer': 'Antwort von rALPH',
+  'governance.answeredByRalph':
+    'Beantwortet von rALPH in roleALPHA, mit dem Modell von roleALPHA und den Daten deiner Organisation in roleALPHA.',
+  'governance.ralphAnswerNotDecision':
+    'Die Antwort ersetzt keine Governance-Entscheidung. Prüfe die genannten Einträge in roleALPHA.',
+  'governance.mentionedInRolealpha': 'In roleALPHA genannt',
   'labels.tactical': 'Tactical',
   'labels.governance': 'Governance',
   'labels.custom': 'Individuell',
@@ -675,7 +683,7 @@ export const de = {
   'connections.entities': 'Ergebnistypen, die als Entwurf übertragen werden, mit ihrem roleALPHA-Entitätstyp',
   'connections.entityType': 'roleALPHA-Entitätstyp für {type}',
   'connections.createTool': 'Werkzeug zum Anlegen von Entwürfen',
-  'connections.governanceTool': 'Suchwerkzeug für Governance-Fragen (optional)',
+  'connections.governanceTool': 'Werkzeug für Governance-Fragen (optional)',
   'connections.draftsTool': 'Suchwerkzeug für eigene Entwürfe (optional)',
   'connections.draftsAppUrl': 'Adresse der roleALPHA-Anwendung',
   'connections.guide': 'Anleitung',

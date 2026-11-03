@@ -85,4 +85,4 @@ During a meeting, facilitators can request a proposal based on an open agenda it
 
 ## Governance questions
 
-With both AI and an approved roleALPHA read tool, users can ask questions about existing governance. Answers show original sources for comparison. The assistant does not modify governance or persist its questions and answers in meeting storage. Service-side access control and logging remain the responsibility of the connected systems. See the [read contract and acceptance criteria](technical-deployment.md#governance-questions-rolealpha-read-contract).
+With an approved roleALPHA read tool, users can ask questions about existing governance. rALPH (`ask_ralph`) answers in roleALPHA and links the entries it names; a search tool together with an AI service shows original sources for comparison. The assistant does not modify governance or persist its questions and answers in meeting storage. Service-side access control and logging remain the responsibility of the connected systems. See the [read contract and acceptance criteria](technical-deployment.md#governance-questions-rolealpha-read-contract).

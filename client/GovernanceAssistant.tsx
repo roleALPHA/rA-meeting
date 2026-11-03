@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { WandSparkles } from 'lucide-react';
 import { useApi } from './api-context';
 import { t as tr, errorText, language } from './i18n';
-import type { GovernanceReply } from '../shared/governance';
+import type { GovernanceReply, RalphGovernanceReply } from '../shared/governance';
 import { AiProvenance } from './ui';
 export function GovernanceAssistant({ enabled }: { enabled: boolean }) {
   const { request } = useApi();
@@ -15,7 +15,7 @@ export function GovernanceAssistant({ enabled }: { enabled: boolean }) {
       <h2>{tr('app.askGovernance')}</h2>
       <p>{tr('governance.answerQuestionsAboutRoles')}</p>
       <p className="small muted">{tr('governance.questionSentRolealphaRetrieved')}</p>
-      {!enabled && <p className="notice">{tr('governance.governanceQuestionsRequireAi')}</p>}
+      {!enabled && <p className="notice">{tr('governance.governanceQuestionsRequireSetup')}</p>}
       <form
         onSubmit={async e => {
           e.preventDefault();
@@ -55,7 +55,8 @@ export function GovernanceAssistant({ enabled }: { enabled: boolean }) {
         </button>
       </form>
       {error && <p role="alert">{error}</p>}
-      {reply && (
+      {reply?.kind === 'ralph' && <RalphAnswer reply={reply} />}
+      {reply?.kind === 'sources' && (
         <div aria-live="polite">
           <h3>{tr('governance.answerSources')}</h3>
           <AiProvenance provider={reply.aiProvider} sensitivityLabel={reply.sensitivityLabel} />
@@ -97,5 +98,34 @@ export function GovernanceAssistant({ enabled }: { enabled: boolean }) {
         </div>
       )}
     </section>
+  );
+}
+
+function RalphAnswer({ reply }: { reply: RalphGovernanceReply }) {
+  return (
+    <div aria-live="polite">
+      <h3>{tr('governance.ralphAnswer')}</h3>
+      <p className="small muted">{tr('governance.answeredByRalph')}</p>
+      <AiProvenance />
+      <p className="notice">{tr('governance.ralphAnswerNotDecision')}</p>
+      <div className="result-card">
+        <p className="preserve">{reply.answer}</p>
+      </div>
+      {reply.entities.length > 0 && (
+        <>
+          <h4>{tr('governance.mentionedInRolealpha')}</h4>
+          <ul>
+            {reply.entities.map(entity => (
+              <li key={entity.url}>
+                <a href={entity.url} target="_blank" rel="noreferrer">
+                  {entity.name}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+      <p className="small muted">{new Date(reply.retrievedAt).toLocaleString(language())}</p>
+    </div>
   );
 }

@@ -76,8 +76,9 @@ export const connectionSettingsSchema = z
     roleAlpha: roleAlphaEndpoint
       .extend({
         tenant: z.guid(),
+        /** A read tool: `search_…` returns sources for the AI service, `ask_…` (rALPH) answers in roleALPHA. */
         governance: z
-          .object({ searchTool: z.string().regex(/^search_[a-z0-9_]+$/) })
+          .object({ searchTool: z.string().regex(/^(search|ask)_[a-z0-9_]+$/) })
           .strict()
           .nullable()
           .default(null),

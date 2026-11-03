@@ -26,9 +26,10 @@ export const description = {
     'The package contains two SharePoint web parts (roleALPHA Sessions for the workspace, roleALPHA Session for ' +
     'a single meeting on a page) and a Microsoft Teams app (personal app, channel and group chat tab, meeting tab). ' +
     'Calendar links and transcripts need administrator consent for Microsoft Graph. ' +
-    'Optional AI suggests wording for proposals and answers governance questions; people make every decision. ' +
+    'Optional AI suggests wording for proposals; people make every decision. ' +
     'It uses Microsoft 365 Copilot, Claude in Microsoft Foundry or an OpenAI-compatible endpoint, which your ' +
-    'organization provides. Governance questions and drafts need a roleALPHA account.',
+    "organization provides. Governance questions are answered by rALPH, roleALPHA's assistant, in roleALPHA; " +
+    'they and drafts need a roleALPHA account.',
 };
 
 /** Teams replaces {teamSiteDomain}, {teamSitePath} and {locale} when it loads the app. */

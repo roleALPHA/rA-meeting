@@ -545,7 +545,7 @@ export function ConnectionSettings({
                   label="connections.governanceTool"
                   value={roleAlpha.governanceTool}
                   disabled={busy}
-                  placeholder="search_…"
+                  placeholder="ask_ralph"
                   onChange={governanceTool => changeRoleAlpha({ governanceTool })}
                 />
                 <Field

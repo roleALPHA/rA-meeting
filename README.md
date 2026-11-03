@@ -31,9 +31,9 @@ Optional AI assistance suggests proposal wording, clarification questions, and w
 
 ### Ask about existing governance
 
-The governance assistant retrieves information through an approved roleALPHA search tool and sends the question and retrieved sources to the configured AI service. Answers include source references and expandable original text. Missing sources are not presented as established governance. Search may be incomplete, and the original governance remains authoritative.
+The governance assistant asks rALPH, roleALPHA's assistant, which answers in roleALPHA with the organisation's governance and links the roles, circles and other entries it names. No AI service needs to be configured in the app for this. Alternatively, an approved roleALPHA search tool retrieves sources and the configured AI service answers from them with source references. Either way, the original governance remains authoritative.
 
-This assistant does not change governance. It requires both AI and a compatible, explicitly approved roleALPHA read integration; a draft-creation connection alone is insufficient.
+This assistant does not change governance. It requires a compatible, explicitly approved roleALPHA read integration; a draft-creation connection alone is insufficient.
 
 ### Record traceable outcomes
 

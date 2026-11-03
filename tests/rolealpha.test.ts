@@ -163,6 +163,7 @@ function fakeRoleAlpha(
     if (token !== 'select-token') {
       server.registerTool('create_entity_draft', { inputSchema: { name: z.string() } }, async () => ({ content: [] }));
       server.registerTool('search_my_drafts', { inputSchema: { query: z.string() } }, async () => ({ content: [] }));
+      server.registerTool('ask_ralph', { inputSchema: { question: z.string() } }, async () => ({ content: [] }));
     }
     const transport = new WebStandardStreamableHTTPServerTransport({
       sessionIdGenerator: () => crypto.randomUUID(),
@@ -206,7 +207,7 @@ test('before roleALPHA finds the organisation itself, setup asks for the tenant 
   assert.deepEqual(connected, {
     status: 'connected',
     organisation: { uuid: tenant, name: 'fifty1 GmbH' },
-    tools: { createTool: 'create_entity_draft', drafts: 'search_my_drafts' },
+    tools: { createTool: 'create_entity_draft', drafts: 'search_my_drafts', governance: 'ask_ralph' },
   } satisfies RoleAlphaSetup);
   assert.deepEqual(
     exchanges.map(e => [e.body.get('tenant_uuid'), e.body.get('resource'), e.body.get('subject_token')]),
