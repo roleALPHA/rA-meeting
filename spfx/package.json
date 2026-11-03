@@ -1,6 +1,6 @@
 {
   "name": "rolealpha-meetings-spfx",
-  "version": "0.1.17",
+  "version": "0.1.18",
   "private": true,
   "engines": {
     "node": ">=22.14.0 <23"
