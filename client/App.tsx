@@ -145,7 +145,8 @@ export function App() {
           <BrandMark className="brand-mark" label="roleALPHA" />
           <div>
             <strong>roleALPHA</strong>
-            <small>{tr('app.meetings2')}</small>
+            {/* The product name, the same in every language (Marketplace policy 1140.1.1). */}
+            <small>Sessions</small>
           </div>
         </div>
         <nav>
