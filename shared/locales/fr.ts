@@ -714,7 +714,7 @@ export const fr: Record<MessageId, string> = {
   'connections.rolealphaConnected':
     'Connecté à {organisation}. Les outils sont renseignés ; enregistrez pour appliquer.',
   'connections.rolealphaDraftsOnly':
-    'rA Meetings ne crée que des brouillons dans roleALPHA. Ils prennent effet une fois approuvés dans roleALPHA.',
+    'roleALPHA Sessions ne crée que des brouillons dans roleALPHA. Ils prennent effet une fois approuvés dans roleALPHA.',
   'connections.advanced': 'Avancé',
   'connections.test': 'Tester la connexion',
   'connections.grantConsent': 'Donner le consentement',

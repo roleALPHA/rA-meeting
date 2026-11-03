@@ -701,7 +701,7 @@ export const es: Record<MessageId, string> = {
   'connections.rolealphaConnected':
     'Conectado con {organisation}. Las herramientas están rellenadas; guarda para aplicar.',
   'connections.rolealphaDraftsOnly':
-    'rA Meetings solo crea borradores en roleALPHA. Surten efecto cuando se aprueban en roleALPHA.',
+    'roleALPHA Sessions solo crea borradores en roleALPHA. Surten efecto cuando se aprueban en roleALPHA.',
   'connections.advanced': 'Avanzado',
   'connections.test': 'Probar conexión',
   'connections.grantConsent': 'Dar consentimiento',

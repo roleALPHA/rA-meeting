@@ -688,7 +688,7 @@ export const en: Record<MessageId, string> = {
   'connections.rolealphaChooseOrganisation': 'Choose the organisation this workspace works with.',
   'connections.rolealphaConnected': 'Connected to {organisation}. The tools are filled in; save to apply.',
   'connections.rolealphaDraftsOnly':
-    'rA Meetings only creates drafts in roleALPHA. They take effect once they are approved in roleALPHA.',
+    'roleALPHA Sessions only creates drafts in roleALPHA. They take effect once they are approved in roleALPHA.',
   'connections.advanced': 'Advanced',
   'connections.test': 'Test connection',
   'connections.grantConsent': 'Grant consent',

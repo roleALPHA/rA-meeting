@@ -712,7 +712,7 @@ export const de = {
   'connections.rolealphaConnected':
     'Verbunden mit {organisation}. Die Werkzeuge sind eingetragen; zum Übernehmen speichern.',
   'connections.rolealphaDraftsOnly':
-    'rA Meetings legt in roleALPHA nur Entwürfe an. Wirksam werden sie erst, wenn sie in roleALPHA freigegeben sind.',
+    'roleALPHA Sessions legt in roleALPHA nur Entwürfe an. Wirksam werden sie erst, wenn sie in roleALPHA freigegeben sind.',
   'connections.advanced': 'Erweitert',
   'connections.test': 'Verbindung testen',
   'connections.grantConsent': 'Zustimmung erteilen',
