@@ -322,7 +322,7 @@ export const en: Record<MessageId, string> = {
   'meeting.transcriptPartsOtherEvents': 'transcript parts from other events were excluded.',
   'error.onboarding.sharepointCouldCreateSite': 'SharePoint could not create the site. Contact your administrator.',
   'onboarding.siteBeingCreatedCheck': 'The site is being created. Check the status again.',
-  'onboarding.welcomeRaMeetings': 'Welcome to rA Meetings',
+  'onboarding.welcomeRaMeetings': 'Welcome to roleALPHA Sessions',
   'onboarding.wizardSetsUpWorkspace': 'This wizard sets up the workspace in your Microsoft 365 environment.',
   'onboarding.selectSite': 'Select a site',
   'onboarding.reviewAccessSettings': 'Review access and settings',
@@ -346,7 +346,7 @@ export const en: Record<MessageId, string> = {
   'onboarding.openSitePermissions': 'Open site permissions',
   'onboarding.selectedLanguageAppliesNew':
     'The selected language applies to new starter templates. Existing templates remain unchanged. Whether a meeting processes “Tensions” or “Agenda items” is set in its template.',
-  'onboarding.prepareDedicatedRaMeetings': 'Prepare a dedicated rA Meetings page',
+  'onboarding.prepareDedicatedRaMeetings': 'Prepare a dedicated roleALPHA Sessions page',
   'onboarding.entryPageCreatedDraft':
     'The entry page is created as a draft. Review and publish it in SharePoint afterwards. An existing home page is not replaced.',
   'onboarding.iHaveReviewedWho': 'I have reviewed who has access and want to set up this workspace.',
@@ -433,6 +433,8 @@ export const en: Record<MessageId, string> = {
   'tensions.meeting': 'Meeting',
   'tensions.selectMeeting': 'Select meeting …',
   'tensions.agendaStep': 'Agenda step',
+  'common.reportAiContent': 'Report inappropriate AI content',
+  'common.reportAiContentSubject': 'Inappropriate AI content in roleALPHA Sessions',
   'common.created': 'Created with',
   'common.aiResponseCarriesSensitivity': 'The AI response carries a sensitivity label:',
   'common.beforeAcceptingCheckWhether':
@@ -556,7 +558,7 @@ export const en: Record<MessageId, string> = {
   'labels.okr': 'OKR',
   'settings.teamsRecording.title': 'Teams recording and transcription',
   'settings.teamsRecording.description':
-    'Sets which Teams meeting option rA Meetings applies when an event is linked or refreshed. Only the organizer can set the option; for recurring meetings it applies to the whole series. Whether it takes effect depends on licensing and Teams policies.',
+    'Sets which Teams meeting option roleALPHA Sessions applies when an event is linked or refreshed. Only the organizer can set the option; for recurring meetings it applies to the whole series. Whether it takes effect depends on licensing and Teams policies.',
   'settings.teamsRecording.off': 'Do not change',
   'settings.teamsRecording.allowTranscription': 'Allow transcription (start in the meeting)',
   'settings.teamsRecording.recordAndTranscribe': 'Record and transcribe automatically',

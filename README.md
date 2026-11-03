@@ -1,8 +1,8 @@
-# rA Meetings
+# roleALPHA Sessions
 
 **Structure meetings. Understand governance. Prepare decisions together.**
 
-rA Meetings is a **roleALPHA** product for Microsoft Teams and SharePoint. It supports teams from collecting topics through collaborative discussion to traceable outcomes. Configurable meeting templates support Holacracy-inspired processes and other ways of working together.
+roleALPHA Sessions (formerly rA Meetings) is a **roleALPHA** product for Microsoft Teams and SharePoint. It supports teams from collecting topics through collaborative discussion to traceable outcomes. Configurable meeting templates support Holacracy-inspired processes and other ways of working together.
 
 The app is installed in your organization's Microsoft 365 environment. It requires no dedicated application server or additional SQL database. An optional connection to the **roleALPHA Governance platform** supports questions about existing governance and reviewed transfers of meeting outcomes.
 
@@ -39,7 +39,7 @@ This assistant does not change governance. It requires both AI and a compatible,
 
 Retrieve transcripts from accessible Teams meetings or import VTT/TXT files. Optional AI analysis proposes outcomes linked to transcript evidence. Users review outcomes before approving or transferring them.
 
-An optional roleALPHA connection can create drafts from approved outcomes, such as meeting records, risks, OKRs, or IT systems. It signs in with the user's Microsoft identity, which roleALPHA exchanges for its own short-lived token. Available entities depend on the configured integration. The tension backlog remains part of rA Meetings, and the app also works without the governance platform.
+An optional roleALPHA connection can create drafts from approved outcomes, such as meeting records, risks, OKRs, or IT systems. It signs in with the user's Microsoft identity, which roleALPHA exchanges for its own short-lived token. Available entities depend on the configured integration. The tension backlog remains part of roleALPHA Sessions, and the app also works without the governance platform.
 
 ## Languages
 
@@ -49,14 +49,14 @@ The interface supports **German, English, French, and Spanish**. Users choose th
 
 The app is delivered as a **SharePoint Framework (SPFx)** package. Microsoft 365 serves the application files, including fonts and icons, and the app executes in the browser within Teams or SharePoint. In Teams it follows the light, dark and high-contrast themes.
 
-| Component | Processing and storage |
-| --- | --- |
-| Templates, agenda, meetings, and outcomes | Your organization's SharePoint site |
-| Imported transcripts | SharePoint workspace; the original recording is not downloaded by the app |
-| Calendar and transcript retrieval | Direct Microsoft Graph requests with the signed-in user's permissions |
-| Optional AI | Direct requests to the configured AI service: Microsoft 365 Copilot (default), Claude via Microsoft Foundry, or an OpenAI-compatible endpoint |
-| Optional governance connection | Direct MCP requests to the configured roleALPHA endpoint |
-| Language | Personal browser preference |
+| Component                                 | Processing and storage                                                                                                                        |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Templates, agenda, meetings, and outcomes | Your organization's SharePoint site                                                                                                           |
+| Imported transcripts                      | SharePoint workspace; the original recording is not downloaded by the app                                                                     |
+| Calendar and transcript retrieval         | Direct Microsoft Graph requests with the signed-in user's permissions                                                                         |
+| Optional AI                               | Direct requests to the configured AI service: Microsoft 365 Copilot (default), Claude via Microsoft Foundry, or an OpenAI-compatible endpoint |
+| Optional governance connection            | Direct MCP requests to the configured roleALPHA endpoint                                                                                      |
+| Language                                  | Personal browser preference                                                                                                                   |
 
 No central roleALPHA proxy, additional application runtime, or Power Automate flow is required. No automatic processing runs after the app closes. Users explicitly start analysis and transfers.
 
@@ -86,7 +86,7 @@ Microsoft 365 administrators install the package once. End users do not need dev
 3. Review and publish the optional landing page. Approve calendar access, Teams availability, and optional services as needed; the app offers Microsoft's consent dialog as a link, so the Entra administrator does not need to find the SharePoint client principal.
 4. Verify the deployment with ordinary user accounts.
 
-The administrator guide begins with a [quick start](docs/customer-deployment.md#quick-start). Follow the **[step-by-step administrator guide](docs/customer-deployment.md)** from initial sign-in through acceptance checks. Package builders and integration operators should also read the [technical deployment guide](docs/technical-deployment.md). The [product design notes](docs/meeting-product.md) describe behavior and boundaries.
+The administrator guide begins with a [quick start](docs/customer-deployment.md#quick-start). Follow the **[step-by-step administrator guide](docs/customer-deployment.md)** from initial sign-in through acceptance checks. Package builders and integration operators should also read the [technical deployment guide](docs/technical-deployment.md). The [product design notes](docs/meeting-product.md) describe behavior and boundaries. The [Marketplace submission guide](docs/marketplace-submission.md) lists what a listing in AppSource and the SharePoint Store needs.
 
 ## Implementation status
 
@@ -122,15 +122,15 @@ rA Meetings is licensed under the **[rA Meetings Internal Collaboration License,
 
 The license permits free internal business use, including collaboration with customers, without third-party distribution of the Software:
 
-| Use | Treatment |
-| --- | --- |
-| Internal commercial use and internal adaptations | Permitted without a license fee |
-| Meetings and projects with invited customers and partners | Permitted within the organization's own collaboration |
-| Paid consulting, facilitation, and project services using the app | Permitted; standalone software access is excluded |
-| Necessary Microsoft 365 deployment and browser copies | Expressly permitted |
-| IT contractors maintaining an organization's deployment | Permitted under limited terms |
+| Use                                                                           | Treatment                                                              |
+| ----------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| Internal commercial use and internal adaptations                              | Permitted without a license fee                                        |
+| Meetings and projects with invited customers and partners                     | Permitted within the organization's own collaboration                  |
+| Paid consulting, facilitation, and project services using the app             | Permitted; standalone software access is excluded                      |
+| Necessary Microsoft 365 deployment and browser copies                         | Expressly permitted                                                    |
+| IT contractors maintaining an organization's deployment                       | Permitted under limited terms                                          |
 | Resale, sublicensing, independent redistribution, or white-label distribution | Not permitted, including free distribution unless an exception applies |
-| Standalone hosted software services for third parties | Not permitted |
-| Use and sharing of an organization's own meeting outputs | Not restricted by the Software distribution prohibition |
+| Standalone hosted software services for third parties                         | Not permitted                                                          |
+| Use and sharing of an organization's own meeting outputs                      | Not restricted by the Software distribution prohibition                |
 
 This is a custom source-available license, not an open-source license or an unchanged PolyForm license. No Creative Commons license has been applied to the documentation. The [licensing policy](docs/licensing-policy.md) explains the design and references. Third-party licenses and repository-hosting permissions remain separate. Public repository hosting does not grant a general right to redistribute or sell the Software.

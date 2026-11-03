@@ -48,6 +48,19 @@ export function Field({ label, children }: { label: string; children: React.Reac
     </label>
   );
 }
+const supportEmail = 'support@rolealpha.com';
+/** The Marketplace requires a way to report harmful AI output. The link only opens the user's mail client. */
+export function ReportAiContent() {
+  return (
+    <a
+      href={`mailto:${supportEmail}?subject=${encodeURIComponent(tr('common.reportAiContentSubject'))}`}
+      target="_blank"
+      rel="noreferrer"
+    >
+      {tr('common.reportAiContent')}
+    </a>
+  );
+}
 export function AiProvenance({
   provider,
   sensitivityLabel,
@@ -57,11 +70,14 @@ export function AiProvenance({
 }) {
   return (
     <>
-      {provider && (
-        <p className="small muted">
-          {tr('common.created')} {tr(aiProviderLabels[provider])}
-        </p>
-      )}
+      <p className="small muted">
+        {provider && (
+          <>
+            {tr('common.created')} {tr(aiProviderLabels[provider])} ·{' '}
+          </>
+        )}
+        <ReportAiContent />
+      </p>
       {sensitivityLabel && (
         <p className="notice">
           {tr('common.aiResponseCarriesSensitivity')} {sensitivityLabel}. {tr('common.beforeAcceptingCheckWhether')}

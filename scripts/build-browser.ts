@@ -73,7 +73,7 @@ await writeFile(
     {
       $schema: 'https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json',
       solution: {
-        name: 'rolealpha-meetings-client-side-solution',
+        name: 'rolealpha-sessions-client-side-solution',
         id: 'b905596d-a4a5-4dfe-8571-5d1e0631b43d',
         version: pkg.version + '.0',
         includeClientSideAssets: true,

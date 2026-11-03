@@ -177,7 +177,7 @@ export async function createWorkspaceSite(
         Lcid: { de: 1031, en: 1033, fr: 1036, es: 3082 }[input.language],
         WebTemplate: 'STS#3',
         ShareByEmailEnabled: false,
-        Description: 'rA Meetings',
+        Description: 'roleALPHA Sessions',
       },
     }),
   });
@@ -261,8 +261,8 @@ export async function provisionLandingPage(host: BrowserHost, store: SharePointR
       webPartData: {
         id: meetingsWebPartId,
         instanceId,
-        title: 'rA Meetings',
-        description: 'roleALPHA Meetings',
+        title: 'roleALPHA Sessions',
+        description: 'roleALPHA Sessions',
         dataVersion: '1.0',
         properties: { workspaceUrl: host.webUrl, meetingId: '' },
         serverProcessedContent: { htmlStrings: {}, searchablePlainTexts: {}, imageSources: {}, links: {} },
@@ -278,17 +278,17 @@ export async function provisionLandingPage(host: BrowserHost, store: SharePointR
       Title: 'rA-Meetings',
       CanvasContent1: JSON.stringify(canvas),
       LayoutWebpartsContent: '[]',
-      Description: 'rA Meetings',
+      Description: 'roleALPHA Sessions',
     }),
   });
   await spJson(host.sharepoint, path + '/savepage', {
     method: 'POST',
     headers,
     body: JSON.stringify({
-      Title: 'rA Meetings',
+      Title: 'roleALPHA Sessions',
       CanvasContent1: JSON.stringify(canvas),
       LayoutWebpartsContent: '[]',
-      Description: 'rA Meetings',
+      Description: 'roleALPHA Sessions',
     }),
   });
   const saved = await spJson<{ Url: string }>(host.sharepoint, path);

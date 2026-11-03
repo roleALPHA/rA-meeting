@@ -84,7 +84,7 @@ export async function provisionWorkspace(request: SPRequest) {
         body: JSON.stringify({
           Title: title,
           BaseTemplate: template,
-          Description: 'roleALPHA Meetings – Arbeitsbereich',
+          Description: 'roleALPHA Sessions – Arbeitsbereich',
         }),
       });
     }

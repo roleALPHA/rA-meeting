@@ -333,7 +333,7 @@ export const fr: Record<MessageId, string> = {
   'meeting.transcriptPartsOtherEvents': 'parties de transcription d’autres événements ont été exclues.',
   'error.onboarding.sharepointCouldCreateSite': 'SharePoint n’a pas pu créer le site. Contactez l’administration.',
   'onboarding.siteBeingCreatedCheck': 'Le site est en cours de création. Vérifiez à nouveau l’état.',
-  'onboarding.welcomeRaMeetings': 'Bienvenue dans rA Meetings',
+  'onboarding.welcomeRaMeetings': 'Bienvenue dans roleALPHA Sessions',
   'onboarding.wizardSetsUpWorkspace':
     'Cet assistant configure l’espace de travail dans votre environnement Microsoft 365.',
   'onboarding.selectSite': 'Choisir un site',
@@ -358,7 +358,7 @@ export const fr: Record<MessageId, string> = {
   'onboarding.openSitePermissions': 'Ouvrir les autorisations du site',
   'onboarding.selectedLanguageAppliesNew':
     'La langue choisie s’applique aux nouveaux modèles initiaux. Les modèles existants restent inchangés. Le modèle d’une réunion définit si elle traite des « Tensions » ou des « Points de l’ordre du jour ».',
-  'onboarding.prepareDedicatedRaMeetings': 'Préparer une page dédiée à rA Meetings',
+  'onboarding.prepareDedicatedRaMeetings': 'Préparer une page dédiée à roleALPHA Sessions',
   'onboarding.entryPageCreatedDraft':
     'La page est créée comme brouillon. Vérifiez-la puis publiez-la dans SharePoint. La page d’accueil existante n’est pas remplacée.',
   'onboarding.iHaveReviewedWho': 'J’ai vérifié les personnes autorisées et souhaite configurer cet espace de travail.',
@@ -450,6 +450,8 @@ export const fr: Record<MessageId, string> = {
   'tensions.meeting': 'Réunion',
   'tensions.selectMeeting': 'Choisir une réunion…',
   'tensions.agendaStep': 'Étape de l’ordre du jour',
+  'common.reportAiContent': 'Signaler un contenu d’IA inapproprié',
+  'common.reportAiContentSubject': 'Contenu d’IA inapproprié dans roleALPHA Sessions',
   'common.created': 'Créé avec',
   'common.aiResponseCarriesSensitivity': 'La réponse de l’IA porte une étiquette de confidentialité :',
   'common.beforeAcceptingCheckWhether':
@@ -578,7 +580,7 @@ export const fr: Record<MessageId, string> = {
   'labels.okr': 'OKR',
   'settings.teamsRecording.title': 'Enregistrement et transcription Teams',
   'settings.teamsRecording.description':
-    'Définit l’option de réunion Teams appliquée par rA Meetings lors de l’association ou de l’actualisation d’un événement. Seul l’organisateur peut la définir ; pour les réunions récurrentes, elle s’applique à toute la série. Son effet dépend des licences et des stratégies Teams.',
+    'Définit l’option de réunion Teams appliquée par roleALPHA Sessions lors de l’association ou de l’actualisation d’un événement. Seul l’organisateur peut la définir ; pour les réunions récurrentes, elle s’applique à toute la série. Son effet dépend des licences et des stratégies Teams.',
   'settings.teamsRecording.off': 'Ne pas modifier',
   'settings.teamsRecording.allowTranscription': 'Autoriser la transcription (à démarrer pendant la réunion)',
   'settings.teamsRecording.recordAndTranscribe': 'Enregistrer et transcrire automatiquement',
