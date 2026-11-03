@@ -3,7 +3,7 @@ import { crc32 } from 'node:zlib';
 /**
  * The Teams app package the SharePoint package carries (spfx/teams/TeamsSPFxApp.zip). Without it SharePoint generates
  * one Teams app per web part and offers the meeting web part in channels, where saving the tab fails. With it there is
- * one app, roleALPHA Meetings: personal app, channel and group chat tab, and meeting tab. See
+ * one app, roleALPHA Sessions: personal app, channel and group chat tab, and meeting tab. See
  * https://learn.microsoft.com/sharepoint/dev/spfx/deployment-spfx-teams-solutions.
  */
 
@@ -18,9 +18,16 @@ export const developer = {
 
 export const description = {
   short: 'Meetings, tensions and outcomes in SharePoint and Microsoft Teams',
+  // The Marketplace requires the description to name every component and every service the app depends on.
   full:
     'Run meetings from shared templates, record tensions or agenda items and agree on outcomes. ' +
-    "Everything is stored in your organization's SharePoint site; there is no server outside your tenant.",
+    "Everything is stored in your organization's SharePoint site; there is no server outside your tenant. " +
+    'The package contains two SharePoint web parts (roleALPHA Sessions for the workspace, roleALPHA Session for ' +
+    'a single meeting on a page) and a Microsoft Teams app (personal app, channel and group chat tab, meeting tab). ' +
+    'Calendar links and transcripts need administrator consent for Microsoft Graph. ' +
+    'Optional AI suggests wording for proposals and answers governance questions; people make every decision. ' +
+    'It uses Microsoft 365 Copilot, Claude in Microsoft Foundry or an OpenAI-compatible endpoint, which your ' +
+    'organization provides. Governance questions and drafts need a roleALPHA account.',
 };
 
 /** Teams replaces {teamSiteDomain}, {teamSitePath} and {locale} when it loads the app. */
@@ -36,14 +43,14 @@ export function teamsManifest(version: string) {
     id: meetingsComponentId,
     version,
     developer,
-    name: { short: 'roleALPHA Meetings', full: 'roleALPHA Meetings' },
+    name: { short: 'roleALPHA Sessions', full: 'roleALPHA Sessions' },
     description,
     icons: { outline: `${meetingsComponentId}_outline.png`, color: `${meetingsComponentId}_color.png` },
     accentColor: '#072A26',
     staticTabs: [
       {
         entityId: 'rolealpha-meetings',
-        name: 'roleALPHA Meetings',
+        name: 'roleALPHA Sessions',
         contentUrl: hosted('', 'teams%26personal'),
         scopes: ['personal'],
       },

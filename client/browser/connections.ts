@@ -126,7 +126,7 @@ async function createList(request: SPRequest): Promise<ListInfo> {
     body: JSON.stringify({
       Title: connectionsListTitle,
       BaseTemplate: 100,
-      Description: 'roleALPHA Meetings – KI- und roleALPHA-Verbindungen (nur Websitebesitzer)',
+      Description: 'roleALPHA Sessions – KI- und roleALPHA-Verbindungen (nur Websitebesitzer)',
     }),
   });
   await spJson(request, `${listPath(list.Id)}/fields/createfieldasxml`, {

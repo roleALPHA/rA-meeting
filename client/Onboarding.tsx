@@ -34,7 +34,7 @@ export function Onboarding({
   const [mode, setMode] = useState('existing');
   const [url, setUrl] = useState(host.webUrl);
   const [slug, setSlug] = useState('ra-meetings');
-  const [title, setTitle] = useState('rA Meetings');
+  const [title, setTitle] = useState('roleALPHA Sessions');
   const [selected, setSelected] = useState<BrowserHost | null>(null);
   const [site, setSite] = useState({ ready: false, canSetUp: true });
   const [sites, setSites] = useState<SiteChoice[] | null>(null);

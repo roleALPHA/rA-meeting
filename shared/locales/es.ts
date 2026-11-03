@@ -327,7 +327,7 @@ export const es: Record<MessageId, string> = {
   'meeting.transcriptPartsOtherEvents': 'partes de transcripción de otros eventos se excluyeron.',
   'error.onboarding.sharepointCouldCreateSite': 'SharePoint no pudo crear el sitio. Contacte con la administración.',
   'onboarding.siteBeingCreatedCheck': 'El sitio se está creando. Vuelva a comprobar el estado.',
-  'onboarding.welcomeRaMeetings': 'Bienvenido a rA Meetings',
+  'onboarding.welcomeRaMeetings': 'Bienvenido a roleALPHA Sessions',
   'onboarding.wizardSetsUpWorkspace': 'Este asistente configura el espacio de trabajo en su entorno de Microsoft 365.',
   'onboarding.selectSite': 'Seleccionar un sitio',
   'onboarding.reviewAccessSettings': 'Revisar accesos y configuración',
@@ -351,7 +351,7 @@ export const es: Record<MessageId, string> = {
   'onboarding.openSitePermissions': 'Abrir permisos del sitio',
   'onboarding.selectedLanguageAppliesNew':
     'El idioma seleccionado se aplica a las nuevas plantillas iniciales. Las existentes no cambian. La plantilla de una reunión define si trata «Tensiones» o «Puntos de agenda».',
-  'onboarding.prepareDedicatedRaMeetings': 'Preparar una página dedicada a rA Meetings',
+  'onboarding.prepareDedicatedRaMeetings': 'Preparar una página dedicada a roleALPHA Sessions',
   'onboarding.entryPageCreatedDraft':
     'La página se crea como borrador. Revísela y publíquela después en SharePoint. No se reemplaza la página de inicio existente.',
   'onboarding.iHaveReviewedWho': 'He revisado quién tiene acceso y quiero configurar este espacio de trabajo.',
@@ -442,6 +442,8 @@ export const es: Record<MessageId, string> = {
   'tensions.meeting': 'Reunión',
   'tensions.selectMeeting': 'Elegir reunión…',
   'tensions.agendaStep': 'Paso de agenda',
+  'common.reportAiContent': 'Notificar contenido de IA inapropiado',
+  'common.reportAiContentSubject': 'Contenido de IA inapropiado en roleALPHA Sessions',
   'common.created': 'Creado con',
   'common.aiResponseCarriesSensitivity': 'La respuesta de la IA tiene una etiqueta de confidencialidad:',
   'common.beforeAcceptingCheckWhether':
@@ -566,7 +568,7 @@ export const es: Record<MessageId, string> = {
   'labels.okr': 'OKR',
   'settings.teamsRecording.title': 'Grabación y transcripción de Teams',
   'settings.teamsRecording.description':
-    'Define qué opción de reunión de Teams aplica rA Meetings al vincular o actualizar un evento. Solo el organizador puede establecerla; en reuniones periódicas se aplica a toda la serie. Que surta efecto depende de las licencias y las directivas de Teams.',
+    'Define qué opción de reunión de Teams aplica roleALPHA Sessions al vincular o actualizar un evento. Solo el organizador puede establecerla; en reuniones periódicas se aplica a toda la serie. Que surta efecto depende de las licencias y las directivas de Teams.',
   'settings.teamsRecording.off': 'No cambiar',
   'settings.teamsRecording.allowTranscription': 'Permitir la transcripción (iniciar en la reunión)',
   'settings.teamsRecording.recordAndTranscribe': 'Grabar y transcribir automáticamente',
@@ -699,7 +701,7 @@ export const es: Record<MessageId, string> = {
   'connections.rolealphaConnected':
     'Conectado con {organisation}. Las herramientas están rellenadas; guarda para aplicar.',
   'connections.rolealphaDraftsOnly':
-    'rA Meetings solo crea borradores en roleALPHA. Surten efecto cuando se aprueban en roleALPHA.',
+    'roleALPHA Sessions solo crea borradores en roleALPHA. Surten efecto cuando se aprueban en roleALPHA.',
   'connections.advanced': 'Avanzado',
   'connections.test': 'Probar conexión',
   'connections.grantConsent': 'Dar consentimiento',

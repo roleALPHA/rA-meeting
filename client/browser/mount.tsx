@@ -72,7 +72,7 @@ function Start({ host: initialHost }: { host: BrowserHost }) {
   return (
     <section className="setup">
       <Preferences />
-      <h1>roleALPHA Meetings</h1>
+      <h1>roleALPHA Sessions</h1>
       {error ? (
         <>
           <p role="alert">{error}</p>

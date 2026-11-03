@@ -1,8 +1,8 @@
-# Install roleALPHA Meetings: step-by-step administrator guide
+# Install roleALPHA Sessions: step-by-step administrator guide
 
 This guide walks you through a first installation in your Microsoft 365 environment. You do not need programming experience or command-line tools. You install a prepared package using Microsoft's administration screens.
 
-roleALPHA Meetings runs within SharePoint and Microsoft Teams. Meetings, templates, tensions or agenda items, and outcomes are stored in your organization's SharePoint site. You do not need an application server, a database installation, or Power Automate.
+roleALPHA Sessions runs within SharePoint and Microsoft Teams. Meetings, templates, tensions or agenda items, and outcomes are stored in your organization's SharePoint site. You do not need an application server, a database installation, or Power Automate.
 
 After package deployment, an onboarding wizard helps select the site and create storage and starter templates. With sufficient permissions, it can also create a new site. The wizard appears when opening an unconfigured workspace. You can reopen it through **Connections** using the setup wizard action.
 
@@ -13,7 +13,7 @@ This guide uses English screen labels. Microsoft may change menu names. Guide da
 ## Quick start
 
 1. **SharePoint administrator:** in the SharePoint admin center, open **More features → Apps → Open**, upload `rolealpha-meetings.sppkg`, select **Enable this app and add it to all sites**, and add it to Teams in the same dialog (steps 3–4).
-2. **Site owner:** open the app, either as **roleALPHA Meetings** in the Teams apps area or as a web part on a page of the workspace site. The setup wizard selects or creates the site, creates storage and starter templates, and prepares a landing page (steps 5–6). If Teams users do not find the app, the Teams administrator allows it in the Teams admin center (step 8).
+2. **Site owner:** open the app, either as **roleALPHA Sessions** in the Teams apps area or as a web part on a page of the workspace site. The setup wizard selects or creates the site, creates storage and starter templates, and prepares a landing page (steps 5–6). If Teams users do not find the app, the Teams administrator allows it in the Teams admin center (step 8).
 3. **SharePoint or Entra administrator, optional:** approve the package's **roleALPHA / access_as_user** request under **API access** if roleALPHA is used (step 10). The wizard's last screen and **Connections** offer **Allow calendar and transcripts**, and next to each configured AI or roleALPHA service, **Grant consent**. Each link opens Microsoft's own consent dialog for the app *SharePoint Online Web Client Extensibility*: confirm it, then close the new tab. A site owner without the Entra role passes the link on (steps 7 and 10).
 4. Check the result with ordinary user accounts (step 11).
 
@@ -82,13 +82,13 @@ A **web part** is a component placed on a SharePoint page. You can skip this ste
 1. Open the workspace site from step 2.
 2. Select **New → Page**, create a blank page, and name it **Meetings**, for example. You can instead edit an existing suitable page.
 3. In the page content, select the **plus sign** to add a web part.
-4. Search for and select **roleALPHA Meetings**. Use the plural “Meetings” for the workspace overview. The similarly named “roleALPHA Meeting” web part shows a single meeting on a SharePoint page.
+4. Search for and select **roleALPHA Sessions**. Use the plural “Sessions” for the workspace overview. The similarly named “roleALPHA Session” web part shows a single meeting on a SharePoint page. Up to version 0.1.17 the web parts were called “roleALPHA Meetings” and “roleALPHA Meeting”.
 5. Open the web part's properties using its edit icon.
 6. Leave **SharePoint site URL** empty to use the current site. To use another site, enter its full address. It must use the same SharePoint host, such as `yourorganization.sharepoint.com`.
 7. Leave **Meeting** set to **All meetings**.
 8. Select **Publish** or **Republish**.
 
-**Check:** roleALPHA Meetings appears on the published page. A request to set up the workspace is expected on first use.
+**Check:** roleALPHA Sessions appears on the published page. A request to set up the workspace is expected on first use.
 
 ## 6. Complete onboarding
 
@@ -151,9 +151,9 @@ These approvals apply to the shared SharePoint authentication component, not exc
 1. Return to **Manage apps** in the SharePoint app catalog.
 2. Select the roleALPHA package.
 3. Select **Add to Teams**, called **Sync to Teams** in older interfaces.
-4. Wait for confirmation. The package carries its own Teams app, **roleALPHA Meetings**, which SharePoint deploys to the Teams store; do not upload the `.sppkg` directly to Teams. The app works as a personal app, as a tab in channels and group chats, and in Teams meetings.
+4. Wait for confirmation. The package carries its own Teams app, **roleALPHA Sessions**, which SharePoint deploys to the Teams store; do not upload the `.sppkg` directly to Teams. The app works as a personal app, as a tab in channels and group chats, and in Teams meetings.
 5. Open the [Teams admin center](https://admin.teams.microsoft.com/).
-6. Under **Teams apps → Manage apps**, find **roleALPHA Meetings**. Versions before 0.1.13 also created a second app, **roleALPHA Meeting**; it is no longer updated and fails as a channel tab. Block or delete it there.
+6. Under **Teams apps → Manage apps**, find **roleALPHA Sessions** (called roleALPHA Meetings up to version 0.1.17; the update renames it). Versions before 0.1.13 also created a second app, **roleALPHA Meeting**; it is no longer updated and fails as a channel tab. Block or delete it there.
 7. Check that the app is allowed and available to your test users. Depending on your organization's management model, assignment may be configured directly on the app or through app permission policies. Have the Teams administrator configure this where necessary.
 8. Reopen Teams with a test account and search for **roleALPHA** in its apps area.
 
@@ -164,7 +164,7 @@ These approvals apply to the shared SharePoint authentication component, not exc
 ### Workspace in a channel
 
 1. Open the intended Teams channel.
-2. Use **+ / Add a tab** to add **roleALPHA Meetings**.
+2. Use **+ / Add a tab** to add **roleALPHA Sessions**.
 3. In **SharePoint site URL**, enter the workspace address from step 2. Use the same workspace to see the meetings already created.
 4. Leave **Meeting** set to **All meetings** and save.
 5. Open the new tab.
@@ -173,9 +173,9 @@ These approvals apply to the shared SharePoint authentication component, not exc
 
 ### Individual meeting in a Teams event
 
-1. First create the desired meeting in roleALPHA Meetings.
+1. First create the desired meeting in roleALPHA Sessions.
 2. Open a scheduled Teams event that you may edit. If newly created, save and reopen it first.
-3. Add **roleALPHA Meetings** using the event's add-app or add-tab action. Availability depends on the meeting type and Teams policies.
+3. Add **roleALPHA Sessions** using the event's add-app or add-tab action. Availability depends on the meeting type and Teams policies.
 4. Enter the same **SharePoint site URL**.
 5. In **Meeting**, select the previously created meeting by name. If the list is empty, wait for the workspace to load and reopen the configuration panel.
 6. Save and test the tab with another authorized person.

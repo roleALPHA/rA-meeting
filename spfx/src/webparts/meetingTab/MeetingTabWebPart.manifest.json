@@ -15,7 +15,7 @@
         "default": "Collaboration"
       },
       "title": {
-        "default": "roleALPHA Meeting"
+        "default": "roleALPHA Session"
       },
       "description": {
         "default": "Meetings, proposals and shared agenda in Microsoft 365"

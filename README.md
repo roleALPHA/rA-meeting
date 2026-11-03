@@ -1,8 +1,8 @@
-# rA Meetings
+# roleALPHA Sessions
 
 **Structure meetings. Understand governance. Prepare decisions together.**
 
-rA Meetings is a **roleALPHA** product for Microsoft Teams and SharePoint. It supports teams from collecting topics through collaborative discussion to traceable outcomes. Configurable meeting templates support Holacracy-inspired processes and other ways of working together.
+roleALPHA Sessions (formerly rA Meetings) is a **roleALPHA** product for Microsoft Teams and SharePoint. It supports teams from collecting topics through collaborative discussion to traceable outcomes. Configurable meeting templates support Holacracy-inspired processes and other ways of working together.
 
 The app is installed in your organization's Microsoft 365 environment. It requires no dedicated application server or additional SQL database. An optional connection to the **roleALPHA Governance platform** supports questions about existing governance and reviewed transfers of meeting outcomes.
 
@@ -39,7 +39,7 @@ This assistant does not change governance. It requires both AI and a compatible,
 
 Retrieve transcripts from accessible Teams meetings or import VTT/TXT files. Optional AI analysis proposes outcomes linked to transcript evidence. Users review outcomes before approving or transferring them.
 
-An optional roleALPHA connection can create drafts from approved outcomes, such as meeting records, risks, OKRs, or IT systems. It signs in with the user's Microsoft identity, which roleALPHA exchanges for its own short-lived token. Available entities depend on the configured integration. The tension backlog remains part of rA Meetings, and the app also works without the governance platform.
+An optional roleALPHA connection can create drafts from approved outcomes, such as meeting records, risks, OKRs, or IT systems. It signs in with the user's Microsoft identity, which roleALPHA exchanges for its own short-lived token. Available entities depend on the configured integration. The tension backlog remains part of roleALPHA Sessions, and the app also works without the governance platform.
 
 ## Languages
 
@@ -100,7 +100,7 @@ Microsoft 365 administrators install the package once. End users do not need dev
 3. Review and publish the optional landing page. Approve calendar access, Teams availability, and optional services as needed; the app offers Microsoft's consent dialog as a link, so the Entra administrator does not need PowerShell to grant Microsoft's SPFx app.
 4. Verify the deployment with ordinary user accounts.
 
-The administrator guide begins with a [quick start](docs/customer-deployment.md#quick-start). Follow the **[step-by-step administrator guide](docs/customer-deployment.md)** from initial sign-in through acceptance checks. Package builders and integration operators should also read the [technical deployment guide](docs/technical-deployment.md). The [product design notes](docs/meeting-product.md) describe behavior and boundaries.
+The administrator guide begins with a [quick start](docs/customer-deployment.md#quick-start). Follow the **[step-by-step administrator guide](docs/customer-deployment.md)** from initial sign-in through acceptance checks. Package builders and integration operators should also read the [technical deployment guide](docs/technical-deployment.md). The [product design notes](docs/meeting-product.md) describe behavior and boundaries. The [Marketplace submission guide](docs/marketplace-submission.md) lists what a listing in AppSource and the SharePoint Store needs.
 
 ## Implementation status
 

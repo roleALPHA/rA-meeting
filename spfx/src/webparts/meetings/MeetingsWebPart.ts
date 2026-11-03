@@ -132,7 +132,7 @@ export default class MeetingsWebPart extends BaseClientSideWebPart<Properties> {
     return {
       pages: [
         {
-          header: { description: 'Microsoft 365 · roleALPHA Meetings' },
+          header: { description: 'Microsoft 365 · roleALPHA Sessions' },
           groups: [
             {
               groupName: 'Workspace / Arbeitsbereich',

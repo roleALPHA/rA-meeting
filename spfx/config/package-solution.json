@@ -1,9 +1,9 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
   "solution": {
-    "name": "rolealpha-meetings-client-side-solution",
+    "name": "rolealpha-sessions-client-side-solution",
     "id": "b905596d-a4a5-4dfe-8571-5d1e0631b43d",
-    "version": "0.1.17.0",
+    "version": "0.1.18.0",
     "includeClientSideAssets": true,
     "skipFeatureDeployment": true,
     "isDomainIsolated": false,
@@ -32,14 +32,14 @@
       "websiteUrl": "https://rolealpha.com",
       "privacyUrl": "https://rolealpha.com/legal/datenschutz",
       "termsOfUseUrl": "https://rolealpha.com/legal/agb",
-      "mpnId": "Undefined-1.24.0"
+      "mpnId": "7187751"
     },
     "metadata": {
       "shortDescription": {
         "default": "Meetings, tensions and outcomes in SharePoint and Microsoft Teams"
       },
       "longDescription": {
-        "default": "Run meetings from shared templates, record tensions or agenda items and agree on outcomes. Everything is stored in your organization's SharePoint site; there is no server outside your tenant."
+        "default": "Run meetings from shared templates, record tensions or agenda items and agree on outcomes. Everything is stored in your organization's SharePoint site; there is no server outside your tenant. The package contains two SharePoint web parts (roleALPHA Sessions for the workspace, roleALPHA Session for a single meeting on a page) and a Microsoft Teams app (personal app, channel and group chat tab, meeting tab). Calendar links and transcripts need administrator consent for Microsoft Graph. Optional AI suggests wording for proposals and answers governance questions; people make every decision. It uses Microsoft 365 Copilot, Claude in Microsoft Foundry or an OpenAI-compatible endpoint, which your organization provides. Governance questions and drafts need a roleALPHA account."
       }
     }
   },

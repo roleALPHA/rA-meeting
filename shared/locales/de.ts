@@ -335,7 +335,7 @@ export const de = {
   'error.onboarding.sharepointCouldCreateSite':
     'SharePoint konnte die Website nicht erstellen. Bitte die Administration kontaktieren.',
   'onboarding.siteBeingCreatedCheck': 'Die Website wird erstellt. Bitte den Status erneut prüfen.',
-  'onboarding.welcomeRaMeetings': 'Willkommen bei rA Meetings',
+  'onboarding.welcomeRaMeetings': 'Willkommen bei roleALPHA Sessions',
   'onboarding.wizardSetsUpWorkspace':
     'Dieser Assistent richtet den Arbeitsbereich in Ihrer Microsoft-365-Umgebung ein.',
   'onboarding.selectSite': 'Website auswählen',
@@ -360,7 +360,7 @@ export const de = {
   'onboarding.openSitePermissions': 'Websiteberechtigungen öffnen',
   'onboarding.selectedLanguageAppliesNew':
     'Die gewählte Sprache gilt für neue Startvorlagen. Vorhandene Vorlagen bleiben unverändert. Ob ein Meeting „Spannungen“ oder „Agendapunkte“ bearbeitet, legt seine Vorlage fest.',
-  'onboarding.prepareDedicatedRaMeetings': 'Eine eigene Einstiegsseite für rA Meetings vorbereiten',
+  'onboarding.prepareDedicatedRaMeetings': 'Eine eigene Einstiegsseite für roleALPHA Sessions vorbereiten',
   'onboarding.entryPageCreatedDraft':
     'Die Einstiegsseite wird als Entwurf angelegt. Sie prüfen und veröffentlichen sie anschließend in SharePoint. Eine vorhandene Startseite wird nicht ersetzt.',
   'onboarding.iHaveReviewedWho':
@@ -452,6 +452,8 @@ export const de = {
   'tensions.meeting': 'Meeting',
   'tensions.selectMeeting': 'Meeting auswählen …',
   'tensions.agendaStep': 'Agendaschritt',
+  'common.reportAiContent': 'Unangemessenen KI-Inhalt melden',
+  'common.reportAiContentSubject': 'Unangemessener KI-Inhalt in roleALPHA Sessions',
   'common.created': 'Erstellt mit',
   'common.aiResponseCarriesSensitivity': 'Die KI-Antwort trägt eine Vertraulichkeitsbezeichnung:',
   'common.beforeAcceptingCheckWhether':
@@ -577,7 +579,7 @@ export const de = {
   'labels.okr': 'OKR',
   'settings.teamsRecording.title': 'Teams-Aufzeichnung und Transkription',
   'settings.teamsRecording.description':
-    'Legt fest, welche Teams-Besprechungsoption rA Meetings beim Verknüpfen oder Abgleichen eines Termins setzt. Nur die organisierende Person kann die Option setzen; bei Serienterminen gilt sie für die ganze Serie. Ob sie wirkt, hängt von Lizenz und Teams-Richtlinien ab.',
+    'Legt fest, welche Teams-Besprechungsoption roleALPHA Sessions beim Verknüpfen oder Abgleichen eines Termins setzt. Nur die organisierende Person kann die Option setzen; bei Serienterminen gilt sie für die ganze Serie. Ob sie wirkt, hängt von Lizenz und Teams-Richtlinien ab.',
   'settings.teamsRecording.off': 'Nicht ändern',
   'settings.teamsRecording.allowTranscription': 'Transkription erlauben (im Meeting starten)',
   'settings.teamsRecording.recordAndTranscribe': 'Automatisch aufzeichnen und transkribieren',
@@ -710,7 +712,7 @@ export const de = {
   'connections.rolealphaConnected':
     'Verbunden mit {organisation}. Die Werkzeuge sind eingetragen; zum Übernehmen speichern.',
   'connections.rolealphaDraftsOnly':
-    'rA Meetings legt in roleALPHA nur Entwürfe an. Wirksam werden sie erst, wenn sie in roleALPHA freigegeben sind.',
+    'roleALPHA Sessions legt in roleALPHA nur Entwürfe an. Wirksam werden sie erst, wenn sie in roleALPHA freigegeben sind.',
   'connections.advanced': 'Erweitert',
   'connections.test': 'Verbindung testen',
   'connections.grantConsent': 'Zustimmung erteilen',

@@ -24,7 +24,7 @@ import { GovernanceAssistant } from './GovernanceAssistant';
 import { Assistant } from './Assistant';
 import { t as tr, language } from './i18n';
 import { CalendarLink } from './CalendarLink';
-import { Button, Modal, Field } from './ui';
+import { Button, Modal, Field, ReportAiContent } from './ui';
 import { statusLabels } from './labels';
 import { OutcomeForm } from './OutcomeForm';
 
@@ -477,7 +477,13 @@ export function MeetingRoom({
                             : tr('meeting.review')}
                 </span>
                 <span className="small muted">
-                  {o.source === 'ai' ? tr('meeting.aiSuggestion') : tr('meeting.enteredManually')}
+                  {o.source === 'ai' ? (
+                    <>
+                      {tr('meeting.aiSuggestion')} · <ReportAiContent />
+                    </>
+                  ) : (
+                    tr('meeting.enteredManually')
+                  )}
                 </span>
               </div>
               <h3>{o.title}</h3>
