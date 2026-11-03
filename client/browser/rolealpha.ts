@@ -6,7 +6,7 @@ import type { MessageId } from '../../shared/i18n';
 import { allowedDestination, type BrowserHost, type Endpoint } from './host';
 
 /**
- * One way into roleALPHA for all three integrations (governance search, own drafts, writing drafts).
+ * One way into roleALPHA for all three integrations (governance questions, own drafts, writing drafts).
  *
  * roleALPHA's MCP endpoint does not accept Microsoft tokens. The signed-in user's delegated Entra token is
  * exchanged for a short-lived roleALPHA token (RFC 8693) at the token endpoint of the SAME origin, and that token
@@ -173,7 +173,7 @@ export const toolProperties = (tool: { inputSchema: { properties?: unknown } } |
 export const roleAlphaTools = {
   createTool: 'create_entity_draft',
   drafts: 'search_my_drafts',
-  governance: 'search_governance',
+  governance: 'ask_ralph',
 } as const;
 const LIST_ORGANISATIONS = 'list_my_organisations';
 

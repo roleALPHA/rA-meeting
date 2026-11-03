@@ -29,12 +29,29 @@ export const governanceAnswer = z
     limitations: z.array(z.string().max(1000)).max(5),
   })
   .strict();
-export type GovernanceReply = z.infer<typeof governanceAnswer> &
+/** A tool named `ask_…` answers in roleALPHA itself (rALPH); a `search_…` tool returns sources for the AI service. */
+export const answersInRoleAlpha = (tool: string) => tool.startsWith('ask_');
+/** rA-app `server/ai/tools/ralph-fragen.ts`; entities are checked one by one, so one bad entry drops only itself. */
+export const ralphAnswer = z.looseObject({
+  answer: z.string().trim().min(1).max(20_000),
+  entities: z.array(z.unknown()).max(50).default([]),
+});
+export const ralphEntity = z.looseObject({ name: z.string().trim().min(1).max(300), uuid: z.guid() });
+export type SourcedGovernanceReply = z.infer<typeof governanceAnswer> &
   z.infer<typeof governanceSources> & {
+    kind: 'sources';
     retrievedAt: string;
     aiProvider?: 'copilot' | 'claude-foundry' | 'openai-compatible';
     sensitivityLabel?: string | null;
   };
+export type RalphGovernanceReply = {
+  kind: 'ralph';
+  answer: string;
+  /** Links into the roleALPHA application. */
+  entities: { name: string; url: string }[];
+  retrievedAt: string;
+};
+export type GovernanceReply = SourcedGovernanceReply | RalphGovernanceReply;
 export function governanceTask(
   input: z.infer<typeof governanceQuestion>,
   sources: z.infer<typeof governanceSources>['sources'],

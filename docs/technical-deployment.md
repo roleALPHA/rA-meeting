@@ -47,7 +47,7 @@ Governance integration is specifically for roleALPHA. MCP is its protocol, not a
 - The app reads the settings only while the list still has its own permissions. If someone restores inheritance, or the stored value does not pass validation (for example because it contains a key), AI and roleALPHA are off until an owner saves again, which restores the protection.
 - The same validation applies as before: HTTPS without credentials or key-like query parameters, no secret fields, one roleALPHA endpoint, `search_` and `create_` tool names.
 
-**Connect to roleALPHA.** The roleALPHA section needs only the organisation. **Connect to roleALPHA** (`POST /connections/rolealpha` in the browser runtime, site owners only) exchanges the user's Entra token **without** `tenant_uuid`. roleALPHA answers with a working token and the organisation's `tenant_uuid` when there is one organisation, or with a token of scope `rolealpha:organisation-select` when there are several; the app then calls `list_my_organisations`, the owner picks one, and the app exchanges again **with** that `tenant_uuid`. A roleALPHA release that still requires `tenant_uuid` refuses the first exchange with `invalid_request`; the form then asks for the roleALPHA tenant ID. With a working token the app reads `tools/list` and fills in `create_entity_draft`, `search_my_drafts` and `search_governance` where they are offered. Nothing is stored until **Save**; every later exchange sends the saved `tenant`. Address, resource, scope, tenant and tool names stay editable under **Advanced**. Contract: roleALPHA's `doc/ENTRA-TAUSCH.md`.
+**Connect to roleALPHA.** The roleALPHA section needs only the organisation. **Connect to roleALPHA** (`POST /connections/rolealpha` in the browser runtime, site owners only) exchanges the user's Entra token **without** `tenant_uuid`. roleALPHA answers with a working token and the organisation's `tenant_uuid` when there is one organisation, or with a token of scope `rolealpha:organisation-select` when there are several; the app then calls `list_my_organisations`, the owner picks one, and the app exchanges again **with** that `tenant_uuid`. A roleALPHA release that still requires `tenant_uuid` refuses the first exchange with `invalid_request`; the form then asks for the roleALPHA tenant ID. With a working token the app reads `tools/list` and fills in `create_entity_draft`, `search_my_drafts` and `ask_ralph` where they are offered. Nothing is stored until **Save**; every later exchange sends the saved `tenant`. Address, resource, scope, tenant and tool names stay editable under **Advanced**. Contract: roleALPHA's `doc/ENTRA-TAUSCH.md`.
 
 **Connection test.** Before saving, **Test connection** tries the entered values. It requests a delegated token for `resource`; a failure there means the permission below is missing or not yet effective. It then makes one harmless call: for AI, a minimal structured request; for roleALPHA, the token exchange and `tools/list`, checking that every configured tool is offered.
 
@@ -179,7 +179,22 @@ The interface follows roleALPHA's corporate design after the rebranding of 10/20
 
 ## Governance questions: roleALPHA read contract
 
-In addition to an AI service, enter the search tool for governance questions in the form (stored as `roleAlpha.governance`: `{ "searchTool": "search_governance" }`). The name is an example: configure the actual verified search tool from the roleALPHA installation. Without this configuration, governance assistance remains disabled. Compatibility with a production roleALPHA read tool has not yet been verified.
+The tool for governance questions is stored as `roleAlpha.governance`: `{ "searchTool": "ask_ralph" }`. **Connect to roleALPHA** fills it in when roleALPHA offers `ask_ralph`. Without it, governance assistance remains disabled. The name decides the contract: a tool named `ask_…` answers in roleALPHA itself; a tool named `search_…` returns sources that the configured AI service answers from.
+
+### rALPH (`ask_ralph`)
+
+rALPH, roleALPHA's assistant, answers the question on roleALPHA's server with roleALPHA's model, its skills and the organisation's data, under the signed-in user's roleALPHA permissions. No AI service has to be configured in the app, and none is called. The question goes only to the configured roleALPHA endpoint; roleALPHA bills the turn to the organisation. Contract: rA-app `server/ai/tools/ralph-fragen.ts`.
+
+- `tools/list` must declare `readOnlyHint: true`, `destructiveHint: false` and `question` (string). `locale` (string) and `tenant_uuid` (string) are passed when declared; other required parameters are unsupported.
+- The call sends the question and `locale` `de` for German and `en` for every other interface language, and waits up to 130 seconds (rALPH stops its own turn after 120).
+- The answer is JSON in an MCP text block or `structuredContent`: `{ "answer": "…", "skills_used": ["…"], "entities": [{ "name": "…", "uuid": "…" }] }`, at most 100,000 characters. The app shows the answer and links each entity to `<roleALPHA app>/graph?anchor=<uuid>` (the draft app address, by default `https://rolealpha.app`); entries without a valid UUID are dropped. Skill names are not shown.
+- roleALPHA allows 30 questions per person and organisation per hour. Its refusals, including that limit and a turn that ran out of time, arrive as `isError` and are shown as "rALPH could not answer".
+
+The answer is not bound to sources statement by statement, unlike the search contract below. The interface says that rALPH answered and that the answer does not replace a governance decision, and links the named entities for checking.
+
+### Search tool and AI service (`search_…`)
+
+This contract needs an AI service as well. The name `search_governance` is an example; roleALPHA does not offer such a tool today.
 
 The adapter expects an explicitly read-only search operation at the same roleALPHA endpoint. There is no additional MCP address or model-selected tool. The configured name must start with `search_`. Its `tools/list` declaration must expose `readOnlyHint: true`, `destructiveHint: false`, and parameters `query` (string) and `limit` (number or integer). `tenant_uuid` (string) is supported and passed when declared; a tool that takes the tenant from the token may omit it. Additional required parameters are unsupported. Annotations do not replace service-side authorization: roleALPHA must enforce the signed-in user's read access and tenant boundaries, and the operation must actually be read-only.
 

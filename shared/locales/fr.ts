@@ -112,6 +112,8 @@ export const fr: Record<MessageId, string> = {
   'error.governance.microsoft365CopilotUsed':
     'Microsoft 365 Copilot a utilisé du contenu hors des sources roleALPHA. La réponse a été écartée.',
   'error.governance.governanceAnswerContainsInvalid': 'La réponse de gouvernance contient des sources non valides.',
+  'error.governance.ralphCouldNotAnswer':
+    "rALPH n'a pas pu répondre. roleALPHA accepte au plus 30 questions par personne et par heure et s'arrête après deux minutes. Réessayez plus tard ou précisez la question.",
   'error.graph.http': 'Microsoft Graph : HTTP {status}',
   'error.graph.otherAccount':
     "Microsoft Graph répond pour {account}, alors que SharePoint est connecté en tant que {user}. Déconnectez le compte que vous n'utilisez pas ici et rechargez la page.",
@@ -198,9 +200,9 @@ export const fr: Record<MessageId, string> = {
   'governance.answerQuestionsAboutRoles':
     'Répondre aux questions sur les rôles, responsabilités et règles à partir de la gouvernance existante dans roleALPHA.',
   'governance.questionSentRolealphaRetrieved':
-    'Votre question est envoyée à roleALPHA. Les contenus trouvés et la question sont transmis au service IA approuvé. La réunion et la transcription ne sont pas incluses automatiquement. Les réponses ne sont pas enregistrées.',
-  'governance.governanceQuestionsRequireAi':
-    'Les questions de gouvernance nécessitent la configuration de l’IA et de l’accès en lecture à roleALPHA.',
+    'Votre question est envoyée à roleALPHA. Avec rALPH, roleALPHA y répond lui-même, avec son modèle et les données de votre organisation ; avec un outil de recherche, les contenus trouvés et la question sont transmis au service IA approuvé. La réunion et la transcription ne sont pas incluses automatiquement. Les réponses ne sont pas enregistrées.',
+  'governance.governanceQuestionsRequireSetup':
+    'Les questions de gouvernance nécessitent un accès en lecture à roleALPHA : rALPH (ask_ralph), ou un outil de recherche avec un service IA.',
   'governance.couldReadGovernanceRolealpha': 'Impossible de lire la gouvernance depuis roleALPHA.',
   'governance.governanceQuestion': 'Votre question de gouvernance',
   'governance.whichRoleResponsibleDecision': 'Quel rôle est responsable de cette décision ?',
@@ -212,6 +214,12 @@ export const fr: Record<MessageId, string> = {
   'governance.sufficientlySupportedAnswerFound':
     'Aucune réponse suffisamment étayée. Précisez la question ou consultez la gouvernance directement dans roleALPHA.',
   'governance.retrievedGovernanceSources': 'Sources de gouvernance récupérées',
+  'governance.ralphAnswer': 'Réponse de rALPH',
+  'governance.answeredByRalph':
+    'Réponse de rALPH dans roleALPHA, avec le modèle de roleALPHA et les données de votre organisation dans roleALPHA. rALPH répond en anglais.',
+  'governance.ralphAnswerNotDecision':
+    'La réponse ne remplace pas une décision de gouvernance. Vérifiez les entrées citées dans roleALPHA.',
+  'governance.mentionedInRolealpha': 'Cité dans roleALPHA',
   'labels.tactical': 'Tactique',
   'labels.governance': 'Gouvernance',
   'labels.custom': 'Personnalisé',
@@ -677,7 +685,7 @@ export const fr: Record<MessageId, string> = {
   'connections.entities': "Types de résultats transmis comme brouillons, avec leur type d'entité roleALPHA",
   'connections.entityType': "Type d'entité roleALPHA pour {type}",
   'connections.createTool': 'Outil de création de brouillons',
-  'connections.governanceTool': 'Outil de recherche pour les questions de gouvernance (facultatif)',
+  'connections.governanceTool': 'Outil pour les questions de gouvernance (facultatif)',
   'connections.draftsTool': 'Outil de recherche pour ses propres brouillons (facultatif)',
   'connections.draftsAppUrl': "Adresse de l'application roleALPHA",
   'connections.guide': 'Instructions',

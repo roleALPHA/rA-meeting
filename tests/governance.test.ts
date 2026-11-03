@@ -6,7 +6,7 @@ import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/
 import { createBrowserApi } from '../client/browser/runtime.js';
 import { connectionSettingsSchema, type BrowserHost } from '../client/browser/host.js';
 import { fakeSharePoint, tenant, user } from './helpers/sharepoint-rest.js';
-import type { GovernanceReply } from '../shared/governance.js';
+import type { RalphGovernanceReply, SourcedGovernanceReply } from '../shared/governance.js';
 import type { Bootstrap } from '../shared/model.js';
 import { tokenEndpoint } from '../client/browser/rolealpha.js';
 
@@ -139,7 +139,7 @@ test('governance questions use the approved read tool, cite actual sources and n
   const filesBefore = sp.files.size;
   assert.equal((await api.request<Bootstrap>('/bootstrap')).integrations.governance, true);
   const ask = () =>
-    api.request<GovernanceReply>('/governance/ask', { question: 'Who approves expenditure?', language: 'fr' });
+    api.request<SourcedGovernanceReply>('/governance/ask', { question: 'Who approves expenditure?', language: 'fr' });
   const answer = await ask();
   assert.equal(answer.statements[0].sourceIds[0], 'role-finance');
   assert.deepEqual(answer.sources, sources);
@@ -166,7 +166,10 @@ test('governance questions use the approved read tool, cite actual sources and n
   }).ai;
   const copilotApi = await createBrowserApi(host);
   const askCopilot = () =>
-    copilotApi.request<GovernanceReply>('/governance/ask', { question: 'Who approves expenditure?', language: 'fr' });
+    copilotApi.request<SourcedGovernanceReply>('/governance/ask', {
+      question: 'Who approves expenditure?',
+      language: 'fr',
+    });
   await assert.rejects(askCopilot(), /außerhalb der roleALPHA-Quellen/);
   copilotGrounding = false;
   const copilotAnswer = await askCopilot();
@@ -177,22 +180,112 @@ test('governance questions use the approved read tool, cite actual sources and n
   assert.equal(calls, 5, 'no search without an approved read tool');
 });
 
-test('governance configuration rejects write tools and a separate endpoint', () => {
+test('governance configuration accepts read tools only, and no separate endpoint', () => {
   const connection = {
     url: 'https://rolealpha.example/mcp',
     resource: 'api://ra',
     scope: 'read',
     tenant,
   };
-  assert.equal(
-    connectionSettingsSchema.safeParse({ roleAlpha: { ...connection, governance: { searchTool: 'create_risk' } } })
-      .success,
-    false,
-  );
+  for (const [searchTool, valid] of [
+    ['create_risk', false],
+    ['search_governance', true],
+    ['ask_ralph', true],
+  ] as const)
+    assert.equal(
+      connectionSettingsSchema.safeParse({ roleAlpha: { ...connection, governance: { searchTool } } }).success,
+      valid,
+    );
   assert.equal(
     connectionSettingsSchema.safeParse({
       roleAlpha: { ...connection, governance: { searchTool: 'search_governance', url: 'https://other.example/mcp' } },
     }).success,
     false,
   );
+});
+
+test('rALPH answers governance questions in roleALPHA without an AI service and links the entities it names', async t => {
+  const servers: McpServer[] = [];
+  let transport: WebStandardStreamableHTTPServerTransport;
+  let readOnly = true;
+  let failing = false;
+  let calls = 0;
+  const finance = '3f2b8c1e-7a4d-4e9b-9c2a-1d5e6f7a8b9c';
+  async function connect() {
+    const server = new McpServer({ name: 'rolealpha-test', version: '1.0.0' });
+    servers.push(server);
+    server.registerTool(
+      'ask_ralph',
+      {
+        inputSchema: { question: z.string(), context: z.string().optional(), locale: z.enum(['de', 'en']).optional() },
+        annotations: { readOnlyHint: readOnly, destructiveHint: !readOnly },
+      },
+      async args => {
+        calls++;
+        assert.deepEqual(args, { question: 'Who approves expenditure?', locale: 'en' });
+        if (failing) return { content: [{ type: 'text', text: 'Too many questions to rALPH' }], isError: true };
+        const answer = {
+          answer: 'Finance approves expenditure up to 1000 EUR.',
+          skills_used: ['governance'],
+          entities: [{ name: 'Finance', uuid: finance }, { name: 'Broken', uuid: 'not-a-uuid' }, 'junk'],
+        };
+        return { content: [{ type: 'text', text: JSON.stringify(answer) }] };
+      },
+    );
+    transport = new WebStandardStreamableHTTPServerTransport({
+      sessionIdGenerator: () => crypto.randomUUID(),
+      enableJsonResponse: true,
+    });
+    await server.connect(transport);
+  }
+  const original = globalThis.fetch;
+  t.after(async () => {
+    globalThis.fetch = original;
+    await Promise.all(servers.map(s => s.close()));
+  });
+  const sp = fakeSharePoint();
+  const host: BrowserHost = {
+    tenantId: tenant,
+    userId: user,
+    userName: 'Reader',
+    webUrl: 'https://org.sharepoint.com/sites/team',
+    isTeams: true,
+    sharepoint: sp.request,
+    token: async resource => {
+      assert.equal(resource, 'api://rolealpha');
+      return 'test-token';
+    },
+    settings: connectionSettingsSchema.parse({
+      roleAlpha: {
+        url: 'https://rolealpha.example/mcp',
+        resource: 'api://rolealpha',
+        scope: 'read',
+        tenant,
+        governance: { searchTool: 'ask_ralph' },
+      },
+    }),
+  };
+  globalThis.fetch = async (input, init) => {
+    const url = String(input);
+    if (url === tokenEndpoint(host.settings.roleAlpha!.url))
+      return Response.json({ access_token: 'rolealpha-token', expires_in: 300 });
+    // Nothing but roleALPHA: no AI service is configured or called.
+    assert.equal(url, host.settings.roleAlpha!.url);
+    if (init?.method === 'POST' && JSON.parse(String(init.body)).method === 'initialize') await connect();
+    return transport.handleRequest(new Request(url, init));
+  };
+  const api = await createBrowserApi(host);
+  assert.equal((await api.request<Bootstrap>('/bootstrap')).integrations.governance, true);
+  const ask = () =>
+    api.request<RalphGovernanceReply>('/governance/ask', { question: 'Who approves expenditure?', language: 'fr' });
+  const reply = await ask();
+  assert.equal(reply.kind, 'ralph');
+  assert.equal(reply.answer, 'Finance approves expenditure up to 1000 EUR.');
+  assert.deepEqual(reply.entities, [{ name: 'Finance', url: `https://rolealpha.app/graph?anchor=${finance}` }]);
+  failing = true;
+  await assert.rejects(ask(), /rALPH konnte nicht antworten/);
+  failing = false;
+  readOnly = false;
+  await assert.rejects(ask(), /nicht kompatibel/);
+  assert.equal(calls, 2, 'a tool that is not read-only is rejected before invocation');
 });

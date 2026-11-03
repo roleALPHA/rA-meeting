@@ -106,6 +106,8 @@ export const en: Record<MessageId, string> = {
   'error.governance.microsoft365CopilotUsed':
     'Microsoft 365 Copilot used content beyond the roleALPHA sources. The answer was discarded.',
   'error.governance.governanceAnswerContainsInvalid': 'The governance answer contains invalid sources.',
+  'error.governance.ralphCouldNotAnswer':
+    'rALPH could not answer. roleALPHA accepts at most 30 questions per person per hour and stops after two minutes. Ask again later or narrow the question.',
   'error.graph.http': 'Microsoft Graph: HTTP {status}',
   'error.graph.otherAccount':
     'Microsoft Graph answers for {account}, while SharePoint is signed in as {user}. Sign out of the account you are not using here and reload the page.',
@@ -188,9 +190,9 @@ export const en: Record<MessageId, string> = {
   'governance.answerQuestionsAboutRoles':
     'Answer questions about roles, responsibilities and rules using existing governance in roleALPHA.',
   'governance.questionSentRolealphaRetrieved':
-    'Your question is sent to roleALPHA. Retrieved content and the question are sent to the approved AI service. The meeting and transcript are not automatically included. Answers are not saved.',
-  'governance.governanceQuestionsRequireAi':
-    'Governance questions require AI and read access to roleALPHA to be configured.',
+    "Your question is sent to roleALPHA. With rALPH, roleALPHA answers it itself, with its model and your organization's data; with a search tool, the retrieved content and the question are sent to the approved AI service. The meeting and transcript are not automatically included. Answers are not saved.",
+  'governance.governanceQuestionsRequireSetup':
+    'Governance questions require read access to roleALPHA: rALPH (ask_ralph), or a search tool together with an AI service.',
   'governance.couldReadGovernanceRolealpha': 'Could not read governance from roleALPHA.',
   'governance.governanceQuestion': 'Your governance question',
   'governance.whichRoleResponsibleDecision': 'Which role is responsible for this decision?',
@@ -202,6 +204,12 @@ export const en: Record<MessageId, string> = {
   'governance.sufficientlySupportedAnswerFound':
     'No sufficiently supported answer found. Refine the question or check governance directly in roleALPHA.',
   'governance.retrievedGovernanceSources': 'Retrieved governance sources',
+  'governance.ralphAnswer': 'Answer from rALPH',
+  'governance.answeredByRalph':
+    "Answered by rALPH in roleALPHA, with roleALPHA's model and your organization's data in roleALPHA.",
+  'governance.ralphAnswerNotDecision':
+    'The answer does not replace a governance decision. Check the entries it names in roleALPHA.',
+  'governance.mentionedInRolealpha': 'Named in roleALPHA',
   'labels.tactical': 'Tactical',
   'labels.governance': 'Governance',
   'labels.custom': 'Custom',
@@ -652,7 +660,7 @@ export const en: Record<MessageId, string> = {
   'connections.entities': 'Outcome types sent as drafts, with their roleALPHA entity type',
   'connections.entityType': 'roleALPHA entity type for {type}',
   'connections.createTool': 'Tool that creates drafts',
-  'connections.governanceTool': 'Search tool for governance questions (optional)',
+  'connections.governanceTool': 'Tool for governance questions (optional)',
   'connections.draftsTool': 'Search tool for own drafts (optional)',
   'connections.draftsAppUrl': 'Address of the roleALPHA application',
   'connections.guide': 'Instructions',

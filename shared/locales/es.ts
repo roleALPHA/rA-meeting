@@ -109,6 +109,8 @@ export const es: Record<MessageId, string> = {
   'error.governance.microsoft365CopilotUsed':
     'Microsoft 365 Copilot utilizó contenido fuera de las fuentes de roleALPHA. La respuesta se descartó.',
   'error.governance.governanceAnswerContainsInvalid': 'La respuesta de gobernanza contiene fuentes no válidas.',
+  'error.governance.ralphCouldNotAnswer':
+    'rALPH no pudo responder. roleALPHA acepta como máximo 30 preguntas por persona y hora y se detiene tras dos minutos. Vuelve a preguntar más tarde o concreta la pregunta.',
   'error.graph.http': 'Microsoft Graph: HTTP {status}',
   'error.graph.otherAccount':
     'Microsoft Graph responde para {account}, mientras que SharePoint tiene la sesión iniciada como {user}. Cierre la sesión de la cuenta que no utiliza aquí y vuelva a cargar la página.',
@@ -192,9 +194,9 @@ export const es: Record<MessageId, string> = {
   'governance.answerQuestionsAboutRoles':
     'Responder preguntas sobre roles, responsabilidades y reglas basándose en la gobernanza existente en roleALPHA.',
   'governance.questionSentRolealphaRetrieved':
-    'Tu pregunta se envía a roleALPHA. El contenido encontrado y la pregunta se envían al servicio de IA autorizado. La reunión y la transcripción no se incluyen automáticamente. Las respuestas no se guardan.',
-  'governance.governanceQuestionsRequireAi':
-    'Las preguntas de gobernanza requieren configurar la IA y el acceso de lectura a roleALPHA.',
+    'Tu pregunta se envía a roleALPHA. Con rALPH, roleALPHA la responde por sí mismo, con su modelo y los datos de tu organización; con una herramienta de búsqueda, el contenido encontrado y la pregunta se envían al servicio de IA autorizado. La reunión y la transcripción no se incluyen automáticamente. Las respuestas no se guardan.',
+  'governance.governanceQuestionsRequireSetup':
+    'Las preguntas de gobernanza requieren acceso de lectura a roleALPHA: rALPH (ask_ralph), o una herramienta de búsqueda junto con un servicio de IA.',
   'governance.couldReadGovernanceRolealpha': 'No se pudo leer la gobernanza de roleALPHA.',
   'governance.governanceQuestion': 'Tu pregunta de gobernanza',
   'governance.whichRoleResponsibleDecision': '¿Qué rol es responsable de esta decisión?',
@@ -206,6 +208,12 @@ export const es: Record<MessageId, string> = {
   'governance.sufficientlySupportedAnswerFound':
     'No se encontró una respuesta suficientemente fundamentada. Concreta la pregunta o consulta la gobernanza directamente en roleALPHA.',
   'governance.retrievedGovernanceSources': 'Fuentes de gobernanza recuperadas',
+  'governance.ralphAnswer': 'Respuesta de rALPH',
+  'governance.answeredByRalph':
+    'Respondido por rALPH en roleALPHA, con el modelo de roleALPHA y los datos de tu organización en roleALPHA. rALPH responde en inglés.',
+  'governance.ralphAnswerNotDecision':
+    'La respuesta no sustituye una decisión de gobernanza. Comprueba las entradas citadas en roleALPHA.',
+  'governance.mentionedInRolealpha': 'Citado en roleALPHA',
   'labels.tactical': 'Táctica',
   'labels.governance': 'Gobernanza',
   'labels.custom': 'Personalizado',
@@ -664,7 +672,7 @@ export const es: Record<MessageId, string> = {
   'connections.entities': 'Tipos de resultado enviados como borradores, con su tipo de entidad de roleALPHA',
   'connections.entityType': 'Tipo de entidad de roleALPHA para {type}',
   'connections.createTool': 'Herramienta que crea borradores',
-  'connections.governanceTool': 'Herramienta de búsqueda para preguntas de gobernanza (opcional)',
+  'connections.governanceTool': 'Herramienta para preguntas de gobernanza (opcional)',
   'connections.draftsTool': 'Herramienta de búsqueda para borradores propios (opcional)',
   'connections.draftsAppUrl': 'Dirección de la aplicación roleALPHA',
   'connections.guide': 'Instrucciones',

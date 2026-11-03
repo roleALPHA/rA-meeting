@@ -1,6 +1,6 @@
 import { outputTypes, type Bootstrap, type Meeting, type Template, type Tension } from '../../../shared/model';
 import { summarize } from '../../../shared/meeting-store';
-import { askGovernance } from '../governance';
+import { askGovernance, governanceReady } from '../governance';
 import { backfillCalendarClaims } from './calendar';
 import { loadSettings } from './settings';
 import { workspaceAccess } from '../../../shared/storage/sharepoint-rest';
@@ -29,7 +29,7 @@ export const workspaceRoutes: Route[] = [
         }))),
         integrations: {
           storage: 'sharepoint',
-          governance: !!host.settings.ai && !!host.settings.roleAlpha?.governance,
+          governance: governanceReady(host),
           drafts: !!host.settings.roleAlpha?.drafts,
           ai: !!host.settings.ai,
           aiProvider: host.settings.ai?.provider ?? null,

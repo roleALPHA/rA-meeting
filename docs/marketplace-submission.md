@@ -61,7 +61,7 @@ In [Partner Center](https://partner.microsoft.com/dashboard/v2/marketplace-offer
 
 - **Name:** roleALPHA Sessions, the same on every surface (1140.1.1).
 - **Summary** (at most 100 characters) and **description:** start from `description` in `scripts/teams-package.ts`. State the audience, the components, the prerequisites and every dependency: administrator consent for Microsoft Graph and for roleALPHA's `access_as_user`, Microsoft 365 Copilot licence or the organisation's own Foundry or OpenAI-compatible endpoint for AI, a roleALPHA account for governance questions and drafts.
-- **AI:** describe what the AI does before customers install the app (100.1.3, 1140.4.1): it suggests wording for proposals and objections and answers governance questions from retrieved sources; people make every decision; results show their provider and a report link to support@rolealpha.com. Support must act on reports promptly.
+- **AI:** describe what the AI does before customers install the app (100.1.3, 1140.4.1): it suggests wording for proposals and objections, and rALPH in roleALPHA answers governance questions; people make every decision; results show their provider and a report link to support@rolealpha.com. Support must act on reports promptly.
 - **Links:** privacy, terms of use, support and documentation (README and [customer-deployment.md](customer-deployment.md) or a public copy).
 - **Screenshots:** with captions, without advertising, showing the real app.
 
