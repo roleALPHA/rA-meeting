@@ -21,7 +21,8 @@ export const description = {
   // The Marketplace requires the description to name every component and every service the app depends on.
   full:
     'Run meetings from shared templates, record tensions or agenda items and agree on outcomes. ' +
-    "Everything is stored in your organization's SharePoint site; there is no server outside your tenant. " +
+    "Everything is stored in your organization's SharePoint site, and the app has no server of its own. " +
+    'Data leaves your tenant only if a site owner switches on the optional AI or roleALPHA connection. ' +
     'The package contains two SharePoint web parts (roleALPHA Sessions for the workspace, roleALPHA Session for ' +
     'a single meeting on a page) and a Microsoft Teams app (personal app, channel and group chat tab, meeting tab). ' +
     'Calendar links and transcripts need administrator consent for Microsoft Graph. ' +
