@@ -9,6 +9,7 @@ Sources, checked on 3 November 2026: [Publish SharePoint Framework applications 
 | Requirement | Where |
 | --- | --- |
 | SPFx 1.11 or later | SPFx 1.24 (`spfx/package.json`) |
+| Package version 1.0 or later (Partner Center rejects lower versions as "Manifest Version Too Low") | `version` in `package.json` and `spfx/package.json` |
 | Tenant-scoped deployment for Teams (`skipFeatureDeployment: true`) | `scripts/build-browser.ts` |
 | No domain isolation (`isDomainIsolated: false`, policy 1170) | `scripts/build-browser.ts` |
 | Developer name, website, privacy and terms URLs | `developer` in `scripts/teams-package.ts` |
