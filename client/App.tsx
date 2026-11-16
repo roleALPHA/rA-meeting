@@ -600,6 +600,7 @@ export function App() {
       {create && data && (
         <CreateMeeting
           templates={data.templates}
+          circles={!!data.integrations.circles}
           busy={busy}
           close={() => setCreate(false)}
           save={body =>

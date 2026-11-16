@@ -1,16 +1,48 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ChevronRight, Plus } from 'lucide-react';
 import { type Template } from '../shared/model';
+import type { CircleResult } from './browser/circles';
+import { useApi } from './api-context';
 import { t as tr } from './i18n';
 import { Button, Modal, Field } from './ui';
+
+/**
+ * Circles and teams from the connected roleALPHA organisation, searched as the user types. The suggestions are
+ * optional: free text stays possible, and a failed search only says so below the field.
+ */
+function useCircleSuggestions(enabled: boolean, query: string) {
+  const { request } = useApi();
+  const [results, setResults] = useState<CircleResult[]>([]);
+  const [failed, setFailed] = useState(false);
+  const latest = useRef(0);
+  useEffect(() => {
+    if (!enabled) return;
+    const call = ++latest.current;
+    const timer = setTimeout(() => {
+      request<CircleResult[]>('/circles/search', { query: query.trim() }).then(
+        found => {
+          if (call !== latest.current) return;
+          setResults(found);
+          setFailed(false);
+        },
+        () => call === latest.current && setFailed(true),
+      );
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [enabled, query, request]);
+  return { results, failed };
+}
 
 export function CreateMeeting({
   templates,
   save,
   close,
   busy,
+  circles = false,
 }: {
   templates: Template[];
+  /** roleALPHA is connected, so circles and teams are suggested from there. */
+  circles?: boolean;
   save: (body: unknown) => void;
   close: () => void;
   busy: boolean;
@@ -19,6 +51,8 @@ export function CreateMeeting({
   const [selected, setSelected] = useState(enabled[0]?.id || '');
   const [title, setTitle] = useState('');
   const [circle, setCircle] = useState('');
+  const [circleId, setCircleId] = useState<string | null>(null);
+  const suggestions = useCircleSuggestions(circles, circle);
   const [date, setDate] = useState('');
   const template = enabled.find(t => t.id === selected);
   return (
@@ -26,7 +60,13 @@ export function CreateMeeting({
       <form
         onSubmit={e => {
           e.preventDefault();
-          save({ title, circle, templateId: selected, scheduledAt: date ? new Date(date).toISOString() : null });
+          save({
+            title,
+            circle,
+            circleId,
+            templateId: selected,
+            scheduledAt: date ? new Date(date).toISOString() : null,
+          });
         }}
       >
         <Field label={tr('meetings.meetingName')}>
@@ -41,9 +81,38 @@ export function CreateMeeting({
           <input
             required
             value={circle}
-            onChange={e => setCircle(e.target.value)}
+            list={circles ? 'rolealpha-circles' : undefined}
+            autoComplete="off"
+            onChange={e => {
+              const value = e.target.value;
+              setCircle(value);
+              // Linked only while the name is exactly one roleALPHA suggestion; edited text is a free name again.
+              setCircleId(suggestions.results.find(c => c.name === value)?.id ?? null);
+            }}
             placeholder={tr('meetings.productCircle')}
           />
+          {circles && (
+            <>
+              <datalist id="rolealpha-circles">
+                {suggestions.results.map(c => (
+                  <option
+                    key={c.id}
+                    value={c.name}
+                    label={tr(c.kind === 'unit' ? 'meetings.circleKindUnit' : 'meetings.circleKindRole')}
+                  />
+                ))}
+              </datalist>
+              <small>
+                {tr(
+                  suggestions.failed
+                    ? 'meetings.circleSuggestionsUnavailable'
+                    : circleId
+                      ? 'meetings.circleLinkedRolealpha'
+                      : 'meetings.circleSuggestionsRolealpha',
+                )}
+              </small>
+            </>
+          )}
         </Field>
         <Field label={tr('meetings.meetingTemplate')}>
           <select required value={selected} onChange={e => setSelected(e.target.value)}>

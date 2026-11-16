@@ -7,6 +7,7 @@ import { parseTranscript } from '../../../shared/transcript';
 import { assistanceInput } from '../../../shared/assistance';
 import { parseLanguage } from '../../../shared/i18n';
 import { analyzeBrowser, assistBrowser } from '../integrations';
+import { searchCircles } from '../circles';
 import type { MeetingAction, Route, RouteContext } from './types';
 import { findOnlineMeeting } from './teams';
 
@@ -15,6 +16,11 @@ export const meetingRoutes: Route[] = [
     verb: 'POST',
     path: /^\/meetings$/,
     handle: ({ store, actor }, { body }) => createMeeting(store, actor, body),
+  },
+  {
+    verb: 'POST',
+    path: /^\/circles\/search$/,
+    handle: ({ host }, { body }) => searchCircles(host, body),
   },
 ];
 
