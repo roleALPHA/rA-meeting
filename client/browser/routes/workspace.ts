@@ -31,6 +31,7 @@ export const workspaceRoutes: Route[] = [
           storage: 'sharepoint',
           governance: governanceReady(host),
           drafts: !!host.settings.roleAlpha?.drafts,
+          circles: !!host.settings.roleAlpha,
           ai: !!host.settings.ai,
           aiProvider: host.settings.ai?.provider ?? null,
           mcp: !!host.settings.roleAlpha?.meeting,

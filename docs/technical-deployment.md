@@ -218,6 +218,12 @@ AI receives only the question and retrieved sources. Its answer contains stateme
 
 Acceptance testing must cover the real search contract, user and tenant isolation, unanswerable questions, source comparison, delegated sign-in, and browser CORS. Questions and answers stay in the open interface; no new SharePoint storage or vector database is created. Configure AI and roleALPHA service logging separately according to organizational requirements.
 
+## Circles and teams for new meetings: read contract
+
+When roleALPHA is connected, the **Circle / team** field of a new meeting suggests entities from the connected organisation as the user types. Free text stays possible. A suggestion the user picks is stored with its roleALPHA UUID in `circleId`, and exports to roleALPHA carry it alongside the circle name.
+
+The app calls two tools at the same MCP endpoint with the signed-in user's delegated token: `search_roles` (roles, circles and guilds; returned under `roles`) and `search_organigramms` (org units; returned under `organigramms`). Each call supplies the search text (possibly empty) and `limit: 20`; `tenant_uuid` or `organisation` is passed only to a tool that declares it. A tool that is not offered, does not declare `readOnlyHint: true` and `destructiveHint: false`, or needs other parameters is skipped. Only entries with a UUID and a name are used; an error answer contributes no suggestions. roleALPHA's search results do not yet say whether a role is a circle, so plain roles are suggested too.
+
 ## Attaching roleALPHA drafts: read contract
 
 Enter the search tool for own drafts and the roleALPHA application address in the form (stored as `roleAlpha.drafts`: `{ "searchTool": "search_my_drafts", "appUrl": "https://rolealpha.organization.example" }`). The tool name is an example and must start with `search_`; `appUrl` is the roleALPHA web application. Without this configuration, editors cannot attach drafts to tensions. Compatibility with a production roleALPHA tool has not yet been verified.

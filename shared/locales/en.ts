@@ -158,6 +158,7 @@ export const en: Record<MessageId, string> = {
   'error.maintenance.onlySiteOwnersCan': 'Only site owners can clean up storage.',
   'error.maintenance.storageCleanupAvailableStorage': 'Storage cleanup is not available for this storage.',
   'error.meetings.meetingLinkedTeams': 'Meeting is not linked to Teams.',
+  'error.meetings.circleSearchFailed': 'Circles and teams could not be read from roleALPHA.',
   'error.meetings.invalidGraphContinuationPage': 'Invalid Graph continuation page.',
   'error.meetings.tooManyTranscriptParts': 'Too many transcript parts.',
   'error.meetings.transcriptSelectionHasChanged':
@@ -185,6 +186,11 @@ export const en: Record<MessageId, string> = {
   'meetings.eGProductCircle': 'e.g. Product circle · Weekly tactical',
   'meetings.circleTeam': 'Circle / team',
   'meetings.productCircle': 'Product circle',
+  'meetings.circleKindRole': 'Role / circle',
+  'meetings.circleKindUnit': 'Org unit',
+  'meetings.circleSuggestionsRolealpha': 'Suggestions from roleALPHA – or enter your own name.',
+  'meetings.circleLinkedRolealpha': 'Linked to roleALPHA.',
+  'meetings.circleSuggestionsUnavailable': 'Suggestions from roleALPHA are currently unavailable.',
   'meetings.meetingTemplate': 'Meeting template',
   'meetings.dateOptional': 'Date (optional)',
   'governance.answerQuestionsAboutRoles':

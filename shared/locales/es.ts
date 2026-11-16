@@ -162,6 +162,7 @@ export const es: Record<MessageId, string> = {
   'error.maintenance.onlySiteOwnersCan': 'Solo los propietarios del sitio pueden limpiar el almacenamiento.',
   'error.maintenance.storageCleanupAvailableStorage': 'La limpieza no está disponible para este almacenamiento.',
   'error.meetings.meetingLinkedTeams': 'La reunión no está vinculada a Teams.',
+  'error.meetings.circleSearchFailed': 'No se pudieron leer los círculos y equipos de roleALPHA.',
   'error.meetings.invalidGraphContinuationPage': 'Página siguiente de Graph inválida.',
   'error.meetings.tooManyTranscriptParts': 'Demasiadas partes de transcripción.',
   'error.meetings.transcriptSelectionHasChanged':
@@ -189,6 +190,11 @@ export const es: Record<MessageId, string> = {
   'meetings.eGProductCircle': 'p. ej. Círculo de producto · Táctica semanal',
   'meetings.circleTeam': 'Círculo / equipo',
   'meetings.productCircle': 'Círculo de producto',
+  'meetings.circleKindRole': 'Rol / círculo',
+  'meetings.circleKindUnit': 'Unidad organizativa',
+  'meetings.circleSuggestionsRolealpha': 'Sugerencias de roleALPHA, o introduce un nombre propio.',
+  'meetings.circleLinkedRolealpha': 'Vinculado a roleALPHA.',
+  'meetings.circleSuggestionsUnavailable': 'Las sugerencias de roleALPHA no están disponibles en este momento.',
   'meetings.meetingTemplate': 'Plantilla de reunión',
   'meetings.dateOptional': 'Fecha (opcional)',
   'governance.answerQuestionsAboutRoles':

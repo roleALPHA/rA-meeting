@@ -169,6 +169,7 @@ export const de = {
   'error.maintenance.storageCleanupAvailableStorage':
     'Die Speicherbereinigung ist für diesen Speicher nicht verfügbar.',
   'error.meetings.meetingLinkedTeams': 'Meeting ist nicht mit Teams verknüpft.',
+  'error.meetings.circleSearchFailed': 'Kreise und Teams konnten nicht aus roleALPHA gelesen werden.',
   'error.meetings.invalidGraphContinuationPage': 'Ungültige Graph-Folgeseite.',
   'error.meetings.tooManyTranscriptParts': 'Zu viele Transkriptteile.',
   'error.meetings.transcriptSelectionHasChanged':
@@ -196,6 +197,11 @@ export const de = {
   'meetings.eGProductCircle': 'z. B. Produktkreis · Wöchentliches Tactical',
   'meetings.circleTeam': 'Kreis / Team',
   'meetings.productCircle': 'Produktkreis',
+  'meetings.circleKindRole': 'Rolle / Kreis',
+  'meetings.circleKindUnit': 'Organisationseinheit',
+  'meetings.circleSuggestionsRolealpha': 'Vorschläge aus roleALPHA – oder einen eigenen Namen eingeben.',
+  'meetings.circleLinkedRolealpha': 'Mit roleALPHA verknüpft.',
+  'meetings.circleSuggestionsUnavailable': 'Vorschläge aus roleALPHA sind gerade nicht verfügbar.',
   'meetings.meetingTemplate': 'Meeting-Template',
   'meetings.dateOptional': 'Termin (optional)',
   'governance.answerQuestionsAboutRoles':

@@ -222,6 +222,8 @@ export type Bootstrap = {
     governance?: boolean;
     /** Own roleALPHA drafts can be searched and attached to tensions. */
     drafts?: boolean;
+    /** Circles and teams for new meetings are suggested from the connected roleALPHA organisation. */
+    circles?: boolean;
     entityTypes: OutputType[];
     storage: string;
     ai: boolean;
