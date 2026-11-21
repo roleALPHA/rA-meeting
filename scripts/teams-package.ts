@@ -2,9 +2,8 @@ import { crc32 } from 'node:zlib';
 
 /**
  * The Teams app package the SharePoint package carries (spfx/teams/TeamsSPFxApp.zip). Without it SharePoint generates
- * one Teams app per web part and offers the meeting web part in channels, where saving the tab fails. With it there is
- * one app, roleALPHA Sessions: personal app, channel and group chat tab, and meeting tab. See
- * https://learn.microsoft.com/sharepoint/dev/spfx/deployment-spfx-teams-solutions.
+ * one Teams app per web part. With it there is one app, roleALPHA Sessions: a meeting tab and side panel, and a
+ * personal app that explains how to use it. See https://learn.microsoft.com/sharepoint/dev/spfx/deployment-spfx-teams-solutions.
  */
 
 export const meetingsComponentId = 'd7391660-3f52-4e4b-b95f-7a71e4c5092e';
@@ -17,19 +16,18 @@ export const developer = {
 };
 
 export const description = {
-  short: 'Meetings, tensions and outcomes in SharePoint and Microsoft Teams',
+  short: 'Governance outcomes from Teams meetings straight into roleALPHA',
   // The Marketplace requires the description to name every component and every service the app depends on.
   full:
-    'Run meetings from shared templates, record tensions or agenda items and agree on outcomes. ' +
-    "Everything is stored in your organization's SharePoint site, and the app has no server of its own. " +
-    'Data leaves your tenant only if a site owner switches on the optional AI or roleALPHA connection. ' +
-    'The package contains two SharePoint web parts (roleALPHA Sessions for the workspace, roleALPHA Session for ' +
-    'a single meeting on a page) and a Microsoft Teams app (personal app, channel and group chat tab, meeting tab). ' +
-    'Calendar links and transcripts need administrator consent for Microsoft Graph. ' +
-    'Optional AI suggests wording for proposals; people make every decision. ' +
-    'It uses Microsoft 365 Copilot, Claude in Microsoft Foundry or an OpenAI-compatible endpoint, which your ' +
-    "organization provides. Governance questions are answered by rALPH, roleALPHA's assistant, in roleALPHA; " +
-    'they and drafts need a roleALPHA account.',
+    'A side panel for Microsoft Teams meetings: link the meeting to a circle, record what was agreed on each ' +
+    "agenda item, and let rALPH, roleALPHA's assistant, turn it into proposals for roles, policies and " +
+    'accountabilities. People review every proposal; adopted ones become drafts in one roleALPHA scenario per ' +
+    'meeting, which is submitted for decision by the participants. The result is posted to the meeting chat. ' +
+    'The app runs in the browser and has no server of its own. Meeting outcomes are stored in roleALPHA, the ' +
+    'only service outside your tenant the app talks to; nothing is stored in SharePoint. rALPH runs in roleALPHA, ' +
+    'and no other AI service is used. Using the app needs a roleALPHA account. Reading the meeting chat and ' +
+    'posting to it needs administrator consent for Microsoft Graph. The package contains the roleALPHA Sessions ' +
+    'web part and a Microsoft Teams app (meeting tab and side panel, personal app).',
 };
 
 /** Teams replaces {teamSiteDomain}, {teamSitePath} and {locale} when it loads the app. */
@@ -61,8 +59,8 @@ export function teamsManifest(version: string) {
       {
         configurationUrl: hosted('{teamSitePath}', 'openPropertyPane=true%26teams'),
         canUpdateConfiguration: false,
-        scopes: ['team', 'groupchat'],
-        context: ['channelTab', 'privateChatTab', 'meetingChatTab', 'meetingDetailsTab', 'meetingSidePanel'],
+        scopes: ['groupchat'],
+        context: ['meetingSidePanel', 'meetingDetailsTab', 'meetingChatTab'],
       },
     ],
     validDomains: [

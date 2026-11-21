@@ -6,7 +6,7 @@ import { description, meetingsComponentId, teamsManifest, zip } from './teams-pa
 
 const webPart = path => JSON.parse(readFileSync(path, 'utf8'));
 
-test('one Teams app carries the personal app, the channel and chat tab and the meeting tab', () => {
+test('one Teams app carries the personal app and the meeting tab and side panel', () => {
   const manifest = teamsManifest('1.2.3');
   assert.equal(manifest.id, meetingsComponentId);
   assert.equal(manifest.version, '1.2.3');
@@ -15,15 +15,13 @@ test('one Teams app carries the personal app, the channel and chat tab and the m
   const [personal] = manifest.staticTabs;
   const [tab] = manifest.configurableTabs;
   assert.deepEqual(personal.scopes, ['personal']);
-  assert.deepEqual(tab.scopes, ['team', 'groupchat']);
-  assert.ok(
-    ['channelTab', 'meetingChatTab', 'meetingDetailsTab', 'meetingSidePanel'].every(c => tab.context.includes(c)),
-  );
+  // Only meetings: the panel needs a meeting chat, so channel and plain chat tabs are not offered.
+  assert.deepEqual(tab.scopes, ['groupchat']);
+  assert.deepEqual(tab.context, ['meetingSidePanel', 'meetingDetailsTab', 'meetingChatTab']);
   for (const url of [personal.contentUrl, tab.configurationUrl]) {
     assert.match(url, /^https:\/\/\{teamSiteDomain\}/);
     assert.ok(url.includes(`componentId=${meetingsComponentId}`));
   }
-  // Channel tabs live in the team's site, not in the tenant root.
   assert.ok(tab.configurationUrl.startsWith('https://{teamSiteDomain}{teamSitePath}/_layouts/15/TeamsLogon.aspx'));
 });
 

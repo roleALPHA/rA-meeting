@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { adminConsentUrl, graphConsentUrl, spfxClientId } from '../client/browser/consent.js';
-import { tenant } from './helpers/sharepoint-rest.js';
+import { tenant } from './helpers/fake-services.js';
 
 const client = { authority: 'https://login.microsoftonline.com/' };
 const webUrl = 'https://customer.sharepoint.com/sites/circle';
@@ -22,9 +22,9 @@ test('Graph consent covers every permission the package requests', () => {
   assert.doesNotMatch(href, /\+/);
   const url = new URL(href);
   assert.deepEqual(url.searchParams.get('scope')!.split(' '), [
-    'https://graph.microsoft.com/Calendars.Read',
-    'https://graph.microsoft.com/OnlineMeetings.ReadWrite',
-    'https://graph.microsoft.com/OnlineMeetingTranscript.Read.All',
+    'https://graph.microsoft.com/Chat.ReadBasic',
+    'https://graph.microsoft.com/ChatMember.Read',
+    'https://graph.microsoft.com/ChatMessage.Send',
   ]);
 });
 
