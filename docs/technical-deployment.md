@@ -1,156 +1,106 @@
 # Technical deployment guide
 
-This guide is for package builders and operators of optional integrations. To install a prepared package, follow the [step-by-step administrator guide](customer-deployment.md).
+This guide is for package builders and operators. To install a prepared package, follow the [step-by-step administrator guide](customer-deployment.md).
 
-## AI and roleALPHA without a proxy
+## Architecture
 
-Both integrations are optional. Services must support **direct browser requests with CORS** and **delegated Microsoft Entra authentication**. Services accepting only secret API keys or service-account bearer tokens need changes before they are compatible. The app provides no hidden proxy and does not ask end users for keys.
+roleALPHA Sessions has two front ends and no server of its own:
 
-Use services controlled by your organization. Verify ownership, region, and processing arrangements; a URL alone cannot establish data sovereignty. The roleALPHA connection defaults to roleALPHA's central installation at `rolealpha.app`; that does not satisfy a requirement to keep data off roleALPHA-operated infrastructure.
+- **The meeting side panel**, an SPFx web part that Teams shows as a meeting tab and side panel. It runs in the user's browser. It reads the meeting chat through Microsoft Graph, talks to roleALPHA's MCP endpoint, and posts a summary into the meeting chat.
+- **The roleALPHA Sessions agent** for Microsoft 365 Copilot, a declarative agent whose only action is roleALPHA's MCP endpoint. It reads the meeting's Loop notes and recap through Copilot.
 
-Governance integration is specifically for roleALPHA. MCP is its protocol, not an arbitrary provider setting. One roleALPHA endpoint handles meeting records and all enabled entity types. Per-entity endpoints and generic MCP configuration are rejected. Administrators must verify the service's identity; an address alone does not prove it.
+Both write into the same place: **one roleALPHA scenario per meeting**, holding the drafts that came out of it. Nothing is stored in SharePoint; SharePoint only hosts the package. Browser storage holds only conveniences per user: the interface language and the chosen roleALPHA organisation.
 
-**Settings live in the workspace; roleALPHA's installation ships with the package.** The package is the same for every customer. It contains no AI targets, and roleALPHA's address and Entra app as defaults (`client/browser/rolealpha-environment.ts`, see the README). A site owner sets up the connections per workspace in the setup wizard or under **Connections**. The app stores them as JSON in the list `rA Meetings Connections` on the workspace site, one item, and reads them each time the app starts. Stored format, containing no real credentials:
+rALPH, roleALPHA's assistant, is the only AI. It answers on roleALPHA's server with roleALPHA's model, skills and the organisation's data, under the user's roleALPHA permissions. No other AI service is configured or called.
 
-```json
-{
-  "version": 1,
-  "updatedAt": "2026-09-29T12:00:00.000Z",
-  "updatedBy": "ENTRA-OBJECT-ID",
-  "settings": {
-    "ai": {
-      "provider": "copilot",
-      "url": "https://workiq.svc.cloud.microsoft/rest",
-      "resource": "WORK-IQ-APPLICATION-ID-URI",
-      "scope": "WorkIQAgent.Ask",
-      "maxInputChars": 200000
-    },
-    "roleAlpha": {
-      "url": "https://rolealpha.app/api/mcp",
-      "resource": "api://4bd22250-d811-4905-97a4-cb2bf69f98fa",
-      "scope": "access_as_user",
-      "tenant": "11111111-1111-4111-8111-111111111111",
-      "meeting": false,
-      "createTool": "create_entity_draft",
-      "entities": { "risk": { "entityType": "risk", "label": "Risk" } },
-      "governance": null,
-      "drafts": { "searchTool": "search_my_drafts", "appUrl": "https://rolealpha.app" }
-    }
-  }
-}
+| Interface | Used for | Credential |
+| --- | --- | --- |
+| Microsoft Graph | Meeting chat: topic (`GET /chats/{id}`), members' e-mail addresses (`GET /chats/{id}/members`), posting the summary (`POST /chats/{id}/messages`) | Delegated: `Chat.ReadBasic`, `ChatMember.Read`, `ChatMessage.Send` |
+| SharePoint REST of the host page | The tenant property `rolealphaSessions` (`GET /_api/web/GetStorageEntity('rolealphaSessions')`) | The page's own session |
+| roleALPHA MCP endpoint and its token endpoint | Circles, rALPH, scenario, drafts, submission | Delegated Entra token exchanged for a short-lived roleALPHA token |
+
+## Connecting to roleALPHA
+
+**The installation ships with the package.** The package contains roleALPHA's address and Entra app (`client/browser/rolealpha-environment.ts`). A tenant administrator can point every user at another installation, such as a QA system, with the SharePoint **tenant property** `rolealphaSessions`. Only SharePoint administrators can set tenant properties; every user can read them:
+
+```powershell
+Set-PnPStorageEntity -Key rolealphaSessions -Scope Tenant `
+  -Value '{"url":"https://qa.rolealpha.app/api/mcp","resource":"api://…","scope":"access_as_user","appUrl":"https://qa.rolealpha.app"}'
 ```
 
-**Who can change them.** Whoever sets these addresses decides where transcripts and meeting content go. Workspace records can be changed by every site member directly in SharePoint (see the security model below), so the connections are kept apart:
+All four fields are optional and default to the shipped installation. The address must be HTTPS without credentials or key-like query parameters. A property that does not parse is an error, not a silent fallback.
 
-- Only accounts with **Manage Permissions** on the site (site owners, Full Control) can save them. SharePoint's Edit level includes Manage Lists, so the "can set up the workspace" check is not enough here.
-- When an owner first saves, the app creates the list, stops inheriting the site's permissions, and turns every assignment that could add, edit, or delete items into **Read**, except assignments with Manage Permissions. Nobody loses read access and nobody gains any access.
-- The app reads the settings only while the list still has its own permissions. If someone restores inheritance, or the stored value does not pass validation (for example because it contains a key), AI and roleALPHA are off until an owner saves again, which restores the protection.
-- The same validation applies as before: HTTPS without credentials or key-like query parameters, no secret fields, one roleALPHA endpoint, `search_` and `create_` tool names.
+**The organisation is found by the exchange.** The first exchange is sent **without** `tenant_uuid`. roleALPHA answers with a working token and the organisation's `tenant_uuid` when the user has one organisation, or with a token of scope `rolealpha:organisation-select` when there are several; the app then calls `list_my_organisations` and the user picks one. The app remembers the choice in browser storage per user and endpoint and sends it with every later exchange. A stale or edited value can only make roleALPHA refuse the call; it cannot grant access. A roleALPHA release that still requires `tenant_uuid` refuses the first exchange with `invalid_request`; the panel then says that roleALPHA needs an update. Contract: rA-app `doc/ENTRA-TAUSCH.md`.
 
-**Connect to roleALPHA.** The roleALPHA section needs only the organisation. **Connect to roleALPHA** (`POST /connections/rolealpha` in the browser runtime, site owners only) exchanges the user's Entra token **without** `tenant_uuid`. roleALPHA answers with a working token and the organisation's `tenant_uuid` when there is one organisation, or with a token of scope `rolealpha:organisation-select` when there are several; the app then calls `list_my_organisations`, the owner picks one, and the app exchanges again **with** that `tenant_uuid`. A roleALPHA release that still requires `tenant_uuid` refuses the first exchange with `invalid_request`; the form then asks for the roleALPHA tenant ID. With a working token the app reads `tools/list` and fills in `create_entity_draft`, `search_my_drafts` and `ask_ralph` where they are offered. Nothing is stored until **Save**; every later exchange sends the saved `tenant`. Address, resource, scope, tenant and tool names stay editable under **Advanced**. Contract: roleALPHA's `doc/ENTRA-TAUSCH.md`.
+**Sign-in: the delegated Microsoft token is exchanged.** roleALPHA's MCP endpoint does not accept Microsoft tokens. Before each call, the app exchanges the signed-in user's delegated Entra token for a short-lived roleALPHA token (RFC 8693) at `POST <origin of url>/api/auth/oauth/token` with `grant_type=urn:ietf:params:oauth:grant-type:token-exchange`, the Entra token as `subject_token`, the organisation as `tenant_uuid`, and the MCP address as `resource`. The token endpoint is derived from the endpoint's origin; it is the only second address of this integration, and it is never configured separately. The token lives in memory until it expires and is never stored; roleALPHA issues no refresh token deliberately. A rejected call is retried once with a freshly exchanged token.
 
-**Connection test.** Before saving, **Test connection** tries the entered values. It requests a delegated token for `resource`; a failure there means the permission below is missing or not yet effective. It then makes one harmless call: for AI, a minimal structured request; for roleALPHA, the token exchange and `tools/list`, checking that every configured tool is offered.
+This requires on the roleALPHA side (**Settings → AI → External applications**): the **External AI applications** switch on, and under **Microsoft 365 integrations** the customer's Entra directory ID and the allowed addresses (the SharePoint origin and `https://teams.microsoft.com`); and **each user having signed in on rolealpha.app with "Sign in with Microsoft" at least once** — the exchange identifies the person by the Microsoft object ID. Access is granted and revoked per user under connected applications in roleALPHA. The app shows roleALPHA's refusals as: `400 invalid_grant` — account not linked or inactive, sign in with Microsoft on rolealpha.app once; `403 access_denied` — the switch is off or the access was revoked; `400 invalid_target` — the address in the tenant property is not roleALPHA's MCP endpoint.
 
-**Sign-in: the delegated Microsoft token is exchanged.** roleALPHA's MCP endpoint does not accept Microsoft tokens. Before each call, the app exchanges the signed-in user's delegated Entra token for a short-lived roleALPHA token (RFC 8693) at `POST <origin of url>/api/auth/oauth/token` with `grant_type=urn:ietf:params:oauth:grant-type:token-exchange`, the Entra token as `subject_token`, the configured `tenant` as `tenant_uuid`, and `url` as `resource`. The token endpoint is derived from the endpoint's origin; it is the only second address of this integration, and it is never configured separately. The token lives in memory until it expires and is never stored; roleALPHA issues no refresh token deliberately. A rejected call is retried once with a freshly exchanged token.
+**roleALPHA's permission is requested by the package.** `webApiPermissionRequests` contains `{ "resource": "roleALPHA", "scope": "access_as_user", "appId": "4bd22250-d811-4905-97a4-cb2bf69f98fa", "replyUrl": "https://rolealpha.app/" }` (generated by `scripts/build-browser.ts`). With `appId` and `replyUrl` (SPFx 1.15.2 and later) SharePoint creates the roleALPHA app in the customer's directory when a SharePoint administrator approves the request under **SharePoint admin center → Advanced → API access**. Another installation set through the tenant property needs its own grant, as described next.
 
-This requires on the roleALPHA side (**Settings → AI → External applications**): the **External AI applications** switch on, and under **Microsoft 365 integrations** the customer's Entra directory ID and the allowed addresses (the SharePoint origin and `https://teams.microsoft.com`); and **each user having signed in on rolealpha.app with "Sign in with Microsoft" at least once** — the exchange identifies the person by the Microsoft object ID. Access is granted and revoked per user under connected applications in roleALPHA. The app shows roleALPHA's refusals as: `400 invalid_grant` — account not linked or inactive, sign in with Microsoft on rolealpha.app once; `403 access_denied` — the switch is off or the access was revoked; `400 invalid_target` — the address under **Advanced** is not roleALPHA's MCP endpoint.
-
-**roleALPHA's permission is requested by the package.** `webApiPermissionRequests` contains `{ "resource": "roleALPHA", "scope": "access_as_user", "appId": "4bd22250-d811-4905-97a4-cb2bf69f98fa", "replyUrl": "https://rolealpha.app/" }` (generated by `scripts/build-browser.ts`). With `appId` and `replyUrl` (SPFx 1.15.2 and later) SharePoint creates the roleALPHA app in the customer's directory when a SharePoint administrator approves the request under **SharePoint admin center → Advanced → API access**. An address changed under **Advanced** needs its own grant, as described next.
-
-`resource` is the service's Entra audience (application ID URI); `scope` is its delegated permission. Because AI services are set up at runtime, the package does not request their permissions and they do not appear under **API access**. An Entra administrator grants each one once to the app SPFx requests third-party tokens with: since 2025 Microsoft's first-party app *SharePoint Online Web Client Extensibility*, app ID `08e18876-6177-487e-b8b5-cf950c1e598c` in every tenant. The Entra admin center has no screen for its permissions, so the form offers, next to **Test connection**, a **Grant consent** link: Microsoft's v2.0 `adminconsent` endpoint with that `client_id` (`client/browser/consent.ts`), the scope URI `resource/scope`, and the SPFx reply page `<origin>/_forms/spfxsinglesignon.aspx` as `redirect_uri`; the authority comes from the page context's `aadInstanceUrl`. The page context's `spfx3rdPartyServicePrincipalId` is not used: it is the empty GUID on tenants with the new app, and Entra rejects such a link (AADSTS700038). The wizard and **Connections** offer the same link for the package's Graph permissions and roleALPHA's scope, as an alternative to **API access**. Without the link, the [administrator guide](customer-deployment.md#10-optional-enable-ai-and-rolealpha-governance) has a Microsoft Graph PowerShell script that creates or extends the `oauth2PermissionGrant` (`AllPrincipals`) from the SPFx app to the service. The consent is recorded by Entra; nothing returns to the app, and **Test connection** shows whether it is in place. Each service must validate audience, tenant, scope, and user permissions itself. The grant applies to every SharePoint Framework solution in the tenant, not exclusively to this web part.
+`resource` is the service's Entra audience (application ID URI); `scope` is its delegated permission. A roleALPHA installation other than the shipped one is not requested by the package and does not appear under **API access**. An Entra administrator grants it once to the app SPFx requests third-party tokens with: since 2025 Microsoft's first-party app *SharePoint Online Web Client Extensibility*, app ID `08e18876-6177-487e-b8b5-cf950c1e598c` in every tenant. The Entra admin center has no screen for its permissions, so the form offers, next to **Test connection**, a **Grant consent** link: Microsoft's v2.0 `adminconsent` endpoint with that `client_id` (`client/browser/consent.ts`), the scope URI `resource/scope`, and the SPFx reply page `<origin>/_forms/spfxsinglesignon.aspx` as `redirect_uri`; the authority comes from the page context's `aadInstanceUrl`. The page context's `spfx3rdPartyServicePrincipalId` is not used: it is the empty GUID on tenants with the new app, and Entra rejects such a link (AADSTS700038). The side panel offers the same link for the package's Graph permissions and roleALPHA's scope when they are missing, as an alternative to **API access**. Without the link, the [administrator guide](customer-deployment.md#4-approve-the-permissions) has a Microsoft Graph PowerShell script that creates or extends the `oauth2PermissionGrant` (`AllPrincipals`) from the SPFx app to the service. The consent is recorded by Entra; nothing returns to the app. Each service must validate audience, tenant, scope, and user permissions itself. The grant applies to every SharePoint Framework solution in the tenant, not exclusively to this web part.
 
 Services must allow CORS from the actual SharePoint origins. For MCP, allow `Authorization`, `Content-Type`, `Mcp-Session-Id`, `MCP-Protocol-Version`, and the required HTTP methods, and expose `Mcp-Session-Id`. Check permissions separately for guest and cross-tenant sign-ins. Missing approval, CORS, or network access produces an error; there is no fallback through the manufacturer's infrastructure.
 
-**MCP write contract:** Streamable HTTP, using the tool in `createTool` (default `create_entity_draft`) with `entity_type`, `name`, `custom_id`, and `data`. `entities` maps an outcome type to the roleALPHA entity type; the meeting record itself uses `meeting`. `tenant_uuid` is sent only to a tool that declares it, because roleALPHA's endpoint takes the tenant from the exchanged token. The app checks advertised tools and the shared schema before writing. The expected confirmation is `{"draft_created":true,"draftId":"…","entityUuid":"…","status":"draft"}`. An uncertain response locks the outcome; writes are not retried automatically. Closing a tab during export can leave a `sending` status. After five minutes, the interface permits documented manual reconciliation.
+Services must allow CORS from the actual SharePoint origins and from Teams. For MCP, allow `Authorization`, `Content-Type`, `Mcp-Session-Id`, `MCP-Protocol-Version`, and the required HTTP methods, and expose `Mcp-Session-Id`. Missing approval, CORS, or network access produces an error; there is no fallback through the manufacturer's infrastructure.
+
+## roleALPHA contract
+
+The side panel and the agent use roleALPHA's external MCP endpoint (Streamable HTTP). The shapes the app relies on are in `shared/meeting.ts`; `tests/helpers/fake-services.ts` simulates them. Tools are looked up in `tools/list` on every session:
+
+- A tool used for **reading** must be annotated `readOnlyHint: true` and `destructiveHint: false`, or the app never calls it.
+- Every argument the app sends must be declared by the tool, apart from a few optional ones (`title`, `start`, `context`, `locale`), and every argument the tool requires must be present. So a changed contract fails before anything is sent.
+- `tenant_uuid` and `organisation` are passed only to a tool that declares them; roleALPHA's public endpoint takes the organisation from the token.
+- roleALPHA reports some failures as `{"error": "…"}` in the result; the app shows that reason to the user.
+
+| Tool | Kind | Arguments | Result the app reads |
+| --- | --- | --- | --- |
+| `list_my_organisations` | read | – | `{ organisationen: [{ uuid, name }] }` |
+| `search_roles`, `search_organigramms` | read | `query`, `limit: 20` | `{ roles: [{ uuid, name }] }`, `{ organigramms: [{ uuid, name }] }` |
+| `open_meeting_scenario` | write | `meeting_ref`, `title`, `start`, `circle_uuid?`, `create` | The meeting's **open** scenario `{ scenarioId, name, status, meetingRef, circle: { uuid, name }, drafts: [{ draftId, entityType, action, status, entityUuid, name }], url }`, or `{ scenario: null }` with `create: false` |
+| `list_my_meeting_scenarios` | read | – | `{ scenarios: [scenario] }` |
+| `ask_ralph` | read | `question`, `context?`, `locale?` (`de`/`en`), `proposals?` | `{ answer, entities: [{ name, uuid }], proposals: [proposal] }` |
+| `describe_entity_type` | read | `entity_type` | `{ entityType, requiredFields, fields: [{ name, type, required, allowedValues, label }] }` |
+| `create_entity_draft` | write | `entity_type`, `name`, `data`, `custom_id`, `scenario_id` | `{ draft_created: true, draftId, entityUuid }` |
+| `update_entity_draft` | write | `entity_uuid`, `name`, `fields` (changed fields only), `scenario_id` | as above |
+| `create_relationship_draft` | write | `source_uuid`, `target_uuid`, `rel_type_id`, `scenario_id` | as above |
+| `submit_meeting_scenario` | write | `scenario_id`, `participants` (e-mail addresses) | `{ published: [{ draftId, name }], submitted: { scenarioId, approvalMode, voters } \| null, unmatchedParticipants: [email], url }` |
+
+**The meeting reference** is `teams-chat:<chat ID>` for the side panel. A recurring series shares one chat; roleALPHA keeps one *open* scenario per reference, and after a submission the next occurrence starts a new one. The agent uses `copilot:<title>:<date>` when the side panel has not started a scenario.
+
+**Proposals** have the shape of rA-app `server/ai/tools/propose.ts`: `{ kind: "entity", action: "create" | "update", entityType, entityUuid?, name, fields, ref?, rationale }` or `{ kind: "relationship", relTypeId, relTypeName, sourceUuid | sourceRef, targetUuid | targetRef, sourceLabel, targetLabel, rationale }`. Entries that do not fit are dropped one by one. A relationship may point at a planned entity by `ref`; the panel creates planned entities first and replaces the `ref` with the `entityUuid` roleALPHA returned. An `ask_ralph` without the `proposals` parameter is an older roleALPHA release; the panel says so instead of answering in text only.
+
+**Submission** belongs to roleALPHA. Drafts of modules whose approval mode is *Liberal* are published directly; the rest is submitted for decision. Where a module allows a meeting to set the voters, the participants (matched to roleALPHA accounts by e-mail) vote instead of the graph-computed affected persons; participants without an account are reported back and cannot vote. Quorum and veto stay roleALPHA's rules. The submitter must have created the scenario or be a tenant administrator.
+
+`ask_ralph` accepts at most 4,000 characters of question and 8,000 of context and 30 questions per person and hour; the panel keeps a note to 3,500 characters. Reading a whole transcript is not part of this version.
+
+## The side panel
+
+The web part reads the Teams context once at start (`chat.id`, `page.frameContext`) and has no settings of its own; the property pane Teams shows when the tab is added has nothing to configure. In a meeting chat it shows, in this order:
+
+1. The organisation choice, if the user has several.
+2. The circle search, until the meeting's scenario exists. Choosing a circle calls `open_meeting_scenario` with `create: true`.
+3. **Record an outcome:** agenda item and note; **Proposals from rALPH** calls `ask_ralph` with `proposals: true`, the meeting title and the circle as context. Each proposal shows rALPH's reason and editable fields from `describe_entity_type` (a new entry shows its required fields, a change only what it changes). The checked proposals become drafts with `scenario_id` and a `custom_id` of the form `ra-sessions:<meeting reference>:<random>`.
+4. **Ask rALPH:** a free question with the meeting and circle as context.
+5. **Drafts from this meeting**, from the scenario, and **Submit for decision**, which reads the chat members through Graph and calls `submit_meeting_scenario`. The result is shown, and the user can edit and send a summary with a link to the scenario into the meeting chat. Only links into the roleALPHA application are accepted there.
+
+rALPH's output is marked as AI-generated with a link to report harmful content. Outside a meeting (a SharePoint page, the personal app) the app explains how to add it to a meeting and lists the user's open meeting scenarios.
+
+## The Copilot agent
+
+`npm run agent:package -- --reference-id <id> [--mcp-url <address>]` writes `dist/rolealpha-sessions-agent.zip`, a Microsoft 365 app package (manifest 1.19) with a declarative agent (`declarativeAgent.json`, schema v1.6, capability `Meetings`) and an API and MCP plugin (`ai-plugin.json`, schema v2.4) whose runtime is `RemoteMCPServer` at roleALPHA's MCP address. The plugin lists exactly the tools in the table above in `functions` and `run_for_functions`; everything else roleALPHA offers stays out of the agent's reach. The instructions are in `agent/instructions.md` (at most 8,000 characters): find the meeting, read its notes, ask rALPH for proposals, create drafts only after the user confirmed the list, submit only on request.
+
+Authentication is `OAuthPluginVault`: the `reference_id` points at an authentication configuration in Microsoft's Enterprise token store that each tenant creates once, with dynamic client registration against roleALPHA or a static OAuth client, and Copilot's redirect `https://teams.microsoft.com/api/platform/v1.0/oAuthRedirect`. No secret is in the package. The agent is a separate package from the SharePoint one because the SPFx Teams app cannot carry this per-tenant configuration.
 
 ## Security model and trust boundary
 
-SharePoint permissions are the only enforced access boundary. The app runs entirely in the browser with the signed-in user's permissions; there is no server component that could enforce rules independently.
-
-- Readers of the workspace site can read all stored content, including transcripts and historical versions.
-- Editors can change stored content directly through SharePoint, bypassing the app. Rules the app applies (allowed outcome types per step, approval before transfer, immutable transferred outcomes, evidence references) guide users but are not security controls.
-- AI and roleALPHA connections are the exception: they live in a list whose own permissions let only site owners write (see above), because they decide where content is sent.
-- The meeting view runs a consistency check and shows a notice when stored data deviates from these rules, for example after direct editing. This check can detect inconsistencies; it cannot prevent or reliably detect deliberate manipulation.
-- Enforcing such rules against editors would require a server-side component, which is deliberately not part of this product. Use separately permissioned sites and SharePoint auditing where this matters.
+- **roleALPHA decides.** The app never approves anything. Drafts are proposals until people decide in roleALPHA; roleALPHA enforces tenant, visibility and permissions for every call with the user's own account.
+- **Reading cannot write.** Read tools must be annotated read-only and non-destructive. rALPH's proposals are data; a draft is created only for a proposal the user left checked and adopted.
+- **Untrusted content.** Meeting notes, rALPH's answers and roleALPHA's results are untrusted input. They are rendered as text, never as HTML; the chat summary is escaped and may only link into the roleALPHA application.
+- **Participants come from Graph.** The submission sends the meeting chat's members. Someone who can submit could in principle send a different list; roleALPHA limits submission to the scenario's creator or an administrator, records the list in its audit, and only accounts of the organisation can vote.
+- **Tokens.** Tokens are requested only for Microsoft Graph and roleALPHA's audience, held in memory, and sent only to the exact configured MCP address and its token endpoint.
 
 Approved API permissions are granted to Microsoft's shared SPFx app *SharePoint Online Web Client Extensibility* and are therefore available to every SharePoint Framework solution in the tenant (see the [administrator guide](customer-deployment.md)). The build prints the permissions a package requests.
-
-## AI providers
-
-`ai.provider` selects one AI service. All providers receive the same tasks (transcript analysis, proposal forming, objection integration, governance answers), and every answer passes the same validation: unknown steps, outcome types, transcript segments, or governance source IDs are rejected, and nothing is approved automatically. The interface shows which provider produced a suggestion.
-
-### Microsoft 365 Copilot (default)
-
-Uses the Microsoft 365 Copilot Chat API (Work IQ) with the delegated permission `WorkIQAgent.Ask`. The snippets in this section show the stored `ai` value; the form fills in the defaults.
-
-```json
-"ai": {
-  "provider": "copilot",
-  "url": "https://workiq.svc.cloud.microsoft/rest",
-  "resource": "WORK-IQ-APPLICATION-ID-URI",
-  "scope": "WorkIQAgent.Ask",
-  "maxInputChars": 200000
-}
-```
-
-`url` and `scope` default to the values shown. Prerequisites: Work IQ enabled for the tenant, Copilot usage billing (Copilot Credits), and the granted delegated permission.
-
-Behavior and limits to review before enabling:
-
-- **No enforced JSON.** The app sends the output schema with the instructions, parses the answer, asks once for a corrected answer, and otherwise discards it.
-- **Tenant grounding.** Web grounding is switched off for every request. Copilot can still draw on other tenant content the user can access (for example mail or files). For governance questions, answers citing such content are discarded. For analysis and proposals, only outcomes linked to real transcript segments are accepted, but wording can still be influenced.
-- **Sensitivity labels.** If Copilot labels its answer, the interface shows the label before a suggestion is accepted, and transcript analysis records it in the meeting history.
-- **Conversation history.** Each task creates a new Copilot conversation in the user's context. Check your Copilot retention settings.
-- **Size.** Data is sent as additional context in parts. `maxInputChars` limits the total request size; set it to the limits verified for your tenant.
-
-### Claude via Microsoft Foundry
-
-Uses a Claude deployment in your Microsoft Foundry resource with Microsoft Entra ID authentication. No API key is used.
-
-```json
-"ai": {
-  "provider": "claude-foundry",
-  "url": "https://YOUR-RESOURCE.services.ai.azure.com/anthropic",
-  "resource": "https://ai.azure.com",
-  "scope": "user_impersonation",
-  "model": "claude-opus-5",
-  "fallbackModel": null
-}
-```
-
-`model` is the Foundry **deployment name** (default `claude-opus-5`). Prerequisites: Entra ID authentication enabled on the Foundry resource and the **Foundry User** role (or Cognitive Services User) for all app users, ideally through a group. Prefer the **Hosted on Azure** deployment option so prompts and completions remain within Azure.
-
-Requests use the Messages API with adaptive thinking and structured output (`output_config.format` with a JSON schema; beta on Foundry). If the model declines a request, nothing is applied. Set `fallbackModel` to another deployment name to retry declined requests there.
-
-### OpenAI-compatible endpoint
-
-For an organization-operated Chat Completions endpoint (for example Azure OpenAI with Entra ID). Configurations without `provider` are read as this provider.
-
-```json
-"ai": {
-  "provider": "openai-compatible",
-  "url": "https://ai.organization.example/v1/chat/completions",
-  "resource": "api://ORGANIZATION-AI-APPLICATION-ID",
-  "scope": "access_as_user",
-  "model": "organization-model"
-}
-```
-
-Contract: `model`, `messages`, and `response_format: {"type":"json_object"}`; the response is read from `choices[0].message.content`.
-
-### Tenant verification before go-live
-
-The adapters are tested against simulated responses only. Before enabling a provider, verify in the target tenant from a SharePoint page:
-
-- [ ] The service accepts browser requests from the SharePoint origin (CORS).
-- [ ] **Grant consent** opens Microsoft's consent dialog for *SharePoint Online Web Client Extensibility* and, after confirming, returns to the SPFx reply page; **Allow calendar and transcripts** does the same for the Graph permissions.
-- [ ] **Test connection** succeeds: the SPFx token provider issues a token for the configured `resource` after the delegated `scope` was granted to the SPFx app.
-- [ ] Copilot: Work IQ is enabled, a test conversation works with web grounding disabled, and a long transcript stays within the request limits.
-- [ ] Claude: the deployment name, structured output, and the RBAC assignment work for an ordinary user.
-- [ ] Each enabled function works with test data: transcript analysis, proposal forming, and a governance question.
-- [ ] Teams recording setting: as organizer, link an Outlook-created Teams event and check in the Teams meeting options that transcription and, if selected, automatic recording are set; check that transcription starts as expected under your policies.
-
-If a service cannot be called directly from the browser, it is not supported. Do not add a proxy; the app must run without infrastructure outside the Microsoft 365 tenant apart from the configured AI service and roleALPHA.
 
 ## Build the package
 
@@ -165,7 +115,7 @@ Root tools use Node.js 24. SPFx 1.24.0 builds with the separate project-local No
 
 Output: `dist/rolealpha-meetings.sppkg`. `includeClientSideAssets` packages the code, fonts and icons for app catalog hosting. A build check excludes server modules and test/demo code from the browser package.
 
-`npm run dev` starts a static browser demonstration with simulated SharePoint. It displays a preview notice and keeps changes in memory only until reload.
+`npm run dev` starts a browser demonstration in which Teams, Microsoft Graph and roleALPHA are simulated (`tests/helpers/fake-services.ts`); nothing leaves the browser. `?width=320` shows the side panel width, `?theme=dark|contrast` the Teams themes, `?meeting=0` the app outside a meeting.
 
 The project uses the [rA Meetings Internal Collaboration License 1.0](../LICENSE.md), effective 16 September 2026. The package script also copies the license to `dist/LICENSE.md`; include it with the installation package. Preserve applicable third-party notices when distributing artifacts.
 
@@ -175,89 +125,5 @@ The interface follows roleALPHA's corporate design after the rebranding of 10/20
 
 - **Fonts ship in the package.** The eight `.woff2` files (about 170 KB) are emitted as separate files into ClientSideAssets and served from the tenant; no font service is contacted. Browsers ignore `@font-face` inside the web part's shadow root, so the app registers these rules once on the page in a `style[data-ra-fonts]` element. It contains `@font-face` rules only, with `rA`-prefixed family names that do not collide with the page's own fonts. All other styles stay inside the shadow root.
 - **Themes.** In Teams the app follows the client theme — default, dark and high contrast — and switches when the user changes it. On SharePoint pages it stays light. Windows high-contrast mode (forced colours) is respected in every host.
+- **Side panel.** Teams gives the meeting side panel about 320 px. Everything stacks in one column; proposals that do not exist yet have a dashed border.
 - **Icons.** The web parts carry the roleALPHA app icon (Creme signet on a Tiefgrün tile) in the SharePoint toolbox, and `spfx/teams/` provides the colour and outline icons Microsoft uses when the package is made available in Teams. Origin and regeneration: `client/assets/brand/README.md`.
-
-## Governance questions: roleALPHA read contract
-
-The tool for governance questions is stored as `roleAlpha.governance`: `{ "searchTool": "ask_ralph" }`. **Connect to roleALPHA** fills it in when roleALPHA offers `ask_ralph`. Without it, governance assistance remains disabled. The name decides the contract: a tool named `ask_…` answers in roleALPHA itself; a tool named `search_…` returns sources that the configured AI service answers from.
-
-### rALPH (`ask_ralph`)
-
-rALPH, roleALPHA's assistant, answers the question on roleALPHA's server with roleALPHA's model, its skills and the organisation's data, under the signed-in user's roleALPHA permissions. No AI service has to be configured in the app, and none is called. The question goes only to the configured roleALPHA endpoint; roleALPHA bills the turn to the organisation. Contract: rA-app `server/ai/tools/ralph-fragen.ts`.
-
-- `tools/list` must declare `readOnlyHint: true`, `destructiveHint: false` and `question` (string). `locale` (string) and `tenant_uuid` (string) are passed when declared; other required parameters are unsupported.
-- The call sends the question and `locale` `de` for German and `en` for every other interface language, and waits up to 130 seconds (rALPH stops its own turn after 120).
-- The answer is JSON in an MCP text block or `structuredContent`: `{ "answer": "…", "skills_used": ["…"], "entities": [{ "name": "…", "uuid": "…" }] }`, at most 100,000 characters. The app shows the answer and links each entity to `<roleALPHA app>/graph?anchor=<uuid>` (the draft app address, by default `https://rolealpha.app`); entries without a valid UUID are dropped. Skill names are not shown.
-- roleALPHA allows 30 questions per person and organisation per hour. Its refusals, including that limit and a turn that ran out of time, arrive as `isError` and are shown as "rALPH could not answer".
-
-The answer is not bound to sources statement by statement, unlike the search contract below. The interface says that rALPH answered and that the answer does not replace a governance decision, and links the named entities for checking.
-
-### Search tool and AI service (`search_…`)
-
-This contract needs an AI service as well. The name `search_governance` is an example; roleALPHA does not offer such a tool today.
-
-The adapter expects an explicitly read-only search operation at the same roleALPHA endpoint. There is no additional MCP address or model-selected tool. The configured name must start with `search_`. Its `tools/list` declaration must expose `readOnlyHint: true`, `destructiveHint: false`, and parameters `query` (string) and `limit` (number or integer). `tenant_uuid` (string) is supported and passed when declared; a tool that takes the tenant from the token may omit it. Additional required parameters are unsupported. Annotations do not replace service-side authorization: roleALPHA must enforce the signed-in user's read access and tenant boundaries, and the operation must actually be read-only.
-
-The call supplies the configured roleALPHA tenant ID, the user's question, and `limit: 12`. Return `structuredContent` or JSON in an MCP text block:
-
-```json
-{
-  "sources": [
-    {
-      "id": "role-finance",
-      "title": "Finance role",
-      "content": "Original governance text relevant to the question ..."
-    }
-  ]
-}
-```
-
-Source IDs must be unique. The adapter accepts at most twelve sources with up to 12,000 content characters each. Sources must contain existing governance, not model summaries represented as original text. If roleALPHA uses another response format, adapt the integration to its actual contract; arbitrary JSON is not silently accepted as a source.
-
-AI receives only the question and retrieved sources. Its answer contains statements with source IDs and limitations. Unknown source IDs are rejected; empty search results trigger no AI call. Validating source IDs cannot establish whether a statement correctly follows from its source. The interface therefore shows original text and explains the limited search scope. This feature does not change governance or write meeting records. SharePoint readers may ask questions; roleALPHA enforces its own permissions independently.
-
-Acceptance testing must cover the real search contract, user and tenant isolation, unanswerable questions, source comparison, delegated sign-in, and browser CORS. Questions and answers stay in the open interface; no new SharePoint storage or vector database is created. Configure AI and roleALPHA service logging separately according to organizational requirements.
-
-## Circles and teams for new meetings: read contract
-
-When roleALPHA is connected, the **Circle / team** field of a new meeting suggests entities from the connected organisation as the user types. Free text stays possible. A suggestion the user picks is stored with its roleALPHA UUID in `circleId`, and exports to roleALPHA carry it alongside the circle name.
-
-The app calls two tools at the same MCP endpoint with the signed-in user's delegated token: `search_roles` (roles, circles and guilds; returned under `roles`) and `search_organigramms` (org units; returned under `organigramms`). Each call supplies the search text (possibly empty) and `limit: 20`; `tenant_uuid` or `organisation` is passed only to a tool that declares it. A tool that is not offered, does not declare `readOnlyHint: true` and `destructiveHint: false`, or needs other parameters is skipped. Only entries with a UUID and a name are used; an error answer contributes no suggestions. roleALPHA's search results do not yet say whether a role is a circle, so plain roles are suggested too.
-
-## Attaching roleALPHA drafts: read contract
-
-Enter the search tool for own drafts and the roleALPHA application address in the form (stored as `roleAlpha.drafts`: `{ "searchTool": "search_my_drafts", "appUrl": "https://rolealpha.organization.example" }`). The tool name is an example and must start with `search_`; `appUrl` is the roleALPHA web application. Without this configuration, editors cannot attach drafts to tensions. Compatibility with a production roleALPHA tool has not yet been verified.
-
-The tool runs at the same roleALPHA MCP endpoint with the signed-in user's delegated token. Its `tools/list` declaration must expose `readOnlyHint: true`, `destructiveHint: false`, and parameters `query` (string) and `limit` (number or integer). If it declares `tenant_uuid` (string), the configured tenant is passed; a tool that takes the tenant from the token may omit it. Additional required parameters are unsupported. The app never passes a user ID: **roleALPHA must return only the signed-in user's own drafts** and enforce tenant and permission checks itself.
-
-The call supplies the search text (possibly empty) and `limit: 20`. Return `structuredContent` or JSON in an MCP text block:
-
-```json
-{
-  "drafts": [
-    {
-      "draftId": "0b6f…",
-      "title": "Finance role change",
-      "entityType": "role",
-      "status": "draft",
-      "url": "https://rolealpha.organization.example/drafts?draft=0b6f…"
-    }
-  ]
-}
-```
-
-At most 20 drafts; unknown fields are rejected. A result of exactly `{ "error": "…" }` is reported as a failed search, as is an MCP result with `isError`. Every `url` must be HTTPS on the origin of `appUrl`, otherwise the whole result is rejected; the same check applies when a tension is saved. The URL must open the draft directly for a signed-in user. The tension stores only `draftId`, `title`, `entityType`, and `url`; draft content stays in roleALPHA, and the link opens in a new tab without passing tokens.
-
-Acceptance testing must cover: only own drafts are returned, tenant isolation, the deeplink opening the draft, delegated sign-in, and browser CORS from the SharePoint origins.
-
-## Onboarding wizard
-
-The SPFx host supports explicitly selected sites on the same HTTPS host as the current site. SPHttpClient handles authentication and request digests. Foreign origins and invalid site paths are rejected. Setup runs only while the browser is open.
-
-New sites use `SPSiteManager/create` with `STS#3`, a team site without a Microsoft 365 group. Status is checked before creation. Setup does not create Teams, group memberships, or API consents. User permissions and organizational policies constrain what it can do. Prepare sensitivity labels and special site templates through Microsoft administration, then choose an existing site in the wizard. Reference: [Microsoft site creation REST API](https://learn.microsoft.com/en-us/sharepoint/dev/apis/site-creation-rest).
-
-The optional landing page is prepared as a draft containing the custom SPFx web part through the SharePoint SitePages interface. The Graph sitePage API does not support arbitrary custom web parts. Existing pages are not overwritten. A `setup/landing` record stores the created page ID for retries. An interruption between page creation and that record can leave an empty draft, which is not automatically deleted. An administrator reviews and publishes the page. Implementation reference: [PnPjs client-side pages](https://github.com/pnp/pnpjs/blob/version-4/packages/sp/clientside-pages/types.ts).
-
-The storage test creates a record without business content, reads it, and removes its index entry. As with other deletions, the small content file remains subject to retention. Retrying setup reuses existing lists and templates. The selected language applies to starter templates not yet created; terminology remains a personal preference.
-
-Tenant acceptance must cover new and existing sites, blocked site creation, changed permissions, SPFx component availability at the target site, page drafts and publication, interruption/recovery, and actual Teams tab configuration.

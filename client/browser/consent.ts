@@ -1,7 +1,10 @@
 import { z } from 'zod';
 
-/** Graph permissions the package requests; the build writes them into package-solution.json. */
-export const graphScopes = ['Calendars.Read', 'OnlineMeetings.ReadWrite', 'OnlineMeetingTranscript.Read.All'] as const;
+/**
+ * Graph permissions the package requests; the build writes them into package-solution.json. The side panel reads the
+ * meeting chat (topic and members, for the meeting's name and the participants who vote) and posts the result there.
+ */
+export const graphScopes = ['Chat.ReadBasic', 'ChatMember.Read', 'ChatMessage.Send'] as const;
 
 /**
  * Microsoft's "SharePoint Online Web Client Extensibility" app, which SPFx requests third-party tokens with since 2025.

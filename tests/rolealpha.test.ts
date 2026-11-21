@@ -11,9 +11,8 @@ import {
   type RoleAlphaSetup,
 } from '../client/browser/rolealpha.js';
 import { roleAlphaEnvironment } from '../client/browser/rolealpha-environment.js';
-import { connectionSettingsSchema, noConnections, type BrowserHost } from '../client/browser/host.js';
-import { createBrowserApi } from '../client/browser/runtime.js';
-import { fakeSharePoint, tenant, user } from './helpers/sharepoint-rest.js';
+import { roleAlphaEndpoint, type BrowserHost } from '../client/browser/host.js';
+import { tenant, user } from './helpers/fake-services.js';
 
 const url = 'https://rolealpha.example/api/mcp';
 /** A fresh tenant per test, because an exchanged token is cached per user, workspace and endpoint. */
@@ -25,19 +24,12 @@ function fixture(workspace = crypto.randomUUID()) {
     userName: 'Member',
     webUrl: 'https://customer.sharepoint.com/sites/circle',
     isTeams: false,
-    sharepoint: fakeSharePoint().request,
+    sharepoint: async () => new Response(null, { status: 404 }),
     token: async resource => {
       tokens.push(resource);
       return 'entra-token';
     },
-    settings: connectionSettingsSchema.parse({
-      roleAlpha: {
-        url,
-        resource: 'api://rolealpha',
-        scope: 'access_as_user',
-        tenant,
-      },
-    }),
+    roleAlpha: { url, resource: 'api://rolealpha', scope: 'access_as_user', appUrl: 'https://app.example', tenant },
   };
   return { host, tokens };
 }
@@ -122,16 +114,15 @@ test('roleALPHA’s refusals are shown as what an administrator can act on', asy
   await assert.rejects(roleAlphaToken(fixture().host), /Anmeldung bei roleALPHA/);
 });
 
-test('the shipped roleALPHA installation is the default; only the tenant has to be set', () => {
-  const { roleAlpha } = connectionSettingsSchema.parse({
-    roleAlpha: { tenant, drafts: { searchTool: 'search_my_drafts' } },
-  });
-  assert.equal(roleAlpha?.url, 'https://rolealpha.app/api/mcp');
-  assert.equal(roleAlpha?.resource, 'api://4bd22250-d811-4905-97a4-cb2bf69f98fa');
-  assert.equal(roleAlpha?.scope, 'access_as_user');
-  assert.equal(roleAlpha?.drafts?.appUrl, 'https://rolealpha.app');
-  assert.equal(tokenEndpoint(roleAlpha!.url), 'https://rolealpha.app/api/auth/oauth/token');
-  assert.equal(connectionSettingsSchema.safeParse({ roleAlpha: {} }).success, false, 'the tenant is not guessed');
+test('the shipped roleALPHA installation is the default', () => {
+  const roleAlpha = roleAlphaEndpoint.parse({});
+  assert.equal(roleAlpha.url, 'https://rolealpha.app/api/mcp');
+  assert.equal(roleAlpha.resource, 'api://4bd22250-d811-4905-97a4-cb2bf69f98fa');
+  assert.equal(roleAlpha.scope, 'access_as_user');
+  assert.equal(roleAlpha.appUrl, 'https://rolealpha.app');
+  assert.equal(tokenEndpoint(roleAlpha.url), 'https://rolealpha.app/api/auth/oauth/token');
+  assert.equal(roleAlphaEndpoint.safeParse({ url: 'http://rolealpha.app/api/mcp' }).success, false);
+  assert.equal(roleAlphaEndpoint.safeParse({ url: 'https://rolealpha.app/mcp?token=x' }).success, false);
 });
 
 const other = '33333333-3333-4333-8333-333333333333';
@@ -160,11 +151,8 @@ function fakeRoleAlpha(
     server.registerTool('list_my_organisations', { inputSchema: {} }, async () => ({
       content: [{ type: 'text', text: JSON.stringify({ organisationen: organisations, angabeNoetig: false }) }],
     }));
-    if (token !== 'select-token') {
-      server.registerTool('create_entity_draft', { inputSchema: { name: z.string() } }, async () => ({ content: [] }));
-      server.registerTool('search_my_drafts', { inputSchema: { query: z.string() } }, async () => ({ content: [] }));
+    if (token !== 'select-token')
       server.registerTool('ask_ralph', { inputSchema: { question: z.string() } }, async () => ({ content: [] }));
-    }
     const transport = new WebStandardStreamableHTTPServerTransport({
       sessionIdGenerator: () => crypto.randomUUID(),
       enableJsonResponse: true,
@@ -192,7 +180,7 @@ function fakeRoleAlpha(
 
 const endpoint = { url: roleAlphaEnvironment.mcpUrl, resource: roleAlphaEnvironment.resource };
 
-test('before roleALPHA finds the organisation itself, setup asks for the tenant ID and then fills the tools', async t => {
+test('an older roleALPHA that cannot find the organisation itself is recognised', async t => {
   const exchanges = fakeRoleAlpha(t, body =>
     body.get('tenant_uuid')
       ? Response.json({ access_token: 'work-token', expires_in: 3600, scope: 'rolealpha:full' })
@@ -207,7 +195,6 @@ test('before roleALPHA finds the organisation itself, setup asks for the tenant 
   assert.deepEqual(connected, {
     status: 'connected',
     organisation: { uuid: tenant, name: 'fifty1 GmbH' },
-    tools: { createTool: 'create_entity_draft', drafts: 'search_my_drafts', governance: 'ask_ralph' },
   } satisfies RoleAlphaSetup);
   assert.deepEqual(
     exchanges.map(e => [e.body.get('tenant_uuid'), e.body.get('resource'), e.body.get('subject_token')]),
@@ -230,7 +217,7 @@ test('with one organisation the first exchange already connects', async t => {
   assert.equal(exchanges[0].body.has('tenant_uuid'), false);
 });
 
-test('with several organisations the owner chooses, and the chosen one is exchanged again', async t => {
+test('with several organisations the user chooses, and the chosen one is exchanged again', async t => {
   const organisations = [
     { uuid: tenant, name: 'fifty1 GmbH' },
     { uuid: other, name: 'Merkur Gaming' },
@@ -259,15 +246,4 @@ test('with several organisations the owner chooses, and the chosen one is exchan
 test('a token for an organisation the app did not ask for is refused', async t => {
   fakeRoleAlpha(t, () => Response.json({ access_token: 'work-token', tenant_uuid: other }));
   await assert.rejects(setupRoleAlpha(fixture().host, endpoint, tenant), /Anmeldung bei roleALPHA/);
-});
-
-test('site owners connect through the app with the shipped values', async t => {
-  fakeRoleAlpha(t, () => Response.json({ access_token: 'work-token', expires_in: 3600, tenant_uuid: tenant }));
-  const sp = fakeSharePoint();
-  const { host } = fixture();
-  const api = await createBrowserApi({ ...host, sharepoint: sp.request, settings: noConnections });
-  const result = await api.request<RoleAlphaSetup>('/connections/rolealpha', {});
-  assert.equal(result.status, 'connected');
-  sp.state.owner = false;
-  await assert.rejects(api.request('/connections/rolealpha', {}), /Websitebesitzer/);
 });

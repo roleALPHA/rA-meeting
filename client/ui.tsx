@@ -1,4 +1,3 @@
-import { aiProviderLabels } from './labels';
 import React, { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { t as tr } from './i18n';
@@ -59,30 +58,5 @@ export function ReportAiContent() {
     >
       {tr('common.reportAiContent')}
     </a>
-  );
-}
-export function AiProvenance({
-  provider,
-  sensitivityLabel,
-}: {
-  provider?: keyof typeof aiProviderLabels | null;
-  sensitivityLabel?: string | null;
-}) {
-  return (
-    <>
-      <p className="small muted">
-        {provider && (
-          <>
-            {tr('common.created')} {tr(aiProviderLabels[provider])} ·{' '}
-          </>
-        )}
-        <ReportAiContent />
-      </p>
-      {sensitivityLabel && (
-        <p className="notice">
-          {tr('common.aiResponseCarriesSensitivity')} {sensitivityLabel}. {tr('common.beforeAcceptingCheckWhether')}
-        </p>
-      )}
-    </>
   );
 }

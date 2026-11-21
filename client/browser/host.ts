@@ -1,9 +1,10 @@
 import { z } from 'zod';
-import { AppError, outputTypes } from '../../shared/model';
+import { AppError } from '../../shared/model';
 import type { Theme } from './brand';
 import type { Language } from '../../shared/i18n';
 import type { ConsentClient } from './consent';
 import { roleAlphaEnvironment } from './rolealpha-environment';
+
 const https = z
   .string()
   .url()
@@ -17,127 +18,48 @@ const https = z
       ![...u.searchParams.keys()].some(k => /key|token|secret|sig/i.test(k))
     );
   }, 'HTTPS endpoint without credentials required');
+
 /**
- * A service the browser calls with the signed-in user's delegated token. `resource` is the token audience; `scope` is
- * the delegated permission an administrator grants to the SPFx app (client/browser/consent.ts).
+ * roleALPHA's MCP address and Entra app. The package ships roleALPHA's own installation; a tenant administrator can
+ * point the app at another one with a SharePoint tenant property (client/browser/connection.ts). `resource` is the
+ * token audience, `scope` the delegated permission granted to the SPFx app, `appUrl` the web application that links
+ * open in.
  */
-const endpoint = z.object({ url: https, resource: z.string().trim().min(1), scope: z.string().trim().min(1) }).strict();
-/** Microsoft 365 Copilot Chat API (Work IQ) with the signed-in user's delegated permission. */
-const copilotSettings = endpoint
-  .extend({
-    provider: z.literal('copilot'),
-    url: https.default('https://workiq.svc.cloud.microsoft/rest'),
-    scope: z.string().min(1).default('WorkIQAgent.Ask'),
-    /** Upper bound for instructions plus context sent in one request; verify against the tenant's limits. */
-    maxInputChars: z.number().int().min(1_000).max(1_000_000).default(200_000),
-  })
-  .strict();
-/** Claude through a Microsoft Foundry deployment, authenticated with Microsoft Entra ID. */
-const claudeFoundrySettings = endpoint
-  .extend({
-    provider: z.literal('claude-foundry'),
-    resource: z.string().min(1).default('https://ai.azure.com'),
-    scope: z.string().trim().min(1).default('user_impersonation'),
-    /** Foundry deployment name, passed as the model parameter. */
-    model: z.string().min(1).default('claude-opus-5'),
-    /** Optional deployment that retries requests the primary model declines. */
-    fallbackModel: z.string().min(1).nullable().default(null),
-  })
-  .strict();
-const openAiCompatibleSettings = endpoint
-  .extend({
-    provider: z.literal('openai-compatible'),
-    scope: z.string().trim().min(1).default('access_as_user'),
-    model: z.string().min(1),
-  })
-  .strict();
-/** roleALPHA's address and Entra app; the shipped installation unless an owner changes them under "Advanced". */
-export const roleAlphaEndpoint = endpoint
-  .extend({
+export const roleAlphaEndpoint = z
+  .object({
     url: https.default(roleAlphaEnvironment.mcpUrl),
     resource: z.string().trim().min(1).default(roleAlphaEnvironment.resource),
     scope: z.string().trim().min(1).default(roleAlphaEnvironment.scope),
+    appUrl: https.default(roleAlphaEnvironment.appUrl),
   })
   .strict();
-/** Connection settings site owners maintain per workspace (client/browser/connections.ts). */
-export const connectionSettingsSchema = z
-  .object({
-    ai: z
-      .preprocess(
-        // Configurations from before provider selection existed use the OpenAI-compatible adapter.
-        value =>
-          value && typeof value === 'object' && !('provider' in value)
-            ? { ...value, provider: 'openai-compatible' }
-            : value,
-        z.discriminatedUnion('provider', [copilotSettings, claudeFoundrySettings, openAiCompatibleSettings]),
-      )
-      .nullable()
-      .default(null),
-    roleAlpha: roleAlphaEndpoint
-      .extend({
-        tenant: z.guid(),
-        /** A read tool: `search_…` returns sources for the AI service, `ask_…` (rALPH) answers in roleALPHA. */
-        governance: z
-          .object({ searchTool: z.string().regex(/^(search|ask)_[a-z0-9_]+$/) })
-          .strict()
-          .nullable()
-          .default(null),
-        /**
-         * The user's own drafts, searched with a read-only tool and attached to tensions as links. `appUrl` is the
-         * roleALPHA web application; only draft links on its origin are stored.
-         */
-        drafts: z
-          .object({
-            searchTool: z.string().regex(/^search_[a-z0-9_]+$/),
-            appUrl: https.default(roleAlphaEnvironment.appUrl),
-          })
-          .strict()
-          .nullable()
-          .default(null),
-        meeting: z.boolean().default(false),
-        /** The write tool roleALPHA offers at its MCP endpoint; it takes the entity type as an argument. */
-        createTool: z
-          .string()
-          .regex(/^create_[a-z0-9_]+$/)
-          .default('create_entity_draft'),
-        /** Which roleALPHA entity type an approved outcome becomes; the meeting record itself uses `meeting`. */
-        entities: z
-          .partialRecord(
-            z.enum(outputTypes),
-            z.object({ entityType: z.string().regex(/^[a-z][a-z0-9_]*$/), label: z.string().min(1) }).strict(),
-          )
-          .default({}),
-      })
-      .strict()
-      .nullable()
-      .default(null),
-  })
-  .strict();
-export type ConnectionSettings = z.infer<typeof connectionSettingsSchema>;
-export const noConnections: ConnectionSettings = { ai: null, roleAlpha: null };
-export type Endpoint = z.infer<typeof endpoint>;
-export type AiSettings = NonNullable<ConnectionSettings['ai']>;
-export type AiProviderName = AiSettings['provider'];
+export type Endpoint = z.infer<typeof roleAlphaEndpoint>;
+/** The endpoint plus the roleALPHA organisation (tenant UUID) the signed-in user works in. */
+export type RoleAlphaTarget = Endpoint & { tenant: string };
+
+/** What Teams tells the app about where it runs; absent outside Teams. */
+export type TeamsContext = {
+  /** The meeting chat (or any chat) the tab belongs to. */
+  chatId?: string;
+  /** `sidePanel`, `content`, `meetingStage` … */
+  frameContext?: string;
+};
+
 export type BrowserHost = {
   tenantId: string;
   userId: string;
   userName: string;
+  /** The SharePoint site the app runs on; only used for consent links and the tenant property. */
   webUrl: string;
   isTeams: boolean;
-  initialMeeting?: string;
-  /**
-   * The host opened without a configured workspace, as the Teams personal app does: start in the workspace this
-   * user last opened here (client/browser/workspace-memory.ts) instead of the site the host happens to run on.
-   */
-  rememberWorkspace?: boolean;
-  /** Language for starter templates and meeting defaults; the SharePoint UI language in SPFx. */
   language?: Language;
-  /** Loaded from the workspace when the app starts; see loadConnections. */
-  settings: ConnectionSettings;
-  sharepointAt?: (webUrl: string, path: string, init?: RequestInit) => Promise<Response>;
-  onMeetingsChanged?: (meetings: { id: string; title: string }[]) => void;
-  // Provided by SPFx: same-site SPHttpClient and AadTokenProvider. No app secrets.
+  /** Teams context, read once when the app starts. */
+  teams?: TeamsContext | null;
+  /** Filled in at start (client/browser/connection.ts); null until the organisation is known. */
+  roleAlpha: RoleAlphaTarget | null;
+  /** Same-site SharePoint REST of the host page; the app only reads the tenant property with it. */
   sharepoint: (path: string, init?: RequestInit) => Promise<Response>;
+  /** Delegated Entra token for a resource (SPFx AadTokenProvider). No app secrets. */
   token: (resource: string) => Promise<string>;
   /** Sign-in authority for the admin consent links (client/browser/consent.ts). */
   consent?: ConsentClient;
@@ -145,7 +67,10 @@ export type BrowserHost = {
   theme?: Theme;
   /** Bundled font file name -> URL the host serves it from (SPFx ClientSideAssets, Vite in the preview). */
   fonts?: Record<string, string>;
+  /** Per-user browser storage for conveniences such as the chosen organisation; may be missing or throw. */
+  storage?: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'> | null;
 };
+
 /** True when url is the configured endpoint or, for 'prefix', a path below it on the same origin. */
 export function allowedDestination(url: string, configured: string, match: 'exact' | 'prefix') {
   if (url === configured) return true;
@@ -167,22 +92,8 @@ export function allowedDestination(url: string, configured: string, match: 'exac
     (actual.pathname === root || actual.pathname.startsWith(root + '/'))
   );
 }
-export function endpointFetch(host: BrowserHost, target: Endpoint, match: 'exact' | 'prefix' = 'exact'): typeof fetch {
-  return async (input, init = {}) => {
-    const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
-    if (!allowedDestination(url, target.url, match))
-      throw new Error('Integration request destination does not match the administrator configuration.');
-    const headers = new Headers(init.headers);
-    headers.set('Authorization', `Bearer ${await host.token(target.resource)}`);
-    return fetch(url, {
-      ...init,
-      credentials: 'omit',
-      redirect: 'error',
-      headers,
-      signal: init.signal || AbortSignal.timeout(90_000),
-    });
-  };
-}
+
+/** Microsoft Graph with the signed-in user's delegated token. */
 export async function graph(host: BrowserHost, path: string, init: RequestInit = {}): Promise<Response> {
   if (!path.startsWith('/') || path.startsWith('//') || path.includes('\\')) throw new Error('Invalid Graph path');
   const headers = new Headers(init.headers);
@@ -195,6 +106,14 @@ export async function graph(host: BrowserHost, path: string, init: RequestInit =
     signal: AbortSignal.timeout(30_000),
   });
   if (!r.ok)
-    throw new AppError(502, r.status === 404 ? 'error.graph.notFound' : 'error.graph.http', { status: r.status });
+    throw new AppError(
+      r.status === 401 || r.status === 403 ? 403 : 502,
+      r.status === 401 || r.status === 403
+        ? 'error.graph.permission'
+        : r.status === 404
+          ? 'error.graph.notFound'
+          : 'error.graph.http',
+      { status: r.status },
+    );
   return r;
 }
