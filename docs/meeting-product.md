@@ -18,6 +18,7 @@ roleALPHA Sessions closes one gap: what a Teams meeting decides about the organi
 
 - **Teams is the meeting, roleALPHA is the governance.** The app stores nothing itself: one roleALPHA scenario per meeting holds its drafts.
 - **rALPH proposes, people decide.** Every proposal is shown with its reason and can be edited; only adopted ones become drafts, and drafts take effect only after approval in roleALPHA.
+- **Existing entries can be changed directly.** The note-taker can pick any entry they may see in roleALPHA, change its fields and adopt the change as a draft of the meeting, without going through rALPH.
 - **Liberal is fast, consent is fair.** Modules roleALPHA approves liberally need no vote. For the others, a module can let the meeting's participants vote, so that the people who were there decide and an absence does not block a change.
 - **No Copilot needed.** The side panel works for everybody; people with a Copilot licence can additionally use the agent, which reads the Loop notes itself.
 

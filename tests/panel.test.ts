@@ -8,6 +8,7 @@ import {
   appUrl,
   chatId,
   circles,
+  existing,
   fakeServices,
   mcpUrl,
   tenant,
@@ -208,6 +209,50 @@ test('an older roleALPHA without proposals says so instead of answering in text 
   const reply = await api.ask('Wer verantwortet Belege?', 'fr');
   assert.match(reply.answer, /Finance/);
   assert.deepEqual(reply.entities, [{ name: 'Finance', url: `${appUrl}/graph?anchor=${circles[0].uuid}` }]);
+});
+
+test('an existing entry can be found, loaded with its values and changed as a draft of the meeting', async t => {
+  const { api, services } = setup(t);
+  await api.bootstrap();
+  await api.openScenario({ uuid: circles[0].uuid, name: 'Finance' });
+
+  // One letter is no search: roleALPHA is not asked.
+  assert.deepEqual(await api.searchEntities('f'), []);
+  assert.equal(services.state.calls.filter(c => c.tool === 'search_entities').length, 0);
+  const hits = await api.searchEntities('finan');
+  assert.deepEqual(
+    hits.map(h => [h.name, h.entityTypeName]),
+    [
+      ['Finance Lead', 'Rolle'],
+      ['Finanzrichtlinie', 'Richtlinie'],
+    ],
+  );
+
+  const role = existing[0]!;
+  const loaded = await api.loadEntity(role.uuid);
+  assert.deepEqual(loaded, { uuid: role.uuid, name: 'Finance Lead', entityType: 'Rolle', values: role.descJsonb });
+
+  const change: Proposal = {
+    kind: 'entity',
+    action: 'update',
+    entityType: loaded.entityType,
+    entityUuid: loaded.uuid,
+    name: loaded.name,
+    fields: { purpose: 'Finanzen und Einkauf steuern' },
+    rationale: '',
+  };
+  const outcome = await api.adopt([change]);
+  assert.ok('draftId' in outcome.results[0]!);
+  assert.deepEqual(
+    outcome.scenario.drafts.map(d => [d.action, d.entityUuid]),
+    [['update', role.uuid]],
+  );
+  // Only the changed field goes to roleALPHA, into the meeting's scenario; the rest stays as it is.
+  const call = services.state.calls.find(c => c.tool === 'update_entity_draft')!;
+  assert.deepEqual(call.args.fields, { purpose: 'Finanzen und Einkauf steuern' });
+  assert.equal(call.args.scenario_id, outcome.scenario.scenarioId);
+
+  await assert.rejects(api.loadEntity(crypto.randomUUID()), /Entity not found/);
 });
 
 test('roleALPHA’s refusals reach the user with roleALPHA’s reason', async t => {

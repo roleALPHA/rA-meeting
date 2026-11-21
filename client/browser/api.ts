@@ -3,6 +3,9 @@ import type { Language, MessageId } from '../../shared/i18n';
 import { AppError, assert } from '../../shared/model';
 import {
   draftReceipt,
+  entityDetails,
+  entityHit,
+  entitySearch,
   entityTypeSchema,
   myScenarios,
   noScenario,
@@ -11,7 +14,9 @@ import {
   ralphQuestion,
   submission,
   type Circle,
+  type EntityHit,
   type EntityTypeSchema,
+  type ExistingEntity,
   type Proposal,
   type RalphReply,
   type Scenario,
@@ -29,6 +34,8 @@ export const tools = {
   open: 'open_meeting_scenario',
   mine: 'list_my_meeting_scenarios',
   describe: 'describe_entity_type',
+  search: 'search_entities',
+  details: 'get_entity_details',
   createEntity: 'create_entity_draft',
   updateEntity: 'update_entity_draft',
   createRelationship: 'create_relationship_draft',
@@ -61,6 +68,10 @@ export type PanelApi = {
   ask: (question: string, language: Language) => Promise<RalphReply>;
   propose: (input: { topic: string; note: string }, language: Language) => Promise<RalphReply>;
   describe: (entityType: string) => Promise<EntityTypeSchema>;
+  /** Finds existing entries in roleALPHA by name — the ones the user may see. */
+  searchEntities: (query: string) => Promise<EntityHit[]>;
+  /** Loads an existing entry with its current field values, to change it. */
+  loadEntity: (uuid: string) => Promise<ExistingEntity>;
   /** Creates drafts for the confirmed proposals in the meeting's scenario. */
   adopt: (proposals: Proposal[]) => Promise<Adoption>;
   /** Submits the scenario: liberal drafts are published, the rest goes to a vote with the meeting's participants. */
@@ -71,6 +82,7 @@ export type PanelApi = {
 };
 
 const ADOPT_MAX = 20;
+const SEARCH_LIMIT = 20;
 
 export function createPanelApi(host: BrowserHost): PanelApi {
   let meeting: MeetingInfo | null = null;
@@ -237,6 +249,37 @@ export function createPanelApi(host: BrowserHost): PanelApi {
         );
         assert(parsed.success, 'error.rolealpha.toolIncompatible', 502);
         return parsed.data;
+      });
+    },
+    async searchEntities(raw) {
+      const query = z.string().trim().max(200).parse(raw);
+      if (query.length < 2) return [];
+      return withRoleAlpha(async session => {
+        const parsed = entitySearch.safeParse(
+          await session.call(tools.search, { query, limit: SEARCH_LIMIT }, { read: true, optional: ['limit'] }),
+        );
+        assert(parsed.success, 'error.rolealpha.toolIncompatible', 502);
+        // An entry that does not look like one is left out rather than failing the whole list.
+        const hits: EntityHit[] = [];
+        for (const item of parsed.data.entities) {
+          const hit = entityHit.safeParse(item);
+          if (hit.success && !hits.some(h => h.uuid === hit.data.uuid)) hits.push(hit.data);
+        }
+        return hits.slice(0, SEARCH_LIMIT);
+      });
+    },
+    async loadEntity(raw) {
+      const uuid = z.guid().parse(raw);
+      return withRoleAlpha(async session => {
+        const parsed = entityDetails.safeParse(await session.call(tools.details, { entityUuid: uuid }, { read: true }));
+        // roleALPHA answers with only the UUID when the data node cannot be read: nothing to edit then.
+        assert(parsed.success && parsed.data.uuid === uuid, 'error.meeting.entityUnavailable', 502);
+        return {
+          uuid,
+          name: parsed.data.name ?? '',
+          entityType: parsed.data.entityTypeName,
+          values: parsed.data.descJsonb ?? {},
+        };
       });
     },
     async adopt(proposals) {

@@ -29,6 +29,23 @@ export const circles = [
 ];
 export const units = [{ uuid: '8da474a2-6677-41fd-a8d6-b713528c92c0', name: 'Geschäftsführung' }];
 const financeLead = '9b8d1414-1a55-47d4-8bcb-1321bd3684df';
+/** Existing entries the user may pick and change; `search_entities` and `get_entity_details` answer from here. */
+export const existing = [
+  {
+    uuid: financeLead,
+    name: 'Finance Lead',
+    entityType: 'role',
+    entityTypeName: 'Rolle',
+    descJsonb: { purpose: 'Finanzen des Kreises steuern', subtype: 'role', accountabilities: ['Budget planen'] },
+  },
+  {
+    uuid: '3f2c9d6e-8a41-4b7f-9c25-6d1e0a7b4c93',
+    name: 'Finanzrichtlinie',
+    entityType: 'policy',
+    entityTypeName: 'Richtlinie',
+    descJsonb: { purpose: 'Ausgaben über 5.000 € brauchen zwei Zeichnungen' },
+  },
+];
 
 type Draft = { draftId: string; entityType: string; action: string; status: string; entityUuid: string; name: string };
 type Scenario = {
@@ -159,6 +176,28 @@ export function fakeServices(options: FakeOptions = {}) {
               entities: [{ name: 'Finance', uuid: circles[0].uuid }, { name: 'ohne uuid' }],
             }),
     );
+    tool(
+      'search_entities',
+      {
+        query: z.string(),
+        entityType: z.string().optional(),
+        limit: z.number().optional(),
+        offset: z.number().optional(),
+      },
+      true,
+      args => {
+        const query = String(args.query).toLowerCase();
+        const entities = existing
+          .filter(e => e.name.toLowerCase().includes(query))
+          .map(({ uuid, name, entityType, entityTypeName }) => ({ uuid, name, entityType, entityTypeName }));
+        return { entities, returned: entities.length, total: entities.length, hasMore: false, nextOffset: null };
+      },
+    );
+    tool('get_entity_details', { entityUuid: z.string() }, true, args => {
+      const found = existing.find(e => e.uuid === args.entityUuid);
+      if (!found) return { error: 'Entity not found' };
+      return { ...found, tenantUuid: tenant, classification: 'internal' };
+    });
     tool('describe_entity_type', { entity_type: z.string() }, true, args => ({
       entityType: args.entity_type,
       requiredFields: ['purpose', 'subtype', 'accountabilities'],

@@ -60,6 +60,8 @@ The side panel and the agent use roleALPHA's external MCP endpoint (Streamable H
 | `open_meeting_scenario` | write | `meeting_ref`, `title`, `start`, `circle_uuid?`, `create` | The meeting's **open** scenario `{ scenarioId, name, status, meetingRef, circle: { uuid, name }, drafts: [{ draftId, entityType, action, status, entityUuid, name }], url }`, or `{ scenario: null }` with `create: false` |
 | `list_my_meeting_scenarios` | read | – | `{ scenarios: [scenario] }` |
 | `ask_ralph` | read | `question`, `context?`, `locale?` (`de`/`en`), `proposals?` | `{ answer, entities: [{ name, uuid }], proposals: [proposal] }` |
+| `search_entities` | read | `query`, `limit: 20` | `{ entities: [{ uuid, name, entityType, entityTypeName }] }` |
+| `get_entity_details` | read | `entityUuid` | `{ uuid, name, entityTypeName, descJsonb }` (the entry's current field values) |
 | `describe_entity_type` | read | `entity_type` | `{ entityType, requiredFields, fields: [{ name, type, required, allowedValues, label }] }` |
 | `create_entity_draft` | write | `entity_type`, `name`, `data`, `custom_id`, `scenario_id` | `{ draft_created: true, draftId, entityUuid }` |
 | `update_entity_draft` | write | `entity_uuid`, `name`, `fields` (changed fields only), `scenario_id` | as above |
@@ -81,8 +83,9 @@ The web part reads the Teams context once at start (`chat.id`, `page.frameContex
 1. The organisation choice, if the user has several.
 2. The circle search, until the meeting's scenario exists. Choosing a circle calls `open_meeting_scenario` with `create: true`.
 3. **Record an outcome:** agenda item and note; **Proposals from rALPH** calls `ask_ralph` with `proposals: true`, the meeting title and the circle as context. Each proposal shows rALPH's reason and editable fields from `describe_entity_type` (a new entry shows its required fields, a change only what it changes). The checked proposals become drafts with `scenario_id` and a `custom_id` of the form `ra-sessions:<meeting reference>:<random>`.
-4. **Ask rALPH:** a free question with the meeting and circle as context.
-5. **Drafts from this meeting**, from the scenario, and **Submit for decision**, which reads the chat members through Graph and calls `submit_meeting_scenario`. The result is shown, and the user can edit and send a summary with a link to the scenario into the meeting chat. Only links into the roleALPHA application are accepted there.
+4. **Change an existing entry:** searches roleALPHA with `search_entities` (from two characters on), loads the chosen entry with `get_entity_details` and shows every field of its type with the current value. Only the fields the user changed go to `update_entity_draft`, into the meeting's scenario.
+5. **Ask rALPH:** a free question with the meeting and circle as context.
+6. **Drafts from this meeting**, from the scenario, and **Submit for decision**, which reads the chat members through Graph and calls `submit_meeting_scenario`. The result is shown, and the user can edit and send a summary with a link to the scenario into the meeting chat. Only links into the roleALPHA application are accepted there.
 
 rALPH's output is marked as AI-generated with a link to report harmful content. Outside a meeting (a SharePoint page, the personal app) the app explains how to add it to a meeting and lists the user's open meeting scenarios.
 

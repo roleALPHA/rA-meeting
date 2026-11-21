@@ -2,8 +2,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { ExternalLink, Loader2, Send, Sparkles } from 'lucide-react';
 import type {
   Circle,
+  EntityHit,
   EntityProposal,
   EntityTypeSchema,
+  ExistingEntity,
   Proposal,
   RalphReply,
   Scenario,
@@ -293,6 +295,7 @@ function Workspace({
         />
       )}
       <Capture setScenario={setScenario} />
+      <EditExisting setScenario={setScenario} />
       <AskRalph />
       <Drafts scenario={scenario} setScenario={setScenario} onSubmitted={setSubmitted} />
     </>
@@ -459,8 +462,19 @@ function ProposalCard({
 
 const schemaCache = new Map<string, Promise<EntityTypeSchema>>();
 
-/** The proposal's fields, editable as the entity type's schema describes them. */
-function EntityFields({ proposal, change }: { proposal: EntityProposal; change: (p: Proposal) => void }) {
+/**
+ * The proposal's fields, editable as the entity type's schema describes them. With `current` (an existing entry the
+ * user picked) every field shows its current value, and only the values that differ from it end up in the proposal.
+ */
+function EntityFields({
+  proposal,
+  change,
+  current,
+}: {
+  proposal: EntityProposal;
+  change: (p: Proposal) => void;
+  current?: Record<string, unknown>;
+}) {
   const api = useApi();
   const [schema, setSchema] = useState<EntityTypeSchema | null>(null);
   useEffect(() => {
@@ -479,20 +493,26 @@ function EntityFields({ proposal, change }: { proposal: EntityProposal; change: 
       alive = false;
     };
   }, [api, proposal.entityType]);
-  const set = (name: string, value: unknown) => change({ ...proposal, fields: { ...proposal.fields, [name]: value } });
-  // A new entry shows every required field; a change shows only what it changes, the rest stays as it is.
+  const set = (name: string, value: unknown) => {
+    const fields = { ...proposal.fields, [name]: value };
+    // Back to the current value: no change for this field.
+    if (current && sameValue(value, current[name])) delete fields[name];
+    change({ ...proposal, fields });
+  };
+  // A new entry shows every required field; a proposed change shows only what it changes, the rest stays as it is;
+  // an existing entry the user picked shows everything it has.
   const creating = proposal.action === 'create';
   const required = (name: string, flag: boolean) => creating && (flag || !!schema?.requiredFields.includes(name));
   const fields: EntityTypeSchema['fields'] = schema
-    ? schema.fields.filter(f => required(f.name, f.required) || f.name in proposal.fields)
-    : Object.keys(proposal.fields).map(name => ({ name, type: 'string', required: false }));
+    ? schema.fields.filter(f => !!current || required(f.name, f.required) || f.name in proposal.fields)
+    : Object.keys({ ...current, ...proposal.fields }).map(name => ({ name, type: 'string', required: false }));
   return (
     <>
       <Field label={t('panel.name')}>
         <input value={proposal.name} maxLength={300} onChange={e => change({ ...proposal, name: e.target.value })} />
       </Field>
       {fields.map(field => {
-        const value = proposal.fields[field.name];
+        const value = field.name in proposal.fields ? proposal.fields[field.name] : current?.[field.name];
         const label = field.label || field.name;
         const allowed = field.allowedValues;
         const mark = required(field.name, field.required) ? ' *' : '';
@@ -558,6 +578,135 @@ function EntityFields({ proposal, change }: { proposal: EntityProposal; change: 
         );
       })}
     </>
+  );
+}
+
+function sameValue(a: unknown, b: unknown) {
+  const empty = (v: unknown) => v === undefined || v === null || v === '' || (Array.isArray(v) && v.length === 0);
+  return (empty(a) && empty(b)) || JSON.stringify(a) === JSON.stringify(b);
+}
+
+/** Pick an existing entry in roleALPHA, change its fields and adopt the change as a draft of the meeting. */
+function EditExisting({ setScenario }: { setScenario: (s: Scenario) => void }) {
+  const api = useApi();
+  const [query, setQuery] = useState('');
+  const [hits, setHits] = useState<EntityHit[] | null>(null);
+  const [entity, setEntity] = useState<ExistingEntity | null>(null);
+  const [proposal, setProposal] = useState<EntityProposal | null>(null);
+  const [saved, setSaved] = useState('');
+  const latest = useRef(0);
+  const { busy, error, run, setError } = useAction();
+  useEffect(() => {
+    if (entity) return;
+    const call = ++latest.current;
+    if (query.trim().length < 2) {
+      setHits(null);
+      return;
+    }
+    const timer = setTimeout(() => {
+      api.searchEntities(query).then(
+        found => call === latest.current && (setHits(found), setError('')),
+        e => call === latest.current && setError(errorText(e)),
+      );
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [api, query, entity, setError]);
+  const pick = (hit: EntityHit) =>
+    run(async () => {
+      setSaved('');
+      const loaded = await api.loadEntity(hit.uuid);
+      setEntity(loaded);
+      setProposal({
+        kind: 'entity',
+        action: 'update',
+        entityType: loaded.entityType,
+        entityUuid: loaded.uuid,
+        name: loaded.name || hit.name,
+        fields: {},
+        rationale: '',
+      });
+    });
+  const close = () => {
+    setEntity(null);
+    setProposal(null);
+  };
+  const changed =
+    !!entity && !!proposal && (Object.keys(proposal.fields).length > 0 || proposal.name.trim() !== entity.name);
+  const save = () =>
+    run(async () => {
+      if (!proposal || !entity) return;
+      const outcome = await api.adopt([{ ...proposal, name: proposal.name.trim() || entity.name }]);
+      setScenario(outcome.scenario);
+      const result = outcome.results[0];
+      if (result && 'error' in result) {
+        setError(t(result.error));
+        return;
+      }
+      setSaved(t('panel.editSaved', { name: proposal.name.trim() || entity.name }));
+      close();
+      setQuery('');
+    });
+  return (
+    <section className="block">
+      <h2>{t('panel.editTitle')}</h2>
+      {!entity || !proposal ? (
+        <>
+          <p className="small muted">{t('panel.editHint')}</p>
+          <Field label={t('panel.editSearch')}>
+            <input
+              type="search"
+              value={query}
+              autoComplete="off"
+              maxLength={200}
+              onChange={e => setQuery(e.target.value)}
+            />
+          </Field>
+          {saved && (
+            <p className="small status done" role="status">
+              {saved}
+            </p>
+          )}
+          <ErrorLine text={error} />
+          {hits && hits.length === 0 && <p className="small muted">{t('panel.editNoHits')}</p>}
+          {hits && hits.length > 0 && (
+            <ul className="list">
+              {hits.map(hit => (
+                <li key={hit.uuid}>
+                  <span>
+                    {hit.name}
+                    <br />
+                    <span className="small muted">{hit.entityTypeName}</span>
+                  </span>
+                  <Button disabled={busy} onClick={() => void pick(hit)}>
+                    {t('panel.edit')}
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
+      ) : (
+        <div className="proposal selected">
+          <div className="proposal-head">
+            <strong>{entity.name}</strong>
+            <span className="pill">{t('panel.kindChange')}</span>
+          </div>
+          <p className="small muted">{entity.entityType}</p>
+          <EntityFields proposal={proposal} change={p => setProposal(p as EntityProposal)} current={entity.values} />
+          {!changed && <p className="small muted">{t('panel.editNothingChanged')}</p>}
+          <ErrorLine text={error} />
+          <div className="actions">
+            <Button className="primary" disabled={busy || !changed} onClick={() => void save()}>
+              {busy && <Loader2 className="spin" aria-hidden />}
+              {t('panel.editSave')}
+            </Button>
+            <Button disabled={busy} onClick={close}>
+              {t('panel.cancel')}
+            </Button>
+          </div>
+        </div>
+      )}
+    </section>
   );
 }
 

@@ -25,6 +25,8 @@ export const agentTools = {
   open_meeting_scenario: 'Finds or starts the roleALPHA scenario of a meeting and sets its circle.',
   search_roles: 'Searches roles and circles in roleALPHA.',
   search_organigramms: 'Searches org units in roleALPHA.',
+  search_entities: 'Finds existing roleALPHA entries by name.',
+  get_entity_details: 'Reads an existing roleALPHA entry with its current fields.',
   describe_entity_type: 'Describes the fields of a roleALPHA entity type.',
   ask_ralph: 'Asks rALPH, roleALPHA’s assistant; with proposals=true it returns proposals for drafts.',
   create_entity_draft: 'Creates a draft for a new roleALPHA entry in a scenario.',

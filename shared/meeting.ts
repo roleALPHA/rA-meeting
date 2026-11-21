@@ -102,6 +102,31 @@ export const submission = z.looseObject({
 });
 export type Submission = z.infer<typeof submission>;
 
+/** One hit of `search_entities`: an existing entry the user may pick and change. */
+export const entityHit = z.looseObject({
+  uuid: z.guid(),
+  name: z.string().trim().min(1).max(300),
+  entityType: z.string().max(100).nullish(),
+  entityTypeName: z.string().trim().min(1).max(100),
+});
+export type EntityHit = z.infer<typeof entityHit>;
+export const entitySearch = z.looseObject({ entities: z.array(z.unknown()).max(200).default([]) });
+
+/** `get_entity_details`: the entry as the data node stores it; its fields are `descJsonb`. */
+export const entityDetails = z.looseObject({
+  uuid: z.guid(),
+  name: z.string().max(300).nullish(),
+  entityTypeName: z.string().trim().min(1).max(100),
+  descJsonb: z.record(z.string(), z.unknown()).nullish(),
+});
+/** An existing entry ready to edit: its current field values and its entity type. */
+export type ExistingEntity = {
+  uuid: string;
+  name: string;
+  entityType: string;
+  values: Record<string, unknown>;
+};
+
 /** Entity type schema as `describe_entity_type` returns it. */
 export const entityTypeSchema = z.looseObject({
   entityType: z.string().max(100),

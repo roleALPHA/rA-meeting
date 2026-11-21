@@ -22,6 +22,8 @@ export const fr: Record<MessageId, string> = {
   'error.integrations.rolealphaTokenExchangeFailed':
     'La connexion à roleALPHA a échoué. Vérifiez les paramètres de connexion et réessayez.',
   'error.meeting.chatMessageInvalid': 'Ce message ne peut pas être publié dans le chat de la réunion.',
+  'error.meeting.entityUnavailable':
+    'Cette entrée ne peut pas être chargée pour le moment. Veuillez la modifier dans roleALPHA.',
   'error.meeting.noScenario': 'Choisissez d’abord le cercle de cette réunion.',
   'error.meeting.notInMeeting': 'Cela ne fonctionne que dans une réunion Teams.',
   'error.meeting.proposalIncomplete': 'La proposition est incomplète.',
@@ -65,6 +67,15 @@ export const fr: Record<MessageId, string> = {
   'panel.draftCount': '{count} brouillons',
   'panel.draftCreated': 'Brouillon créé.',
   'panel.draftsTitle': 'Brouillons de cette réunion',
+  'panel.edit': 'Modifier',
+  'panel.editHint':
+    'Rechercher une entrée dans roleALPHA, la modifier et la reprendre comme brouillon de modification de cette réunion.',
+  'panel.editNoHits': 'Aucun résultat.',
+  'panel.editNothingChanged': 'Rien n’a encore été modifié.',
+  'panel.editSave': 'Reprendre comme brouillon de modification',
+  'panel.editSaved': 'Brouillon de modification pour « {name} » créé.',
+  'panel.editSearch': 'Rechercher une entrée',
+  'panel.editTitle': 'Modifier une entrée existante',
   'panel.graphConsentHint': 'Pour le chat de réunion, l’application a besoin d’une autorisation Microsoft Graph.',
   'panel.inVote': 'Soumis au vote',
   'panel.kindChange': 'Modification',
