@@ -1,112 +1,39 @@
 # roleALPHA Sessions
 
-**Structure meetings. Understand governance. Prepare decisions together.**
+**Governance outcomes from Teams meetings, straight into roleALPHA.**
 
-roleALPHA Sessions (formerly rA Meetings) is a **roleALPHA** product for Microsoft Teams and SharePoint. It supports teams from collecting topics through collaborative discussion to traceable outcomes. Configurable meeting templates support Holacracy-inspired processes and other ways of working together.
+roleALPHA Sessions (formerly rA Meetings) is a **roleALPHA** product for Microsoft Teams. Teams already brings the meeting itself: the invitation, the Loop meeting notes with their agenda, the chat and the transcript. Agenda items are the tensions. roleALPHA Sessions adds the step that is missing: what a meeting decides about roles, circles, policies and accountabilities becomes a **draft in roleALPHA**, reviewed by people and decided there.
 
-The app is installed in your organization's Microsoft 365 environment. It requires no dedicated application server or additional SQL database. An optional connection to the **roleALPHA Governance platform** supports questions about existing governance and reviewed transfers of meeting outcomes.
+## How it works
 
-## Features
+1. **Invitation.** Add the roleALPHA Sessions tab to a Teams meeting.
+2. **Circle.** In the meeting's side panel, pick the circle or team the meeting is for. roleALPHA starts one **scenario** for the meeting.
+3. **Outcomes.** For each agenda item, the note-taker writes down what was agreed. **rALPH**, roleALPHA's assistant with its governance skills, turns the note into proposals: new roles, changed accountabilities, policies, relationships. People check and edit every proposal; the adopted ones become drafts in the meeting's scenario.
+4. **Submit.** Drafts in areas roleALPHA approves liberally take effect at once. The others go to a vote in roleALPHA; where an area allows it, the meeting's participants vote, so a long absence of an affected person does not block a change. A summary goes to the meeting chat.
+5. **Decision** happens in roleALPHA, with its consent or consensus rules.
 
-### Collect topics and prepare meetings
-
-Anyone who can edit the workspace submits tensions or agenda items to an upcoming meeting. They are visible before the meeting, join its agenda when it starts, and are ordered and processed one at a time. Items the meeting does not get to stay open and can be moved to another meeting. Each meeting template decides whether its items are called “Tensions” or “Agenda items”. With a roleALPHA connection, a submitter can attach one of their own roleALPHA drafts, which opens directly from the item.
-
-Link meetings to your own calendar events and open them as Teams tabs. Site owners can choose whether linked Teams meetings allow transcription or are recorded and transcribed automatically. Authorized participants can contribute before the discussion begins. Access follows the SharePoint workspace's permissions.
-
-### Configure your meeting process
-
-Tactical, Governance, and Reflection are provided as starter templates. Create and edit templates in the interface, including:
-
-- Steps and their order.
-- Timeboxes and facilitator instructions.
-- Optional steps and subphases.
-- Allowed outcome types.
-
-Each meeting stores its own template snapshot. Later template changes do not alter existing meetings.
-
-### Form proposals and integrate objections
-
-Optional AI assistance suggests proposal wording, clarification questions, and ways to integrate objections. People review and apply suggestions. AI does not decide whether an objection is valid, an integration is sufficient, or a decision has been made.
-
-### Ask about existing governance
-
-The governance assistant asks rALPH, roleALPHA's assistant, which answers in roleALPHA with the organisation's governance and links the roles, circles and other entries it names. No AI service needs to be configured in the app for this. Alternatively, an approved roleALPHA search tool retrieves sources and the configured AI service answers from them with source references. Either way, the original governance remains authoritative.
-
-This assistant does not change governance. It requires a compatible, explicitly approved roleALPHA read integration; a draft-creation connection alone is insufficient.
-
-### Record traceable outcomes
-
-Retrieve transcripts from accessible Teams meetings or import VTT/TXT files. Optional AI analysis proposes outcomes linked to transcript evidence. Users review outcomes before approving or transferring them.
-
-An optional roleALPHA connection can create drafts from approved outcomes, such as meeting records, risks, OKRs, or IT systems. It signs in with the user's Microsoft identity, which roleALPHA exchanges for its own short-lived token. Available entities depend on the configured integration. The tension backlog remains part of roleALPHA Sessions, and the app also works without the governance platform.
-
-## Languages
-
-The interface supports **German, English, French, and Spanish**. Users choose their language; the “Tensions” or “Agenda items” wording comes from each meeting's template. Changing language does not automatically translate user-created content. Repository documentation is maintained in English.
+People with a **Microsoft 365 Copilot** licence can also use the **roleALPHA Sessions agent** in Copilot: it reads the meeting's Loop notes and recap, asks rALPH for proposals and creates the confirmed drafts in the same scenario.
 
 ## Operation and data
 
-The app is delivered as a **SharePoint Framework (SPFx)** package. Microsoft 365 serves the application files, including fonts and icons, and the app executes in the browser within Teams or SharePoint. In Teams it follows the light, dark and high-contrast themes.
-
-| Component | Processing and storage |
+| | |
 | --- | --- |
-| Templates, agenda, meetings, and outcomes | Your organization's SharePoint site |
-| Imported transcripts | SharePoint workspace; the original recording is not downloaded by the app |
-| Calendar and transcript retrieval | Direct Microsoft Graph requests with the signed-in user's permissions |
-| Optional AI | Direct requests to the configured AI service: Microsoft 365 Copilot (default), Claude via Microsoft Foundry, or an OpenAI-compatible endpoint |
-| Optional governance connection | Direct MCP requests to roleALPHA (`https://rolealpha.app/api/mcp`) |
-| Language | Personal browser preference |
+| Runs | In the user's browser (SharePoint Framework web part in Teams); the Copilot agent in Microsoft 365 Copilot |
+| Server of its own | None |
+| Stored where | In roleALPHA: the meeting's scenario and its drafts. Nothing is stored in SharePoint. |
+| Talks to | Microsoft Graph (meeting chat: topic, members, posting the summary) and roleALPHA (MCP endpoint and its token endpoint). rALPH is the only AI; no other AI service is used. |
+| Sign-in | The signed-in user's delegated Microsoft Entra ID token, exchanged for a short-lived roleALPHA token. No keys or secrets. |
+| Needs | A roleALPHA account; administrator consent for the Graph permissions `Chat.ReadBasic`, `ChatMember.Read`, `ChatMessage.Send` and for roleALPHA's `access_as_user`. The agent needs a Copilot licence. |
 
-No central roleALPHA proxy, additional application runtime, or Power Automate flow is required. No automatic processing runs after the app closes. Users explicitly start analysis and transfers.
+Administrators find the installation in [docs/customer-deployment.md](docs/customer-deployment.md) and the technical details, including the contract with roleALPHA, in [docs/technical-deployment.md](docs/technical-deployment.md).
 
-The package contains no AI endpoints; site owners set them up per workspace in the app (setup wizard or **Connections**), and an Entra administrator grants each service's delegated permission once. Optional services must support Microsoft Entra sign-in and direct browser access. The app never stores API keys.
+## Upgrading from 1.x
 
-### roleALPHA connection
-
-roleALPHA's address and Entra app are the same for every customer, so the package ships them (`client/browser/rolealpha-environment.ts`; another installation such as QA gets its own entry there):
-
-| Value | Production |
-| --- | --- |
-| MCP endpoint (Streamable HTTP) | `https://rolealpha.app/api/mcp` |
-| Token endpoint (RFC 8693 exchange, same origin) | `https://rolealpha.app/api/auth/oauth/token` |
-| Entra resource (audience) | `api://4bd22250-d811-4905-97a4-cb2bf69f98fa` |
-| Client ID of the roleALPHA API | `4bd22250-d811-4905-97a4-cb2bf69f98fa` |
-| Delegated scope | `access_as_user` |
-
-The package requests `roleALPHA / access_as_user` with this `appId` and the reply address `https://rolealpha.app/`, so a SharePoint administrator approves it under **API access** like the Graph permissions, and SharePoint creates the app in the customer's directory. A site owner then selects **Connect to roleALPHA** under **Connections**: the app exchanges the user's Entra token, takes the organisation from roleALPHA (or asks for the roleALPHA tenant ID while roleALPHA cannot yet look it up), and fills in the tools from `tools/list`. Writing tools only create drafts in roleALPHA. The contract is roleALPHA's `doc/ENTRA-TAUSCH.md`.
-
-**Optional services determine additional data flows.** To keep content entirely within your organization's controlled environment, deploy AI and roleALPHA accordingly. A centrally operated service would receive content sent to it. MCP is the protocol for the roleALPHA connection; the app does not offer arbitrary MCP providers.
-
-## Permissions and retention
-
-A workspace is a shared SharePoint site. Readers can access its content, including transcripts and stored historical versions. Editors can collaboratively facilitate meetings and maintain templates. Use separately permissioned sites for confidential groups. A Teams event's attendee list does not replace SharePoint permissions.
-
-The app creates two storage areas:
-
-- `rA Meetings Browser Index`: record and version index.
-- `rA Meetings Browser Data`: document library containing stored content.
-
-SharePoint permissions are the only enforced boundary: editors can change stored content directly, bypassing the app's rules. The meeting view flags inconsistent data, but this is not tamper protection. Approved API permissions apply to all SharePoint Framework solutions in the tenant. See the [technical deployment guide](docs/technical-deployment.md#security-model-and-trust-boundary).
-
-Concurrent updates are checked for conflicts. Earlier versions of content files are kept; site owners can move files left by interrupted saves to the recycle bin under **Connections**. Retention, deletion, and recovery must cover both storage areas.
-
-## Installation
-
-Microsoft 365 administrators install the package once. End users do not need development tools.
-
-1. Deploy `rolealpha-meetings.sppkg` in the SharePoint app catalog. Each [GitHub release](https://github.com/roleALPHA/rA-meeting/releases) carries the package together with its third-party notices and an SBOM; a local build writes it to `dist/`.
-2. Open the app and complete onboarding: select or create a SharePoint site, check access, and provision storage and starter templates.
-3. Review and publish the optional landing page. Approve calendar access, Teams availability, and optional services as needed; the app offers Microsoft's consent dialog as a link, so the Entra administrator does not need PowerShell to grant Microsoft's SPFx app.
-4. Verify the deployment with ordinary user accounts.
-
-The administrator guide begins with a [quick start](docs/customer-deployment.md#quick-start). Follow the **[step-by-step administrator guide](docs/customer-deployment.md)** from initial sign-in through acceptance checks. Package builders and integration operators should also read the [technical deployment guide](docs/technical-deployment.md). The [product design notes](docs/meeting-product.md) describe behavior and boundaries. The [Marketplace submission guide](docs/marketplace-submission.md) lists what a listing in AppSource and the SharePoint Store needs.
+Version 2 replaces the SharePoint workspace (meetings, templates, tensions, outcome review) with the meeting side panel. Data of a 1.x workspace stays in its SharePoint lists untouched; version 2 does not read it. The optional AI services of 1.x (Copilot, Claude in Foundry, OpenAI-compatible) are gone: rALPH answers in roleALPHA.
 
 ## Implementation status
 
-The project includes a buildable SPFx package and automated tests covering storage, permissions, meeting workflows, translations, and integration contracts.
-
-Deployment in a real Microsoft 365 environment and compatibility with actual roleALPHA read/write interfaces still require acceptance testing. Local simulations do not replace that verification. Teams features depend on licensing, meeting types, and organizational policies. For recurring meetings, transcript parts are attributed to an occurrence by their recording time and imported after confirmation.
+The package builds and is covered by automated tests against simulated roleALPHA and Microsoft Graph. Version 2 needs these roleALPHA tools, which a roleALPHA release has to provide: `open_meeting_scenario`, `list_my_meeting_scenarios`, `submit_meeting_scenario`, `ask_ralph` with `proposals`, and `scenario_id` on the draft tools ([docs/technical-deployment.md](docs/technical-deployment.md#rolealpha-contract)). Deployment in a real Microsoft 365 environment has not been accepted yet.
 
 ## Local development
 
@@ -122,13 +49,13 @@ npm run build
 
 `npm run check` runs TypeScript, ESLint and Prettier. Commits are signed off (`git commit -s`); see [CONTRIBUTING.md](CONTRIBUTING.md). CI, the licence policy and the release process are described in [docs/ci-conventions.md](docs/ci-conventions.md).
 
-The package is written to `dist/rolealpha-meetings.sppkg`. It is the same for every customer; AI and the roleALPHA organisation are set up in the app.
+The package is written to `dist/rolealpha-meetings.sppkg`. It is the same for every customer. The Copilot agent package is built per tenant: `npm run agent:package -- --reference-id <id>` writes `dist/rolealpha-sessions-agent.zip`.
 
 ```sh
 npm run dev
 ```
 
-The preview runs at [http://127.0.0.1:4310](http://127.0.0.1:4310). It simulates SharePoint and keeps changes in memory only until reload. No production Microsoft, AI, or roleALPHA service is connected.
+The preview runs at [http://127.0.0.1:4310](http://127.0.0.1:4310). It simulates Teams, Microsoft Graph and roleALPHA in the browser; nothing is sent anywhere. `?width=320` shows the side panel's width, `?theme=dark|contrast` the Teams themes, `?meeting=0` the app outside a meeting.
 
 ## License
 

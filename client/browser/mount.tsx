@@ -1,102 +1,41 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
-import { App } from '../App';
+import { MeetingPanel } from '../MeetingPanel';
 import { ApiProvider } from '../api-context';
-import { createBrowserApi, type AppApi } from './runtime';
-import { noConnections, type BrowserHost } from './host';
-import { Onboarding } from '../Onboarding';
-import { AppError } from '../../shared/model';
-import { errorText, t, usePreferences } from '../i18n';
-import { Preferences } from '../Preferences';
+import { createPanelApi } from './api';
+import type { BrowserHost } from './host';
 import brandCss from '../brand.css?inline';
 import css from '../style.css?inline';
 import { installFonts, type Theme } from './brand';
-import { rememberWorkspace, withRememberedWorkspace } from './workspace-memory';
-function Start({ host: initialHost }: { host: BrowserHost }) {
-  usePreferences();
-  const [start] = useState(() => withRememberedWorkspace(initialHost));
-  const [host, setHost] = useState(start);
-  const [api, setApi] = useState<AppApi | null>(null);
-  const [error, setError] = useState('');
-  const [wizard, setWizard] = useState(false);
-  const [retry, setRetry] = useState(0);
-  useEffect(() => {
-    let alive = true;
-    setError('');
-    setApi(null);
-    void createBrowserApi(host)
-      .then(api => {
-        if (!alive) return;
-        rememberWorkspace(host, host.webUrl);
-        setApi(api);
-      })
-      .catch((error: unknown) => {
-        if (!alive) return;
-        if (host === start && start !== initialHost) {
-          // The remembered workspace is gone or no longer readable: start from the site the host opened.
-          rememberWorkspace(initialHost, null);
-          setHost(initialHost);
-          return;
-        }
-        setError(errorText(error));
-        if (error instanceof AppError && (error.status === 404 || error.status === 503)) setWizard(true);
-      });
-    return () => {
-      alive = false;
-    };
-  }, [host, retry, start, initialHost]);
-  if (wizard)
-    return (
-      <Onboarding
-        host={host}
-        cancel={api ? () => setWizard(false) : undefined}
-        complete={selected => {
-          if (selected.webUrl !== host.webUrl) {
-            const url = new URL(window.location.href);
-            url.searchParams.set('raWorkspace', selected.webUrl);
-            url.searchParams.delete('raMeeting');
-            window.history.replaceState(null, '', url);
-          }
-          setHost(selected);
-          setWizard(false);
-          setRetry(n => n + 1);
-        }}
-      />
-    );
-  if (api)
-    return (
-      <ApiProvider value={{ ...api, openSetup: () => setWizard(true) }}>
-        <App />
-      </ApiProvider>
-    );
+import { applyHostLanguage } from '../i18n';
+
+function Start({ host }: { host: BrowserHost }) {
+  const [api] = useState(() => createPanelApi(host));
   return (
-    <section className="setup">
-      <Preferences />
-      <h1>roleALPHA Sessions</h1>
-      {error ? (
-        <>
-          <p role="alert">{error}</p>
-          <button className="button" onClick={() => setRetry(n => n + 1)}>
-            {t('startup.tryAgain')}
-          </button>
-          <button className="button" onClick={() => setWizard(true)}>
-            {t('app.openSetupWizard')}
-          </button>
-        </>
-      ) : (
-        <p>{t('app.loadingWorkspace')}</p>
-      )}
-    </section>
+    <ApiProvider value={api}>
+      <MeetingPanel />
+    </ApiProvider>
   );
 }
+
+/** Browser storage for per-user conveniences; null where the browser refuses it. */
+function browserStorage() {
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+}
+
 export type MountHandle = (() => void) & { setTheme: (theme: Theme) => void };
 /**
  * Private React root and stylesheet; no document-wide CSS apart from the brand @font-face rules (see brand.ts),
  * no localhost or vendor API fallback.
  */
-export function mount(element: HTMLElement, hostInput: Omit<BrowserHost, 'settings'>): MountHandle {
-  // Connections come from the workspace (see connections.ts), never from the package.
-  const host: BrowserHost = { ...hostInput, settings: noConnections };
+export function mount(element: HTMLElement, hostInput: Omit<BrowserHost, 'roleAlpha' | 'storage'>): MountHandle {
+  // roleALPHA is found at start (client/browser/connection.ts), never configured in the package.
+  const host: BrowserHost = { ...hostInput, roleAlpha: null, storage: browserStorage() };
+  applyHostLanguage(host.language);
   installFonts(host.fonts);
   const setTheme = (theme: Theme) => element.setAttribute('data-theme', theme);
   setTheme(host.theme ?? 'light');

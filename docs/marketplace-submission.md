@@ -16,7 +16,7 @@ Sources, checked on 3 November 2026: [Publish SharePoint Framework applications 
 | Description names every component and dependency (1170.1, 100.4) | `description` in `scripts/teams-package.ts` |
 | Name without a bare Teams or SharePoint feature word | roleALPHA Sessions (formerly roleALPHA Meetings) |
 | Teams icons 32×32 (outline) and 192×192 (colour) | `spfx/teams/` |
-| AI output labelled, with a way to report harmful content (1140.4.1) | `AiProvenance` and `ReportAiContent` in `client/ui.tsx` |
+| AI output labelled, with a way to report harmful content (1140.4.1) | rALPH's answers and proposals in `client/MeetingPanel.tsx` (`RalphText`), report link `ReportAiContent` in `client/ui.tsx` |
 | Light, dark and contrast themes | `client/style.css` |
 | No known vulnerabilities in runtime dependencies | `npm audit --omit=dev` in the root and in `spfx/` |
 
@@ -53,7 +53,7 @@ Microsoft tests exactly this. Run the acceptance in [customer-deployment.md](cus
 
 ### 3. Privacy statement
 
-`https://rolealpha.com/legal/datenschutz` must cover this app: which Microsoft Graph data it reads (calendar events, online meetings, transcripts), that data stays in the customer's SharePoint site, which AI services a workspace can connect and what is sent to them, and what the roleALPHA connection sends.
+`https://rolealpha.com/legal/datenschutz` must cover this app: which Microsoft Graph data it reads (the meeting chat's name and members' e-mail addresses) and posts (the summary the user sends), that meeting outcomes, notes sent to rALPH and the participants' e-mail addresses go to roleALPHA and are stored there, and that rALPH, in roleALPHA, is the only AI.
 
 ## Partner Center offer
 
@@ -67,18 +67,19 @@ In [Partner Center](https://partner.microsoft.com/dashboard/v2/marketplace-offer
 
 ### Notes for certification (policy 1170.5)
 
-- The full set-up path from [customer-deployment.md](customer-deployment.md), quick start and steps 1–11.
+- The full set-up path from [customer-deployment.md](customer-deployment.md), quick start and steps 1–8.
 - An end-to-end functional document or a demo video link (ads switched off).
-- Test accounts or a configured test tenant that remain valid while the app is listed (1140.4.1) and need no action from roleALPHA before testing: a site owner and a member, a workspace with templates and meetings, a calendar event with a Teams meeting and a transcript, a connected AI service and a roleALPHA test account.
+- Test accounts or a configured test tenant that remain valid while the app is listed (1140.4.1) and need no action from roleALPHA before testing: an organiser and a participant, a Teams meeting with the app added as a tab, and roleALPHA test accounts for both in an organisation with circles.
 - The justification for each requested permission (1170.2):
 
 | Permission (delegated) | Why |
 | --- | --- |
-| Microsoft Graph `Calendars.Read` | Links a meeting to its calendar event and reads its time, subject and attendees (`shared/calendar.ts`). |
-| Microsoft Graph `OnlineMeetings.ReadWrite` | Finds the Teams meeting of an event and, if the organiser chooses, allows transcription or automatic recording (`client/browser/routes/teams.ts`). |
-| Microsoft Graph `OnlineMeetingTranscript.Read.All` | Reads the transcript of a meeting the signed-in user organised, so that outcomes can be prepared from it (`client/browser/routes/meetings.ts`). Delegated: only meetings the user can already access. |
-| roleALPHA `access_as_user` | Signs the user in to roleALPHA with their Microsoft identity for governance questions and drafts (`client/browser/rolealpha.ts`). No API key or secret. |
+| Microsoft Graph `Chat.ReadBasic` | Reads the name and type of the meeting chat the side panel runs in, which names the meeting's scenario in roleALPHA (`client/browser/meeting.ts`). |
+| Microsoft Graph `ChatMember.Read` | Reads the e-mail addresses of the meeting chat's members when the user submits the outcomes, so that the participants can vote in roleALPHA (`client/browser/meeting.ts`). |
+| Microsoft Graph `ChatMessage.Send` | Posts the summary the user wrote and confirmed into the meeting chat, only when the user sends it (`client/browser/meeting.ts`). |
+| roleALPHA `access_as_user` | Signs the user in to roleALPHA with their Microsoft identity for rALPH, the meeting's scenario and its drafts (`client/browser/rolealpha.ts`). No API key or secret. |
 
+- The Copilot agent is a separate Teams app package built per tenant (`scripts/agent-package.ts`), because its OAuth connection needs a per-tenant reference ID; it is not part of the SPFx submission.
 - The embedded Teams package: the `.sppkg` carries its own Teams manifest (`scripts/teams-package.ts`) so that the package installs one Teams app instead of one per web part. Its `validDomains` are the ones SharePoint generates for SPFx Teams apps; ask the review team in advance whether that is accepted.
 - The name: the app was called roleALPHA Meetings up to version 0.1.17 and was renamed because the checklist rejects feature words such as "Meeting" in names.
 

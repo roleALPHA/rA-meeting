@@ -6,7 +6,7 @@ import type { MessageId } from '../../shared/i18n';
 import { allowedDestination, type BrowserHost, type Endpoint } from './host';
 
 /**
- * One way into roleALPHA for all three integrations (governance questions, own drafts, writing drafts).
+ * The one way into roleALPHA: every rALPH question, scenario read and draft goes through it.
  *
  * roleALPHA's MCP endpoint does not accept Microsoft tokens. The signed-in user's delegated Entra token is
  * exchanged for a short-lived roleALPHA token (RFC 8693) at the token endpoint of the SAME origin, and that token
@@ -35,8 +35,8 @@ const issued = new Map<string, Issued>();
 export const tokenEndpoint = (mcpUrl: string) => new URL(TOKEN_PATH, mcpUrl).href;
 
 function target(host: BrowserHost) {
-  const roleAlpha = host.settings.roleAlpha;
-  assert(roleAlpha, 'error.integrations.rolealphaConnected', 503);
+  const roleAlpha = host.roleAlpha;
+  assert(roleAlpha, 'error.rolealpha.notConnected', 503);
   return roleAlpha;
 }
 
@@ -119,7 +119,7 @@ export async function roleAlphaToken(host: BrowserHost, force = false): Promise<
 function mcpFetch(url: string, token: (force: boolean) => Promise<string>): typeof fetch {
   return async (input, init = {}) => {
     const destination = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
-    assert(allowedDestination(destination, url, 'exact'), 'error.integrations.rolealphaConnected', 502);
+    assert(allowedDestination(destination, url, 'exact'), 'error.rolealpha.notConnected', 502);
     const call = async (force: boolean) => {
       const headers = new Headers(init.headers);
       headers.set('Authorization', `Bearer ${await token(force)}`);
@@ -150,31 +150,6 @@ export async function connectRoleAlpha(host: BrowserHost, client: Client) {
   });
 }
 
-/** Finds one advertised tool by name, following pagination without looping. */
-export async function findTool(client: Client, name: string, incompatible: MessageId) {
-  let cursor: string | undefined;
-  const seen = new Set<string>();
-  for (let page = 0; page < 20; page++) {
-    const response = await client.listTools(cursor ? { cursor } : {});
-    const tool = response.tools.find(t => t.name === name);
-    if (tool || !response.nextCursor) return tool;
-    assert(!seen.has(response.nextCursor), incompatible, 502);
-    seen.add(response.nextCursor);
-    cursor = response.nextCursor;
-  }
-  return undefined;
-}
-
-/** The declared input properties of a tool, for contract checks. */
-export const toolProperties = (tool: { inputSchema: { properties?: unknown } } | undefined) =>
-  tool?.inputSchema.properties as Record<string, { type?: string }> | undefined;
-
-/** The tool names roleALPHA offers rA Meetings; setup fills in those its endpoint advertises. */
-export const roleAlphaTools = {
-  createTool: 'create_entity_draft',
-  drafts: 'search_my_drafts',
-  governance: 'ask_ralph',
-} as const;
 const LIST_ORGANISATIONS = 'list_my_organisations';
 
 const organisationList = z.looseObject({
@@ -182,27 +157,10 @@ const organisationList = z.looseObject({
 });
 export type RoleAlphaOrganisation = { uuid: string; name: string };
 export type RoleAlphaSetup =
-  /** roleALPHA does not find the organisations itself yet; the owner enters the tenant ID. */
+  /** An older roleALPHA release that cannot find the organisations itself. */
   | { status: 'tenantRequired' }
   | { status: 'choose'; organisations: RoleAlphaOrganisation[] }
-  | {
-      status: 'connected';
-      organisation: RoleAlphaOrganisation;
-      tools: Partial<Record<keyof typeof roleAlphaTools, string>>;
-    };
-
-/** Every advertised tool name, following pagination without looping. */
-async function toolNames(client: Client) {
-  const names = new Set<string>();
-  let cursor: string | undefined;
-  for (let page = 0; page < 20; page++) {
-    const response = await client.listTools(cursor ? { cursor } : {});
-    for (const tool of response.tools) names.add(tool.name);
-    if (!response.nextCursor || response.nextCursor === cursor) break;
-    cursor = response.nextCursor;
-  }
-  return names;
-}
+  | { status: 'connected'; organisation: RoleAlphaOrganisation };
 
 async function organisations(client: Client): Promise<RoleAlphaOrganisation[]> {
   const result = await client.callTool({ name: LIST_ORGANISATIONS, arguments: {} }, undefined, { timeout: 30_000 });
@@ -233,9 +191,9 @@ async function withClient<T>(url: string, token: (force: boolean) => Promise<str
 }
 
 /**
- * Setting up the connection: exchange without a tenant and let the owner pick the organisation if there are several
- * (rA-app `doc/ENTRA-TAUSCH.md`), then read `tools/list` with a working token to find the tools rA Meetings uses.
- * Nothing is cached or stored; the owner saves the result.
+ * Finding the user's organisation: exchange without a tenant and let the user pick if there are several
+ * (rA-app `doc/ENTRA-TAUSCH.md`), then name the organisation with a working token. Nothing is stored here; the
+ * caller remembers the choice (client/browser/connection.ts).
  */
 export async function setupRoleAlpha(
   host: BrowserHost,
@@ -268,12 +226,8 @@ export async function setupRoleAlpha(
     return work.token;
   };
   return withClient(endpoint.url, token, async client => {
-    const names = await toolNames(client);
-    const tools = Object.fromEntries(Object.entries(roleAlphaTools).filter(([, name]) => names.has(name)));
-    // The name is for the confirmation only; an endpoint without the tool still connects.
-    const named = names.has(LIST_ORGANISATIONS)
-      ? (await organisations(client).catch(() => [])).find(o => o.uuid === chosen)
-      : undefined;
-    return { status: 'connected', organisation: named ?? { uuid: chosen, name: chosen }, tools };
+    // The name is for display only; an endpoint without the tool still connects.
+    const named = (await organisations(client).catch(() => [])).find(o => o.uuid === chosen);
+    return { status: 'connected', organisation: named ?? { uuid: chosen, name: chosen } };
   });
 }

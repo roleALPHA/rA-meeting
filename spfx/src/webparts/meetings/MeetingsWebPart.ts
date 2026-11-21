@@ -1,85 +1,52 @@
 import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
 import { SPHttpClient } from '@microsoft/sp-http';
-import {
-  type IPropertyPaneConfiguration,
-  PropertyPaneTextField,
-  PropertyPaneDropdown,
-} from '@microsoft/sp-property-pane';
+import { type IPropertyPaneConfiguration } from '@microsoft/sp-property-pane';
 import { mount, teamsTheme } from '../../generated/app';
 import { fonts } from '../../generated/fonts';
-interface Properties {
-  workspaceUrl?: string;
-  meetingId?: string;
-}
-export default class MeetingsWebPart extends BaseClientSideWebPart<Properties> {
-  private meetings: { id: string; title: string }[] = [];
+
+/**
+ * roleALPHA Sessions: the meeting side panel in Teams, and the same app on a SharePoint page or as the Teams
+ * personal app. It has no settings of its own: the meeting comes from the Teams context, roleALPHA from the shipped
+ * address or the tenant property (client/browser/connection.ts).
+ */
+export default class MeetingsWebPart extends BaseClientSideWebPart<Record<string, never>> {
   private disposeApp?: ReturnType<typeof mount>;
+
   public render(): void {
+    void this.start();
+  }
+
+  private async start(): Promise<void> {
     this.disposeApp?.();
-    const current = new URL(this.context.pageContext.web.absoluteUrl);
-    const chosen = new URLSearchParams(window.location.search).get('raWorkspace') || this.properties.workspaceUrl;
-    let selected: URL;
-    try {
-      selected = new URL(chosen || current.href);
-    } catch {
-      this.domElement.textContent = 'Select a valid SharePoint site URL.';
-      return;
-    }
-    if (
-      selected.protocol !== 'https:' ||
-      selected.origin !== current.origin ||
-      selected.username ||
-      selected.password ||
-      selected.search ||
-      selected.hash
-    ) {
-      this.domElement.textContent = 'Select a SharePoint workspace in this tenant.';
-      return;
-    }
-    const webUrl = selected.href.replace(/\/$/, '');
-    const sharepointAt = async (target: string, path: string, init: RequestInit = {}): Promise<Response> => {
-      const site = new URL(target);
-      if (
-        site.protocol !== 'https:' ||
-        site.origin !== current.origin ||
-        site.username ||
-        site.password ||
-        site.search ||
-        site.hash ||
-        /[%\\']/.test(site.pathname)
-      )
-        throw new Error('Invalid SharePoint site');
-      if (
-        !/^\/(web(?:[/?(]|$)|sitepages\/pages(?:[(/]|$)|SPSiteManager\/(?:create$|status\?)|search\/query\?)/.test(
-          path,
-        ) ||
-        path.includes('\\') ||
-        path.includes('..')
-      )
-        throw new Error('Invalid SharePoint path');
-      const headers: Record<string, string> = {
-        Accept: 'application/json;odata=minimalmetadata',
-        'odata-version': '3.0',
-      };
-      new Headers(init.headers).forEach((value, key) => {
-        headers[key] = value;
-      });
-      const response = await this.context.spHttpClient.fetch(
-        site.href.replace(/\/$/, '') + '/_api' + path,
-        SPHttpClient.configurations.v1,
-        { method: init.method || 'GET', headers, body: init.body as string | undefined },
-      );
-      const text = await response.text();
-      return new Response(response.status === 204 ? null : text, {
-        status: response.status,
-        headers: response.headers,
-      });
-    };
     const aad = this.context.pageContext.aadInfo;
     if (!aad) {
       this.domElement.textContent = 'Microsoft 365 sign-in is required.';
       return;
     }
+    const webUrl = this.context.pageContext.web.absoluteUrl.replace(/\/$/, '');
+    const teams = this.context.sdks.microsoftTeams?.teamsJs;
+    let teamsContext: { chatId?: string; frameContext?: string } | null = null;
+    let theme: string | undefined;
+    if (teams) {
+      try {
+        const context = await teams.app.getContext();
+        teamsContext = { chatId: context.chat?.id, frameContext: context.page.frameContext };
+        theme = context.app.theme;
+      } catch {
+        /* Without a Teams context the app shows how to open it in a meeting. */
+      }
+    }
+    // The app reads exactly one thing from SharePoint: the tenant property that may name another roleALPHA.
+    const sharepoint = async (path: string): Promise<Response> => {
+      if (path !== "/web/GetStorageEntity('rolealphaSessions')") throw new Error('Invalid SharePoint path');
+      const response = await this.context.spHttpClient.get(webUrl + '/_api' + path, SPHttpClient.configurations.v1, {
+        headers: { Accept: 'application/json;odata=minimalmetadata', 'odata-version': '3.0' },
+      });
+      return new Response(response.status === 204 ? null : await response.text(), {
+        status: response.status,
+        headers: response.headers,
+      });
+    };
     // The sign-in authority for the consent links; the app itself is Microsoft's SPFx app, the same in every tenant.
     const legacy = this.context.pageContext.legacyPageContext as { aadInstanceUrl?: string };
     this.disposeApp = mount(this.domElement, {
@@ -87,69 +54,38 @@ export default class MeetingsWebPart extends BaseClientSideWebPart<Properties> {
       userId: aad.userId.toString(),
       userName: this.context.pageContext.user.displayName,
       webUrl,
-      isTeams: !!this.context.sdks.microsoftTeams,
-      // The Teams personal app carries no workspace address; channel tabs and pages configure one.
-      rememberWorkspace: !!this.context.sdks.microsoftTeams && !chosen,
-      initialMeeting: this.properties.meetingId,
+      isTeams: !!teams,
+      teams: teamsContext,
       language: this.language(),
       fonts,
-      onMeetingsChanged: (meetings: { id: string; title: string }[]): void => {
-        this.meetings = meetings;
-        this.context.propertyPane.refresh();
-      },
+      theme: teamsTheme(theme),
       token: async (resource: string): Promise<string> => {
         const provider = await this.context.aadTokenProviderFactory.getTokenProvider();
         return provider.getToken(resource);
       },
       consent: legacy.aadInstanceUrl ? { authority: legacy.aadInstanceUrl } : undefined,
-      sharepointAt,
-      sharepoint: (path: string, init?: RequestInit): Promise<Response> => sharepointAt(webUrl, path, init),
+      sharepoint,
     });
-    this.followTeamsTheme();
+    teams?.app.registerOnThemeChangeHandler(value => this.disposeApp?.setTheme(teamsTheme(value)));
   }
-  /** Starter templates and meeting defaults follow the SharePoint UI language. */
+
+  /** The interface follows the SharePoint UI language until the user picks another one. */
   private language(): 'de' | 'en' | 'fr' | 'es' {
     const code = this.context.pageContext.cultureInfo.currentUICultureName.slice(0, 2).toLowerCase();
     return code === 'en' || code === 'fr' || code === 'es' ? code : 'de';
   }
-  /** In Teams the app follows the client theme (default, dark, high contrast); SharePoint pages stay light. */
-  private followTeamsTheme(): void {
-    const teams = this.context.sdks.microsoftTeams?.teamsJs;
-    if (!teams) return;
-    const app = this.disposeApp;
-    teams.app
-      .getContext()
-      .then(context => app?.setTheme(teamsTheme(context.app.theme)))
-      .catch(() => {
-        /* Keep the light theme when Teams does not answer. */
-      });
-    teams.app.registerOnThemeChangeHandler(theme => this.disposeApp?.setTheme(teamsTheme(theme)));
-  }
+
   protected onDispose(): void {
     this.disposeApp?.();
   }
+
   protected getPropertyPaneConfiguration(): IPropertyPaneConfiguration {
+    // Teams shows this pane when the tab is added to a meeting; there is nothing to configure, only to save.
     return {
       pages: [
         {
-          header: { description: 'Microsoft 365 · roleALPHA Sessions' },
-          groups: [
-            {
-              groupName: 'Workspace / Arbeitsbereich',
-              groupFields: [
-                PropertyPaneTextField('workspaceUrl', {
-                  label: 'SharePoint site URL (optional; defaults to this site)',
-                }),
-                PropertyPaneDropdown('meetingId', {
-                  label: 'Meeting',
-                  options: [
-                    { key: '', text: 'All meetings / Alle Meetings' },
-                    ...this.meetings.map(m => ({ key: m.id, text: m.title })),
-                  ],
-                }),
-              ],
-            },
-          ],
+          header: { description: 'roleALPHA Sessions · Microsoft Teams meeting side panel' },
+          groups: [],
         },
       ],
     };

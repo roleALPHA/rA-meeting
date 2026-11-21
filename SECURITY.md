@@ -10,22 +10,22 @@ You will hear back within a week. If a report turns out to be valid we will agre
 
 ## What this product is, for the purposes of a report
 
-rA Meetings is a SharePoint Framework package that runs **entirely in the user's browser**, inside the customer's Microsoft 365 tenant. There is no roleALPHA service behind it: data lives in the customer's SharePoint site, and calls go out with the signed-in user's delegated Entra ID tokens. A finding here is a finding in software other organisations install, so the fix has to reach administrators before the details do.
+roleALPHA Sessions is a SharePoint Framework package that runs **entirely in the user's browser**, as a side panel in Teams meetings, plus an optional Microsoft 365 Copilot agent. There is no roleALPHA Sessions server: meeting outcomes are drafts in roleALPHA, and every call goes out with the signed-in user's delegated tokens. A finding here is a finding in software other organisations install, so the fix has to reach administrators before the details do.
 
-The trust model is described in [docs/technical-deployment.md](docs/technical-deployment.md#security-model-and-trust-boundary). The short version: **SharePoint permissions are the only enforced access boundary.**
+The trust model is described in [docs/technical-deployment.md](docs/technical-deployment.md#security-model-and-trust-boundary). The short version: **roleALPHA decides what a user may see and change; the app only proposes.**
 
 ## The boundaries worth attacking
 
-- **Origins and paths.** The web part only talks to SharePoint sites on the current tenant's HTTPS host and only to an allowlist of REST paths. A way to make it send the user's SharePoint session or a token to another origin is serious.
-- **Tokens.** Tokens are requested only for Microsoft Graph and for the configured AI and roleALPHA audiences. A token for one audience reaching another endpoint, or any credential persisted in browser storage or SharePoint, is a finding.
-- **The two outbound interfaces.** The configured roleALPHA MCP endpoint and the configured AI provider are the only external destinations. Content reaching any other destination, or a configuration that can be bent to one, is a finding.
-- **Untrusted content.** Transcripts, meeting content, AI responses and MCP responses are untrusted input. Script execution from them, or an AI or MCP response that makes the app write something the user did not confirm, is a finding.
-- **Transfers to roleALPHA.** Writes require an approved outcome and are never retried automatically. A way to cause an unapproved or duplicate write is a finding.
+- **Destinations.** The app talks only to Microsoft Graph (the meeting chat), the host page's SharePoint REST for one tenant property, and the roleALPHA MCP address with its token endpoint. Content or a token reaching any other destination, or a tenant property that can be bent to one, is a finding.
+- **Tokens.** Tokens are requested only for Microsoft Graph and roleALPHA's audience and held in memory. A token for one audience reaching another endpoint, or any credential persisted in browser storage, is a finding.
+- **Reading versus writing.** Read tools must be annotated read-only. A way to make the app call a writing tool while reading, or create a draft the user did not confirm, is a finding.
+- **Untrusted content.** Meeting notes, rALPH's answers, proposals and roleALPHA results are untrusted input. Script execution from them, a link in the meeting chat summary that leads outside roleALPHA, or a proposal that changes something other than what the user saw, is a finding.
+- **Submission.** The meeting's participants decide who votes where roleALPHA allows it. A way to submit someone else's scenario or to smuggle voters past roleALPHA's checks is a finding (report roleALPHA-side issues the same way).
 
 ## Not vulnerabilities
 
-- A site reader being able to read stored content, including transcripts and historical versions. That is how SharePoint permissions work, and it is documented.
-- A site editor changing stored content directly in SharePoint, bypassing the app's rules. Those rules guide users; they are not security controls, and the consistency check is documented as detection, not prevention.
+- rALPH giving a wrong or unhelpful proposal. Every proposal is shown to people and decided in roleALPHA; report harmful content with the link the app shows.
+- A participant without a roleALPHA account not being able to vote. That is documented.
 - Approved API permissions being usable by other SPFx solutions in the tenant. That is how SharePoint grants them to the shared client principal, and the administrator guide says so.
 
 ## Supported versions

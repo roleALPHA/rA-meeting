@@ -21,14 +21,6 @@ Permissive, no attribution required.
 
 - tslib
 
-## Apache-2.0
-
-Permissive with a patent grant. The NOTICE file, where a package has one, travels in --notices.
-
-- @anthropic-ai/foundry-sdk
-- @anthropic-ai/sdk
-- @opentelemetry/api
-
 ## BSD-2-Clause
 
 Permissive.
@@ -59,11 +51,8 @@ Permissive, functionally MIT.
 
 Permissive. Requires the notice to travel with the code -- see --notices.
 
-- @babel/runtime
 - @hono/node-server
 - @modelcontextprotocol/sdk
-- @noble/hashes
-- @stablelib/base64
 - @types/prop-types
 - @types/react
 - @types/scheduler
@@ -113,7 +102,6 @@ Permissive. Requires the notice to travel with the code -- see --notices.
 - is-promise
 - jose
 - js-tokens
-- json-schema-to-ts
 - json-schema-traverse
 - loose-envify
 - math-intrinsics
@@ -147,10 +135,8 @@ Permissive. Requires the notice to travel with the code -- see --notices.
 - side-channel-list
 - side-channel-map
 - side-channel-weakmap
-- standardwebhooks
 - statuses
 - toidentifier
-- ts-algebra
 - type-is
 - unpipe
 - vary
@@ -163,9 +149,3 @@ Font licence. Fonts may be bundled with software under any terms as long as they
 - @fontsource-variable/ibm-plex-sans
 - @fontsource-variable/manrope
 - @fontsource/ibm-plex-mono
-
-## Unlicense
-
-Public-domain dedication.
-
-- fast-sha256
