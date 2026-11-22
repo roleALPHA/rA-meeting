@@ -91,6 +91,8 @@ test('a circle starts the scenario, rALPH proposes, and adopted proposals become
   assert.equal(ask.args.locale, 'de');
   assert.match(String(ask.args.question), /Lieferantenverträge/);
   assert.match(String(ask.args.context), /Kreis: Finance/);
+  // The circle is named in the question too, or rALPH leaves new entries outside it.
+  assert.match(String(ask.args.question), new RegExp(`in den Kreis des Meetings, Finance \\(${circles[0].uuid}\\)`));
   // The malformed fourth proposal is left out; the rest keep their order.
   assert.deepEqual(
     reply.proposals.map(p => [p.kind, p.kind === 'entity' ? p.action : p.relTypeId]),

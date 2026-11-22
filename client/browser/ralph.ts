@@ -70,13 +70,24 @@ export function meetingContext(language: Language, meetingTitle: string, circle:
   return lines.join('\n');
 }
 
-/** The request for proposals: what was agreed on one agenda item, turned into governance changes. */
-export function proposalQuestion(language: Language, topic: string, note: string) {
+/**
+ * The request for proposals: what was agreed on one agenda item, turned into governance changes. With a circle, new
+ * entries belong in it: rALPH does not link them on its own, because the circle is in the context, not in the note.
+ */
+export function proposalQuestion(language: Language, topic: string, note: string, circle?: Circle | null) {
   const de = language === 'de';
   const head = de
-    ? 'Ein Meeting hat zu einem Agendapunkt Folgendes festgehalten. Schlage die Governance-Änderungen, die daraus folgen, als Entwürfe vor (propose_entity, propose_relationship). Bestehende Einträge änderst du, statt sie doppelt anzulegen. Erfinde nichts, was nicht in der Notiz steht.'
-    : 'A meeting recorded the following for one agenda item. Propose the governance changes that follow from it as drafts (propose_entity, propose_relationship). Change existing entries instead of creating duplicates. Do not invent anything the note does not say.';
-  const parts = [head];
+    ? 'Ein Meeting hat zu einem Agendapunkt Folgendes festgehalten. Schlage die Governance-Änderungen, die daraus folgen, als Entwürfe vor (propose_entity, propose_relationship). Bestehende Einträge änderst du, statt sie doppelt anzulegen.'
+    : 'A meeting recorded the following for one agenda item. Propose the governance changes that follow from it as drafts (propose_entity, propose_relationship). Change existing entries instead of creating duplicates.';
+  const place = !circle
+    ? ''
+    : de
+      ? ` Neue Einträge gehören in den Kreis des Meetings, ${circle.name} (${circle.uuid}): schlage auch die Beziehung dorthin vor.`
+      : ` New entries belong in the meeting's circle, ${circle.name} (${circle.uuid}): propose the relationship to it as well.`;
+  const rest = de
+    ? ' Erfinde sonst nichts, was nicht in der Notiz steht.'
+    : ' Do not invent anything else the note does not say.';
+  const parts = [head + place + rest];
   if (topic) parts.push((de ? 'Agendapunkt: ' : 'Agenda item: ') + topic);
   parts.push((de ? 'Notiz:\n' : 'Note:\n') + note);
   return parts.join('\n\n');

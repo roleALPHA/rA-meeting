@@ -234,7 +234,7 @@ export function createPanelApi(host: BrowserHost): PanelApi {
       needScenario();
       return withRoleAlpha(session =>
         askRalph(session, host, {
-          question: proposalQuestion(language, input.topic, input.note),
+          question: proposalQuestion(language, input.topic, input.note, current?.circle),
           context: meetingContext(language, meeting?.title ?? '', current?.circle),
           language,
           proposals: true,
